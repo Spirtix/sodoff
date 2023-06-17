@@ -112,18 +112,20 @@ public class AuthenticationController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("AuthenticationWebService.asmx/LoginChild")]
-    [DecryptRequest("childUserId")]
+    [DecryptRequest("childUserID")]
     [EncryptResponse]
-    public IActionResult LoginChild([FromForm] string parentApiToken) {
+    public IActionResult LoginChild10([FromForm] string parentApiToken) {
         User? user = ctx.Sessions.FirstOrDefault(e => e.ApiToken == parentApiToken)?.User;
         if (user is null) {
-            // Return empty response
             return Ok();
         }
 
         // Find the viking
-        string? childUserId = Request.Form["parentLoginData"];
-        Viking? viking = ctx.Vikings.FirstOrDefault(e => e.Id == childUserId);
+        string? childUserID = Request.Form["childUserID"];
+        Viking? viking = ctx.Vikings.FirstOrDefault(e => e.Id == childUserID);
+        if (viking is null) {
+            return Ok();
+        }
 
         // Create session
         Session session = new Session {
