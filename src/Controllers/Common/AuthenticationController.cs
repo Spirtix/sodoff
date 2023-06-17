@@ -114,7 +114,7 @@ public class AuthenticationController : Controller {
     [Route("AuthenticationWebService.asmx/LoginChild")]
     [DecryptRequest("childUserID")]
     [EncryptResponse]
-    public IActionResult LoginChild10([FromForm] string parentApiToken) {
+    public IActionResult LoginChild([FromForm] string parentApiToken) {
         User? user = ctx.Sessions.FirstOrDefault(e => e.ApiToken == parentApiToken)?.User;
         if (user is null) {
             return Ok();
