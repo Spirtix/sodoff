@@ -28,7 +28,6 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("V2/ContentWebService.asmx/ValidateName")]
-    [EncryptResponse]
     public IActionResult ValidateName([FromForm] string apiToken,[FromForm] string nameValidationRequest) {
         User? user = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.User;
         if (user is null) {

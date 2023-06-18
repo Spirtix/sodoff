@@ -3,7 +3,7 @@ import mitmproxy.http
 
 
 def routable(path):
-  methods = ['GetRules', 'LoginParent', 'RegisterParent', 'GetSubscriptionInfo', 'GetUserInfoByApiToken', 'IsValidApiToken_V2']
+  methods = ['GetRules', 'LoginParent', 'RegisterParent', 'GetSubscriptionInfo', 'GetUserInfoByApiToken', 'IsValidApiToken_V2', 'ValidateName', 'GetDefaultNameSuggestion', 'RegisterChild', 'GetProfileByUserId', 'LoginChild', 'GetUserProfileByUserID']
   for method in methods:
     if method in path:
       return True
@@ -15,7 +15,7 @@ class LocalRedirect:
     print('Loaded redirect addon')
 
   def request(self, flow: mitmproxy.http.HTTPFlow):
-    if 'common.api.jumpstart.com' in flow.request.pretty_host and routable(flow.request.path):
+    if 'api.jumpstart.com' in flow.request.pretty_host and routable(flow.request.path):
       flow.request.host = "localhost"
       flow.request.scheme = 'http'
       flow.request.port = 5000
