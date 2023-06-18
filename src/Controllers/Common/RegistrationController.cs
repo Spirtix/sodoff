@@ -54,4 +54,42 @@ public class RegistrationController : Controller {
 
         return Ok(response);
     }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("V4/RegistrationWebService.asmx/RegisterChild")]
+    [DecryptRequest("childRegistrationData")]
+    [EncryptResponse]
+    public IActionResult RegisterChild([FromForm] string parentApiToken) {
+        User? user = ctx.Sessions.FirstOrDefault(e => e.ApiToken == parentApiToken)?.User;
+        if (user is null) {
+            return Ok(new RegistrationResult{
+                Status = MembershipUserStatus.InvalidApiToken
+            });
+        }
+
+        // Check if name populated
+        ChildRegistrationData data = XmlUtil.DeserializeXml<ChildRegistrationData>(Request.Form["childRegistrationData"]);
+        if (String.IsNullOrWhiteSpace(data.ChildName)) {
+            return Ok(new RegistrationResult { Status = MembershipUserStatus.ValidationError });
+        }
+
+        // Check if viking exists
+        if (ctx.Vikings.Count(e => e.Name == data.ChildName) > 0) {
+            return Ok(new RegistrationResult { Status = MembershipUserStatus.DuplicateUserName });
+        }
+
+        Viking v = new Viking {
+            Id = Guid.NewGuid().ToString(),
+            Name = data.ChildName,
+            User = user,
+        };
+        ctx.Vikings.Add(v);
+        ctx.SaveChanges();
+
+        return Ok(new RegistrationResult {
+            UserID = v.Id,
+            Status = MembershipUserStatus.Success
+        });
+    }
 }

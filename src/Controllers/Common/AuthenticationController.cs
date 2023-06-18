@@ -42,7 +42,7 @@ public class AuthenticationController : Controller {
             return Ok(new ParentLoginInfo { Status = MembershipUserStatus.InvalidPassword });
         }
 
-        // Create seession
+        // Create session
         Session session = new Session {
             User = user,
             ApiToken = Guid.NewGuid().ToString()
@@ -68,15 +68,33 @@ public class AuthenticationController : Controller {
     [Produces("application/xml")]
     [Route("AuthenticationWebService.asmx/GetUserInfoByApiToken")]
     public IActionResult GetUserInfoByApiToken([FromForm] string apiToken) {
+        // First check if this is a user session
         User? user = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.User;
+        if (user is not null) {
+            return Ok(new UserInfo {
+                UserID = user.Id,
+                Username = user.Username,
+                MultiplayerEnabled = true,
+                Age = 24,
+                OpenChatEnabled = true
+            });
+        }
 
-        return Ok(new UserInfo {
-            UserID = user.Id,
-            Username = user.Username,
-            MultiplayerEnabled = true,
-            Age = 24,
-            OpenChatEnabled = true
-        });
+        // Then check if this is a viking session
+        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
+        if (viking is not null)
+        {
+            return Ok(new UserInfo {
+                UserID = viking.Id,
+                Username = viking.Name,
+                MultiplayerEnabled = true,
+                Age = 24,
+                OpenChatEnabled = true
+            });
+        }
+
+        // Otherwise, this is a bad session, return empty UserInfo
+        return Ok(new UserInfo {});
     }
 
     [HttpPost]
@@ -84,8 +102,40 @@ public class AuthenticationController : Controller {
     [Route("AuthenticationWebService.asmx/IsValidApiToken_V2")]
     public IActionResult IsValidApiToken([FromForm] string apiToken) {
         User? user = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.User;
-        if (user is null)
+        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
+        if (user is null && viking is null)
             return Ok(ApiTokenStatus.TokenNotFound);
         return Ok(ApiTokenStatus.TokenValid);
+    }
+
+    // This is more of a "create session for viking", rather than "login child"
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("AuthenticationWebService.asmx/LoginChild")]
+    [DecryptRequest("childUserID")]
+    [EncryptResponse]
+    public IActionResult LoginChild([FromForm] string parentApiToken) {
+        User? user = ctx.Sessions.FirstOrDefault(e => e.ApiToken == parentApiToken)?.User;
+        if (user is null) {
+            return Ok();
+        }
+
+        // Find the viking
+        string? childUserID = Request.Form["childUserID"];
+        Viking? viking = ctx.Vikings.FirstOrDefault(e => e.Id == childUserID);
+        if (viking is null) {
+            return Ok();
+        }
+
+        // Create session
+        Session session = new Session {
+            Viking = viking,
+            ApiToken = Guid.NewGuid().ToString()
+        };
+        ctx.Sessions.Add(session);
+        ctx.SaveChanges();
+
+        // Return back the api token
+        return Ok(session.ApiToken);
     }
 }
