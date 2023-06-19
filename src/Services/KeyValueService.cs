@@ -10,27 +10,27 @@ public class KeyValueService {
         this.ctx = ctx;
     }
 
-    public Model.PairData? GetPairData(Session session, int pairId) {
+    public Model.PairData? GetPairData(string? UserId, string? VikingId, int pairId) {
         Model.PairData? pair = null;
-        if (session.VikingId != null)
-            pair = ctx.PairData.FirstOrDefault(e => e.PairId == pairId && e.VikingId == session.VikingId);
-        else if (session.UserId != null)
-            pair = ctx.PairData.FirstOrDefault(e => e.PairId == pairId && e.UserId == session.UserId);
+        if (VikingId != null)
+            pair = ctx.PairData.FirstOrDefault(e => e.PairId == pairId && e.VikingId == VikingId);
+        else if (UserId != null)
+            pair = ctx.PairData.FirstOrDefault(e => e.PairId == pairId && e.UserId == UserId);
 
         return pair;
     }
 
-    public bool SetPairData(Session session, int pairId, Schema.PairData schemaData) {
+    public bool SetPairData(string? UserId, string? VikingId, int pairId, Schema.PairData schemaData) {
         // Get the pair
-        Model.PairData? pair = GetPairData(session, pairId);
+        Model.PairData? pair = GetPairData(UserId, VikingId, pairId);
 
         // Create the pair if it doesn't exist
         bool exists = true;
         if (pair is null) {
             pair = new Model.PairData {
                 PairId = pairId,
-                UserId = session.UserId,
-                VikingId = session.VikingId,
+                UserId = UserId,
+                VikingId = VikingId,
                 Pairs = new List<Model.Pair>()
             };
             exists = false;

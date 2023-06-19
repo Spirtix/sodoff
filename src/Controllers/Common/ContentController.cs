@@ -65,7 +65,7 @@ public class ContentController : Controller {
             return null;
 
         // Get the pair
-        Model.PairData? pair = keyValueService.GetPairData(session, pairId);
+        Model.PairData? pair = keyValueService.GetPairData(session.UserId, session.VikingId, pairId);
         
         return keyValueService.ModelToSchema(pair);
     }
@@ -80,8 +80,8 @@ public class ContentController : Controller {
         Session? session = ctx.Sessions.FirstOrDefault(s => s.ApiToken == apiToken);
         if (session is null)
             return Ok(false);
-
-       bool result = keyValueService.SetPairData(session, pairId, schemaData);
+        
+        bool result = keyValueService.SetPairData(session.UserId, session.VikingId, pairId, schemaData);
 
         return Ok(result);
     }
@@ -94,11 +94,7 @@ public class ContentController : Controller {
         if (session is null)
             return null;
 
-        ctx.Entry(session).State = EntityState.Detached; // Don't update the entity
-        session.VikingId = null;
-        session.UserId = userId;
-
-        Model.PairData? pair = keyValueService.GetPairData(session, pairId);
+        Model.PairData? pair = keyValueService.GetPairData(userId, null, pairId);
 
         return keyValueService.ModelToSchema(pair);
     }
@@ -113,11 +109,7 @@ public class ContentController : Controller {
         if (session is null || string.IsNullOrEmpty(userId))
             return Ok(false);
 
-        ctx.Entry(session).State = EntityState.Detached; // Don't update the entity
-        session.VikingId = null;
-        session.UserId = userId;
-
-        bool result = keyValueService.SetPairData(session, pairId, schemaData);
+        bool result = keyValueService.SetPairData(userId, null, pairId, schemaData);
 
         return Ok(result);
     }
