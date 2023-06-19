@@ -1,15 +1,19 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using sodoff.Attributes;
 using sodoff.Model;
 using sodoff.Schema;
+using sodoff.Services;
 using sodoff.Util;
 
 namespace sodoff.Controllers.Common;
 public class ContentController : Controller {
 
     private readonly DBContext ctx;
-    public ContentController(DBContext ctx) {
+    private KeyValueService keyValueService;
+    public ContentController(DBContext ctx, KeyValueService keyValueService) {
         this.ctx = ctx;
+        this.keyValueService = keyValueService;
     }
 
     [HttpPost]
@@ -50,4 +54,72 @@ public class ContentController : Controller {
             return Ok();
         }
     }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("ContentWebService.asmx/GetKeyValuePair")]
+    public Schema.PairData? GetKeyValuePair([FromForm] string apiToken, [FromForm] int pairId) {
+        // Find session by apiToken
+        Session? session = ctx.Sessions.FirstOrDefault(s => s.ApiToken == apiToken);
+        if (session is null)
+            return null;
+
+        // Get the pair
+        Model.PairData? pair = keyValueService.GetPairData(session, pairId);
+        
+        return keyValueService.ModelToSchema(pair);
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("ContentWebService.asmx/SetKeyValuePair")]
+    public IActionResult SetKeyValuePair([FromForm] string apiToken, [FromForm] int pairId, [FromForm] string contentXML) {
+        Schema.PairData schemaData = XmlUtil.DeserializeXml<Schema.PairData>(contentXML);
+
+        // Get the session
+        Session? session = ctx.Sessions.FirstOrDefault(s => s.ApiToken == apiToken);
+        if (session is null)
+            return Ok(false);
+
+       bool result = keyValueService.SetPairData(session, pairId, schemaData);
+
+        return Ok(result);
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("ContentWebService.asmx/GetKeyValuePairByUserID")]
+    public Schema.PairData? GetKeyValuePairByUserID([FromForm] string apiToken, [FromForm] int pairId, [FromForm] string userId) {
+        Session? session = ctx.Sessions.FirstOrDefault(s => s.ApiToken == apiToken);
+        if (session is null)
+            return null;
+
+        ctx.Entry(session).State = EntityState.Detached; // Don't update the entity
+        session.VikingId = null;
+        session.UserId = userId;
+
+        Model.PairData? pair = keyValueService.GetPairData(session, pairId);
+
+        return keyValueService.ModelToSchema(pair);
+    }
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("ContentWebService.asmx/SetKeyValuePairByUserID")]
+    public IActionResult SetKeyValuePairByUserID([FromForm] string apiToken, [FromForm] int pairId, [FromForm] string userId, [FromForm] string contentXML) {
+        Schema.PairData schemaData = XmlUtil.DeserializeXml<Schema.PairData>(contentXML);
+
+        // Get the session
+        Session? session = ctx.Sessions.FirstOrDefault(s => s.ApiToken == apiToken);
+        if (session is null || string.IsNullOrEmpty(userId))
+            return Ok(false);
+
+        ctx.Entry(session).State = EntityState.Detached; // Don't update the entity
+        session.VikingId = null;
+        session.UserId = userId;
+
+        bool result = keyValueService.SetPairData(session, pairId, schemaData);
+
+        return Ok(result);
+    }
+
 }

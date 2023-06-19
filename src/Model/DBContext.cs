@@ -5,6 +5,8 @@ public class DBContext : DbContext {
     public DbSet<User> Users { get; set; } = null!;
     public DbSet<Viking> Vikings { get; set; } = null!;
     public DbSet<Session> Sessions { get; set; } = null!;
+    public DbSet<Pair> Pairs { get; set; } = null!;
+    public DbSet<PairData> PairData { get; set; } = null!;
     public string DbPath { get; }
 
     public DBContext() {
@@ -29,5 +31,16 @@ public class DBContext : DbContext {
         builder.Entity<Viking>().HasMany(u => u.Sessions)
             .WithOne(e => e.Viking);
 
+        builder.Entity<PairData>()
+            .HasKey(e => e.Id);
+
+        builder.Entity<PairData>().HasMany(p => p.Pairs)
+            .WithOne(e => e.PairData);
+
+        builder.Entity<Pair>()
+            .HasOne(p => p.PairData)
+            .WithMany(pd => pd.Pairs)
+            .HasForeignKey(p => p.MasterId)
+            .HasPrincipalKey(e => e.Id);
     }
 }

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc.Formatters;
 using sodoff.Model;
+using sodoff.Services;
 using System.Xml;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,8 +9,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers(options => {
     options.OutputFormatters.Add(new XmlSerializerOutputFormatter(new XmlWriterSettings() { OmitXmlDeclaration = false }));
+    options.OutputFormatters.RemoveType<HttpNoContentOutputFormatter>();
 });
 builder.Services.AddDbContext<DBContext>();
+builder.Services.AddScoped<KeyValueService>();
 
 var app = builder.Build();
 
