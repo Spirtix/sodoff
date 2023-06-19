@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using sodoff.Attributes;
+﻿using System.Reflection;
+using Microsoft.AspNetCore.Mvc;
 using sodoff.Model;
 using sodoff.Schema;
 using sodoff.Util;
@@ -23,34 +23,143 @@ public class ProfileController : Controller {
         }
 
         Viking? viking = ctx.Vikings.FirstOrDefault(e => e.Id == userId);
+        return Ok(GetProfileDataFromViking(viking));
+    }
 
-        return Ok(new UserProfileData {
-            ID = viking.Id,
-            AvatarInfo = new AvatarDisplayData {
-                UserInfo = new UserInfo {
-                    UserID = viking.Id,
-                    ParentUserID = user.Id,
-                    Username = viking.Name,
-                    MultiplayerEnabled = true,
-                    GenderID = Gender.Male,
-                    OpenChatEnabled = true,
-                    CreationDate = DateTime.Now
-                },
-                UserSubscriptionInfo = new UserSubscriptionInfo { SubscriptionTypeID = 2 }, // TODO: figure out what this is
-                Achievements = new UserAchievementInfo[] {
-                    new UserAchievementInfo {
-                        UserID = Guid.Parse(viking.Id),
-                        AchievementPointTotal = 0,
-                        RankID = 1,
-                        PointTypeID = 1, // TODO: what is this?
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("ProfileWebService.asmx/GetUserProfile")]
+    public IActionResult GetUserProfile([FromForm] string apiToken) {
+        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
+        User? user = viking?.User;
+        if (user is null || viking is null) {
+            // TODO: what response for not logged in?
+            return Ok();
+        }
+
+		return Ok(GetProfileDataFromViking(viking));
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("ProfileWebService.asmx/GetDetailedChildList")]
+    public Schema.UserProfileDataList? GetDetailedChildList([FromForm] string parentApiToken) {
+        User? user = ctx.Sessions.FirstOrDefault(e => e.ApiToken == parentApiToken)?.User;
+        if (user is null)
+            // TODO: what response for not logged in?
+            return null;
+
+        if (user.Vikings.Count <= 0)
+            return null;
+
+        UserProfileData[] profiles = user.Vikings.Select(GetProfileDataFromViking).ToArray();
+        return new UserProfileDataList {
+            UserProfiles = profiles
+        };
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("ProfileWebService.asmx/GetQuestions")]
+    public IActionResult GetQuestions([FromForm] string apiToken) {
+		return Ok(new ProfileQuestionData {
+            Lists = new ProfileQuestionList[] {
+                new ProfileQuestionList {
+                    ID = 4,
+                    Questions = new ProfileQuestion[] {
+                        new ProfileQuestion {
+                            CategoryID = 3,
+                            IsActive = "true", // this is a string, which makes me sad
+                            Locale = "en-US",
+                            Ordinal = 1,
+                            ID = 48,
+                            DisplayText = "How Did You Hear About US ?",
+                            Answers = new ProfileAnswer[] {
+                                new ProfileAnswer {
+                                    ID = 320,
+                                    DisplayText = "TV Commercial",
+                                    Locale = "en-US",
+                                    Ordinal = 1,
+                                    QuestionID = 48
+                                },
+                                new ProfileAnswer {
+                                    ID = 324,
+                                    DisplayText = "I bought the RIders Of Berk DVD",
+                                    Locale = "en-US",
+                                    Ordinal = 5,
+                                    QuestionID = 48
+                                },
+                                new ProfileAnswer {
+                                    ID = 325,
+                                    DisplayText = "I bought the Defenders of Berk DVD",
+                                    Locale = "en-US",
+                                    Ordinal = 6,
+                                    QuestionID = 48
+                                }
+                            }
+                        }
                     }
                 }
+            }
+        });
+    }
+
+    private UserProfileData GetProfileDataFromViking(Viking viking) {
+        // Get the avatar data
+        AvatarData avatarData = null;
+        if (viking.AvatarSerialized is not null) {
+            avatarData = XmlUtil.DeserializeXml<AvatarData>(viking.AvatarSerialized);
+        }
+
+        // Build the AvatarDisplayData
+        AvatarDisplayData avatar = new AvatarDisplayData {
+            AvatarData = avatarData,
+            UserInfo = new UserInfo {
+                MembershipID = "ef84db9-59c6-4950-b8ea-bbc1521f899b", // placeholder
+                UserID = viking.Id,
+                ParentUserID = viking.UserId,
+                Username = viking.Name,
+                FirstName = viking.Name,
+                MultiplayerEnabled = true,
+                Locale = "en-US", // placeholder
+                GenderID = Gender.Male, // placeholder
+                OpenChatEnabled = true,
+                IsApproved = true,
+                RegistrationDate = new DateTime(DateTime.Now.Ticks), // placeholder
+                CreationDate = new DateTime(DateTime.Now.Ticks), // placeholder
+                FacebookUserID = 0
             },
+            UserSubscriptionInfo = new UserSubscriptionInfo {
+                UserID = viking.UserId,
+                MembershipID = 130687131, // placeholder
+                SubscriptionTypeID = 2, // placeholder
+                SubscriptionDisplayName = "NonMember", // placeholder
+                SubscriptionPlanID = 41, // placeholder
+                SubscriptionID = -3, // placeholder
+                IsActive = false, // placeholder
+            },
+            RankID = 0, // placeholder
+            AchievementInfo = null, // placeholder
+            Achievements = new UserAchievementInfo[] {
+                new UserAchievementInfo {
+                    UserID = Guid.Parse(viking.Id),
+                    AchievementPointTotal = 0, // placeholder
+                    RankID = 1, // placeholder
+                    PointTypeID = 1 // placeholder
+                }
+            }
+        };
+
+        return new UserProfileData {
+            ID = viking.Id,
+            AvatarInfo = avatar,
             AchievementCount = 0,
             MythieCount = 0,
             AnswerData = new UserAnswerData { UserID = viking.Id },
-            GameCurrency = 0,
-            CashCurrency = 0
-        });
+            GameCurrency = 300,
+            CashCurrency = 75,
+            ActivityCount = 0,
+            UserGradeData = new UserGrade { UserGradeID = 0 }
+        };
     }
 }

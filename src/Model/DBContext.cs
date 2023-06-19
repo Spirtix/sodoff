@@ -31,6 +31,13 @@ public class DBContext : DbContext {
         builder.Entity<Viking>().HasMany(u => u.Sessions)
             .WithOne(e => e.Viking);
 
+        builder.Entity<Viking>().HasOne(s => s.User)
+            .WithMany(e => e.Vikings)
+            .HasForeignKey(e => e.UserId);
+
+        builder.Entity<User>().HasMany(u => u.Vikings)
+            .WithOne(e => e.User);
+
         builder.Entity<PairData>()
             .HasKey(e => e.Id);
 
