@@ -7,4 +7,12 @@ public class XmlUtil {
         using (var reader = new StringReader(xmlString))
             return (T)serializer.Deserialize(reader);
     }
+
+    public static string SerializeXml<T>(T xmlObject) {
+        var serializer = new XmlSerializer(typeof(T));
+        using (var writer = new StringWriter()) {
+            serializer.Serialize(writer, xmlObject);
+            return writer.ToString();
+        }
+    }
 }

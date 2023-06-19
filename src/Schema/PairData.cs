@@ -8,5 +8,3 @@ public class PairData {
     [XmlElement("Pair", IsNullable = true)]
     public Pair[] Pairs { get; set; }
 }
-
-

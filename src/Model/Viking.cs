@@ -11,6 +11,8 @@ public class Viking {
     [Required]
     public string UserId { get; set; } = null!;
 
+    public string? AvatarSerialized { get; set; }
+
     public virtual ICollection<Session> Sessions { get; set; } = null!;
 
     public virtual User User { get; set; } = null!;

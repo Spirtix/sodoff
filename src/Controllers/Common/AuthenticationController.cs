@@ -109,8 +109,6 @@ public class AuthenticationController : Controller {
     }
 
     // This is more of a "create session for viking", rather than "login child"
-    [HttpPost]
-    [Produces("application/xml")]
     [Route("AuthenticationWebService.asmx/LoginChild")]
     [DecryptRequest("childUserID")]
     [EncryptResponse]
