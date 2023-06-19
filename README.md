@@ -25,14 +25,42 @@ Then run School of Dragons.
 ## Status
 
 ### What works
+- register/login
+- create profile
+- list profiles
+- start tutorial
 
-- Registration
-- Login
+### Methods
 
-### What doesn't
+#### Fully implemented
+- GetKeyValuePairByUserID
+- GetKeyValuePair
+- SetKeyValuePairByUserID
+- SetKeyValuePair
+- GetAuthoritativeTime
+- LoginParent
+- GetUserInfoByApiToken
+- IsValidApiToken_V2
+- LoginChild
+- SetAvatar
+- RegisterParent
+- RegisterChild
 
-Everything else
+#### Implemented enough (probably)
+- GetRules (doesn't return any rules, probably doesn't need to)
+- GetQuestions (doesn't return all questions, probably doesn't need to)
+- GetSubscriptionInfo (always returns member, with end date 10 years from now)
 
-## Credits
+#### Partially implemented
+- GetUserProfileByUserID (a lot is still placeholder)
+- GetUserProfile (a lot is still placeholder)
+- GetDetailedChildList (a lot is still placeholder)
+- ValidateName (needs to do pets, groups, default)
+- GetDefaultNameSuggestion (needs to return unused names)
 
-A huge thanks to [BlazingTwist](https://github.com/BlazingTwist) for their [initial work](https://github.com/BlazingTwist/SoD_OfflineServer) and XSD creation.
+#### Currently static or stubbed
+- GetStore (needs to filter out stores from request)
+- GetAllRanks (needs to be populated with what ranks the user has)
+- GetCommonInventory
+- GetAllActivePetsByuserId (always returns null)
+- GetPetAchievementsByUserId (always returns null)
