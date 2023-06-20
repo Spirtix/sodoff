@@ -202,4 +202,55 @@ public class ContentController : Controller {
         // TODO, this is a placeholder
         return Ok("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<ArrayOfRaisedPetData xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:nil=\"true\" />");
     }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("V2/ContentWebService.asmx/GetUserUpcomingMissionState")]
+    public IActionResult GetUserUpcomingMissionState([FromForm] string apiToken, [FromForm] string userId) {
+        Session? session = ctx.Sessions.FirstOrDefault(s => s.ApiToken == apiToken);
+        UserMissionStateResult result = new UserMissionStateResult();
+
+        if (session is null)
+            return Ok(result);
+
+        result.UserID = Guid.Parse(session.VikingId);
+        return Ok(result); // TODO: placeholder, returns no upcoming missions
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("V2/ContentWebService.asmx/GetUserActiveMissionState")]
+    public IActionResult GetUserActiveMissionState([FromForm] string apiToken, [FromForm] string userId) {
+        Session? session = ctx.Sessions.FirstOrDefault(s => s.ApiToken == apiToken);
+        UserMissionStateResult result = new UserMissionStateResult { Missions = new List<Mission>()  };
+        result.Missions.Add(XmlUtil.DeserializeXml<Mission>(XmlUtil.ReadResourceXmlString("tutorialmission")));
+
+        if (session is null)
+            return Ok("error");
+
+        result.UserID = Guid.Parse(session.VikingId);
+        return Ok(result); // TODO: placeholder, returns the tutorial
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("V2/ContentWebService.asmx/GetUserCompletedMissionState")]
+    public IActionResult GetUserCompletedMissionState([FromForm] string apiToken, [FromForm] string userId) {
+        Session? session = ctx.Sessions.FirstOrDefault(s => s.ApiToken == apiToken);
+        UserMissionStateResult result = new UserMissionStateResult();
+
+        if (session is null)
+            return Ok(result);
+
+        result.UserID = Guid.Parse(session.VikingId);
+        return Ok(result); // TODO: placeholder, returns no completed missions
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("V2/ContentWebService.asmx/SetTaskState")]
+    public IActionResult SetTaskState([FromForm] string apiToken, [FromForm] int missionId, [FromForm] int taskId, [FromForm] bool completed) {
+        // TODO
+        return Ok(new SetTaskStateResult { Success = true, Status = SetTaskStateStatus.TaskCanBeDone });
+    }
 }

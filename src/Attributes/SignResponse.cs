@@ -8,7 +8,7 @@ using System.Text;
 namespace sodoff.Attributes;
 public class SignResponse : Attribute, IAsyncResultFilter {
     const string key = "11A0CC5A-C4DF-4A0E-931C-09A44C9966AE";
-    public async Task OnResultExecutionAsync(ResultExecutingContext context, ResultExecutionDelegate next) {
+    public async System.Threading.Tasks.Task OnResultExecutionAsync(ResultExecutingContext context, ResultExecutionDelegate next) {
         var originalBodyStream = context.HttpContext.Response.Body;
 
         try {

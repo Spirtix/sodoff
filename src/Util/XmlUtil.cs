@@ -1,4 +1,5 @@
-﻿using System.Xml.Serialization;
+﻿using System.Reflection;
+using System.Xml.Serialization;
 
 namespace sodoff.Util;
 public class XmlUtil {
@@ -14,5 +15,16 @@ public class XmlUtil {
             serializer.Serialize(writer, xmlObject);
             return writer.ToString();
         }
+    }
+
+    public static string ReadResourceXmlString(string name) {
+        string result = "";
+        var assembly = Assembly.GetExecutingAssembly();
+        string resourceName = assembly.GetManifestResourceNames().Single(str => str.EndsWith($"{name}.xml"));
+
+        using (Stream stream = assembly.GetManifestResourceStream(resourceName))
+        using (StreamReader reader = new StreamReader(stream))
+            result = reader.ReadToEnd();
+        return result;
     }
 }

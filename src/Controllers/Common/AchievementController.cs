@@ -2,6 +2,7 @@
 
 using Microsoft.AspNetCore.Mvc;
 using sodoff.Model;
+using sodoff.Util;
 
 namespace sodoff.Controllers.Common;
 public class AchievementController : Controller {
@@ -24,13 +25,6 @@ public class AchievementController : Controller {
     [Route("AchievementWebService.asmx/GetAllRanks")]
     public IActionResult GetAllRanks() {
         // TODO, this is a placeholder
-        var assembly = Assembly.GetExecutingAssembly();
-        string resourceName = assembly.GetManifestResourceNames().Single(str => str.EndsWith("allranks.xml"));
-
-        using (Stream stream = assembly.GetManifestResourceStream(resourceName))
-        using (StreamReader reader = new StreamReader(stream)) {
-            string result = reader.ReadToEnd();
-            return Ok(result);
-        }
+        return Ok(XmlUtil.ReadResourceXmlString("allranks"));
     }
 }
