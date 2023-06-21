@@ -5,6 +5,7 @@ using sodoff.Model;
 using sodoff.Schema;
 using sodoff.Services;
 using sodoff.Util;
+using System;
 
 namespace sodoff.Controllers.Common;
 public class ContentController : Controller {
@@ -196,11 +197,186 @@ public class ContentController : Controller {
     }
 
     [HttpPost]
-    //[Produces("application/xml")]
+    [Produces("application/xml")]
+    [Route("V2/ContentWebService.asmx/CreatePet")]
+    public IActionResult CreatePet([FromForm] string apiToken, [FromForm] string request) {
+        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
+        if (viking is null) {
+            // TODO: result for invalid session
+            return Ok();
+        }
+
+        RaisedPetRequest raisedPetRequest = XmlUtil.DeserializeXml<RaisedPetRequest>(request);
+        // TODO: Investigate SetAsSelectedPet and UnSelectOtherPets - they don't seem to do anything
+
+        // Update the RaisedPetData with the info
+        String dragonId = Guid.NewGuid().ToString();
+        raisedPetRequest.RaisedPetData.IsPetCreated = true;
+        raisedPetRequest.RaisedPetData.RaisedPetID = 0; // Initially make zero, so the db auto-fills
+        raisedPetRequest.RaisedPetData.EntityID = Guid.Parse(dragonId);
+        raisedPetRequest.RaisedPetData.Name = string.Concat("Dragon-", dragonId.AsSpan(0, 8)); // Start off with a random name
+        raisedPetRequest.RaisedPetData.IsSelected = false; // The api returns false, not sure why
+        raisedPetRequest.RaisedPetData.CreateDate = new DateTime(DateTime.Now.Ticks);
+        raisedPetRequest.RaisedPetData.UpdateDate = new DateTime(DateTime.Now.Ticks);
+
+        // Save the dragon in the db
+        Dragon dragon = new Dragon {
+            EntityId = Guid.NewGuid().ToString(),
+            Viking = viking,
+            RaisedPetData = XmlUtil.SerializeXml(raisedPetRequest.RaisedPetData),
+        };
+        ctx.Dragons.Add(dragon);
+        ctx.SaveChanges();
+
+        // Now update the RaisedPetData with the dragon id
+        raisedPetRequest.RaisedPetData.RaisedPetID = dragon.Id;
+        dragon.RaisedPetData = XmlUtil.SerializeXml(raisedPetRequest.RaisedPetData);
+        ctx.Dragons.Update(dragon);
+        ctx.SaveChanges();
+
+        return Ok(new CreatePetResponse {
+            RaisedPetData = raisedPetRequest.RaisedPetData
+        });
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("v3/ContentWebService.asmx/SetRaisedPet")]
+    public IActionResult SetRaisedPet([FromForm] string apiToken, [FromForm] string request) {
+        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
+        if (viking is null) {
+            // TODO: result for invalid session
+            return Ok();
+        }
+
+        RaisedPetRequest raisedPetRequest = XmlUtil.DeserializeXml<RaisedPetRequest>(request);
+
+        // Find the dragon
+        Dragon? dragon = viking.Dragons.FirstOrDefault(e => e.Id == raisedPetRequest.RaisedPetData.RaisedPetID);
+        if (dragon is null) {
+            return Ok(new SetRaisedPetResponse {
+                RaisedPetSetResult = RaisedPetSetResult.Invalid
+            });
+        }
+
+        dragon.RaisedPetData = XmlUtil.SerializeXml(raisedPetRequest.RaisedPetData);
+        ctx.SaveChanges();
+
+        return Ok(new SetRaisedPetResponse {
+            RaisedPetSetResult = RaisedPetSetResult.Success
+        });
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("ContentWebService.asmx/SetSelectedPet")]
+    public IActionResult SetSelectedPet([FromForm] string apiToken, [FromForm] int raisedPetID) {
+        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
+        if (viking is null) {
+            // TODO: result for invalid session
+            return Ok();
+        }
+
+        // Find the dragon
+        Dragon? dragon = viking.Dragons.FirstOrDefault(e => e.Id == raisedPetID);
+        if (dragon is null) {
+            return Ok(new SetRaisedPetResponse {
+                RaisedPetSetResult = RaisedPetSetResult.Invalid
+            });
+        }
+
+        // Set the dragon as selected
+        RaisedPetData dragonData = XmlUtil.DeserializeXml<RaisedPetData>(dragon.RaisedPetData);
+        dragonData.IsSelected = true;
+        dragon.RaisedPetData = XmlUtil.SerializeXml(dragonData);
+        ctx.SaveChanges();
+
+        // TODO: make all other dragons unselected
+
+        return Ok(new SetRaisedPetResponse {
+            RaisedPetSetResult = RaisedPetSetResult.Success
+        });
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
     [Route("V2/ContentWebService.asmx/GetAllActivePetsByuserId")]
-    public IActionResult GetAllActivePetsByuserId() {
-        // TODO, this is a placeholder
-        return Ok("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<ArrayOfRaisedPetData xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:nil=\"true\" />");
+    [Route("ContentWebService.asmx/GetSelectedRaisedPet")]
+    public RaisedPetData[]? GetAllActivePetsByuserId([FromForm] string apiToken, [FromForm] string userId, [FromForm] bool active, [FromForm] bool isActive) {
+        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
+        if (viking is null) {
+            return null;
+        }
+
+        // GetAllActivePetsByuserId uses active, and GetSelectedRaisedPet uses active, so OR them together
+        bool isActiveSet = active || isActive;
+
+        RaisedPetData[] dragons = viking.Dragons
+            .Where(d => d.RaisedPetData is not null)
+            .Select(d => XmlUtil.DeserializeXml<RaisedPetData>(d.RaisedPetData))
+            .ToArray();
+
+        if (dragons.Length == 0) {
+            return null;
+        }
+        return dragons;
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("ContentWebService.asmx/SetImage")]
+    public bool SetImage([FromForm] string apiToken, [FromForm] string ImageType, [FromForm] int ImageSlot, [FromForm] string contentXML, [FromForm] string imageFile) {
+        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
+        if (viking is null || viking.Dragons is null) {
+            return false;
+        }
+
+        // TODO: the other properties of contentXML
+        ImageData data = XmlUtil.DeserializeXml<ImageData>(contentXML);
+
+        bool newImage = false;
+        Image? image = viking.Images.FirstOrDefault(e => e.ImageType == ImageType && e.ImageSlot == ImageSlot);
+        if (image is null) {
+            image = new Image {
+                ImageType = ImageType,
+                ImageSlot = ImageSlot,
+                Viking = viking,
+            };
+        }
+
+        // Save the image in the db
+        image.ImageData = imageFile;
+        image.TemplateName = data.TemplateName;
+
+        if (newImage) {
+            ctx.Images.Add(image);
+        } else {
+            ctx.Images.Update(image);
+        }
+        ctx.SaveChanges();
+
+        return true;
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("ContentWebService.asmx/GetImage")]
+    public ImageData? GetImage([FromForm] string apiToken, [FromForm] string ImageType, [FromForm] int ImageSlot) {
+        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
+        if (viking is null || viking.Images is null) {
+            return null;
+        }
+
+        Image? image = viking.Images.FirstOrDefault(e => e.ImageType == ImageType && e.ImageSlot == ImageSlot);
+        if (image is null) {
+            return null;
+        }
+
+        // TODO: test this
+        return new ImageData {
+            ImageURL = image.ImageData,
+            TemplateName = image.TemplateName,
+        };
     }
 
     [HttpPost]

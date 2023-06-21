@@ -4,6 +4,8 @@ namespace sodoff.Model;
 public class DBContext : DbContext {
     public DbSet<User> Users { get; set; } = null!;
     public DbSet<Viking> Vikings { get; set; } = null!;
+    public DbSet<Dragon> Dragons { get; set; } = null!;
+    public DbSet<Image> Images { get; set; } = null!;
     public DbSet<Session> Sessions { get; set; } = null!;
     public DbSet<Pair> Pairs { get; set; } = null!;
     public DbSet<PairData> PairData { get; set; } = null!;
@@ -38,6 +40,20 @@ public class DBContext : DbContext {
 
         builder.Entity<User>().HasMany(u => u.Vikings)
             .WithOne(e => e.User);
+
+        builder.Entity<Dragon>().HasOne(s => s.Viking)
+            .WithMany(e => e.Dragons)
+            .HasForeignKey(e => e.VikingId);
+
+        builder.Entity<Viking>().HasMany(u => u.Dragons)
+            .WithOne(e => e.Viking);
+
+        builder.Entity<Image>().HasOne(s => s.Viking)
+            .WithMany(e => e.Images)
+            .HasForeignKey(e => e.VikingId);
+
+        builder.Entity<Viking>().HasMany(u => u.Images)
+            .WithOne(e => e.Viking);
 
         builder.Entity<PairData>()
             .HasKey(e => e.Id);

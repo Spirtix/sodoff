@@ -45,12 +45,17 @@ Then run School of Dragons.
 - SetAvatar
 - RegisterParent
 - RegisterChild
+- SetRaisedPet
+- GetAllActivePetsByuserId
+- SetImage
+- GetImage
 
 #### Implemented enough (probably)
 - GetRules (doesn't return any rules, probably doesn't need to)
 - GetQuestions (doesn't return all questions, probably doesn't need to)
 - GetSubscriptionInfo (always returns member, with end date 10 years from now)
 - SetTaskState (only the TaskCanBeDone status is supported)
+- CreatePet (doesn't handle SetAsSelectedPet/UnSelectOtherPets)
 
 #### Partially implemented
 - GetUserProfileByUserID (a lot is still placeholder)
@@ -64,7 +69,6 @@ Then run School of Dragons.
 - GetStore (needs to filter out stores from request)
 - GetAllRanks (needs to be populated with what ranks the user has)
 - GetCommonInventory
-- GetAllActivePetsByuserId (always returns null)
 - GetPetAchievementsByUserId (always returns null)
 - GetUserUpcomingMissionState (returns no missions)
 - GetUserCompletedMissionState (returns no missions)
