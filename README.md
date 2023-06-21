@@ -50,6 +50,7 @@ Then run School of Dragons.
 - GetRules (doesn't return any rules, probably doesn't need to)
 - GetQuestions (doesn't return all questions, probably doesn't need to)
 - GetSubscriptionInfo (always returns member, with end date 10 years from now)
+- SetTaskState (only the TaskCanBeDone status is supported)
 
 #### Partially implemented
 - GetUserProfileByUserID (a lot is still placeholder)
@@ -57,6 +58,7 @@ Then run School of Dragons.
 - GetDetailedChildList (a lot is still placeholder)
 - ValidateName (needs to do pets, groups, default)
 - GetDefaultNameSuggestion (needs to return unused names)
+- GetUserActiveMissionState (returns the tutorial mission and updates it with progress)
 
 #### Currently static or stubbed
 - GetStore (needs to filter out stores from request)
@@ -64,3 +66,5 @@ Then run School of Dragons.
 - GetCommonInventory
 - GetAllActivePetsByuserId (always returns null)
 - GetPetAchievementsByUserId (always returns null)
+- GetUserUpcomingMissionState (returns no missions)
+- GetUserCompletedMissionState (returns no missions)
