@@ -7,6 +7,7 @@ public class DBContext : DbContext {
     public DbSet<Session> Sessions { get; set; } = null!;
     public DbSet<Pair> Pairs { get; set; } = null!;
     public DbSet<PairData> PairData { get; set; } = null!;
+    public DbSet<TaskStatus> TaskStatuses { get; set; } = null!;
     public string DbPath { get; }
 
     public DBContext() {
@@ -49,5 +50,11 @@ public class DBContext : DbContext {
             .WithMany(pd => pd.Pairs)
             .HasForeignKey(p => p.MasterId)
             .HasPrincipalKey(e => e.Id);
+
+        builder.Entity<TaskStatus>().HasKey(e => new { e.Id, e.VikingId, e.MissionId });
+
+        builder.Entity<TaskStatus>()
+            .HasOne(t => t.Viking)
+            .WithMany();
     }
 }

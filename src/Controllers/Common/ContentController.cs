@@ -223,7 +223,22 @@ public class ContentController : Controller {
     public IActionResult GetUserActiveMissionState([FromForm] string apiToken, [FromForm] string userId) {
         Session? session = ctx.Sessions.FirstOrDefault(s => s.ApiToken == apiToken);
         UserMissionStateResult result = new UserMissionStateResult { Missions = new List<Mission>()  };
-        result.Missions.Add(XmlUtil.DeserializeXml<Mission>(XmlUtil.ReadResourceXmlString("tutorialmission")));
+        Mission tutorial = XmlUtil.DeserializeXml<Mission>(XmlUtil.ReadResourceXmlString("tutorialmission"));
+
+        // Update the mission with completed tasks
+        List<Model.TaskStatus> taskStatuses = ctx.TaskStatuses.Where(e => e.VikingId == userId && e.MissionId == tutorial.MissionID).ToList();
+        foreach (var task in taskStatuses) {
+            RuleItem? rule = tutorial.MissionRule.Criteria.RuleItems.Find(x => x.ID == task.Id);
+            if (rule != null && task.Completed) rule.Complete = 1;
+
+            Schema.Task? t = tutorial.Tasks.Find(x => x.TaskID == task.Id);
+            if (t != null) {
+                if (task.Completed) t.Completed = 1;
+                t.Payload = task.Payload;
+            }
+        }
+
+        result.Missions.Add(tutorial);
 
         if (session is null)
             return Ok("error");
@@ -249,8 +264,28 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("V2/ContentWebService.asmx/SetTaskState")]
-    public IActionResult SetTaskState([FromForm] string apiToken, [FromForm] int missionId, [FromForm] int taskId, [FromForm] bool completed) {
-        // TODO
+    public IActionResult SetTaskState([FromForm] string apiToken, [FromForm] string userId, [FromForm] int missionId, [FromForm] int taskId, [FromForm] bool completed, [FromForm] string xmlPayload) {
+        Session? session = ctx.Sessions.FirstOrDefault(s => s.ApiToken == apiToken);
+        if (session is null || session.VikingId != userId)
+            return Ok(new SetTaskStateResult { Success = false, Status = SetTaskStateStatus.Unknown });
+
+        Model.TaskStatus? status = ctx.TaskStatuses.FirstOrDefault(task => task.Id == taskId && task.MissionId == missionId && task.VikingId == userId);
+
+        if (status is null) {
+            status = new Model.TaskStatus {
+                Id = taskId,
+                MissionId = missionId,
+                VikingId = userId,
+                Payload = xmlPayload,
+                Completed = completed
+            };
+            ctx.TaskStatuses.Add(status);
+        } else {
+            status.Payload = xmlPayload;
+            status.Completed = completed;
+        }
+        ctx.SaveChanges();
+
         return Ok(new SetTaskStateResult { Success = true, Status = SetTaskStateStatus.TaskCanBeDone });
     }
 }
