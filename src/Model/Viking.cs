@@ -20,4 +20,8 @@ public class Viking {
     public virtual ICollection<Dragon> Dragons { get; set; } = null!;
     public virtual ICollection<Image> Images { get; set; } = null!;
     public virtual Dragon? SelectedDragon { get; set; }
+
+    public int InventoryId { get; set; }
+
+    public virtual Inventory Inventory { get; set; } = null!;
 }

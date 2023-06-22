@@ -21,6 +21,8 @@ methods = [
   'GetUserProfile',
   'GetQuestions',
   'GetCommonInventory',
+  'SetCommonInventory',
+  'GetItem',
   'GetAuthoritativeTime',
   'SetAvatar',
   'GetPetAchievementsByUserID',

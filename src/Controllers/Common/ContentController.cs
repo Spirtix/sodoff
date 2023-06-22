@@ -12,9 +12,11 @@ public class ContentController : Controller {
 
     private readonly DBContext ctx;
     private KeyValueService keyValueService;
-    public ContentController(DBContext ctx, KeyValueService keyValueService) {
+    private ItemService itemService;
+    public ContentController(DBContext ctx, KeyValueService keyValueService, ItemService itemService) {
         this.ctx = ctx;
         this.keyValueService = keyValueService;
+        this.itemService = itemService;
     }
 
     [HttpPost]
@@ -118,7 +120,6 @@ public class ContentController : Controller {
 
     [HttpPost]
     [Produces("application/xml")]
-    [Route("V2/ContentWebService.asmx/GetCommonInventory")]
     [Route("ContentWebService.asmx/GetCommonInventory")]
     public IActionResult GetCommonInventory([FromForm] string apiToken) {
         // TODO, this is a placeholder
@@ -129,49 +130,84 @@ public class ContentController : Controller {
         }
 
         return Ok(new CommonInventoryData {
-            UserID = Guid.Parse(user is not null ? user.Id : viking.Id),
-            Item = new UserItemData[] {
-                new UserItemData {
-                    UserInventoryID = 1099730701,
-                    ItemID = 8977,
-                    Quantity = 1,
-                    Uses = -1,
-                    ModifiedDate = DateTime.Now,
-                    Item = new ItemData {
-                        AssetName = "DragonStableINTDO",
-                        Cost = 100000,
-                        CashCost = -1,
-                        CreativePoints = 0,
-                        Description = "Any dragon would be glad to make one of the two available nests home!",
-                        IconName = "RS_DATA/DragonsStablesDO.unity3d/IcoDWDragonStableDefault",
-                        InventoryMax = 1,
-                        ItemID = 8977,
-                        ItemName = "Dragon Stable",
-                        Locked = false,
-                        Stackable = false,
-                        AllowStacking = false,
-                        SaleFactor = 10,
-                        Uses = -1,
-                        Attribute = new ItemAttribute[] {
-                            new ItemAttribute { Key = "2D", Value = "1" },
-                            new ItemAttribute { Key = "NestCount", Value = "2" },
-                            new ItemAttribute { Key = "StableType", Value = "All" }
-                        },
-                        Category = new ItemDataCategory[] {
-                            new ItemDataCategory { CategoryId = 455, CategoryName = "Dragons Dragon Stable", IconName = "8977"}
-
-                        }
-                    }
-                }
-            }
+            UserID = Guid.Parse(user is not null ? user.Id : viking.Id)
         });
     }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("V2/ContentWebService.asmx/GetCommonInventory")]
+    public IActionResult GetCommonInventoryV2([FromForm] string apiToken) {
+        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
+        if (viking is null || viking.Inventory is null) return Ok();
+
+        List<InventoryItem> items = viking.Inventory.InventoryItems.ToList();
+        List<UserItemData> userItemData = new();
+        foreach (InventoryItem item in items) {
+            ItemData itemData = itemService.GetItem(item.ItemId);
+            UserItemData uid = new UserItemData {
+                UserInventoryID = viking.Inventory.Id,
+                ItemID = itemData.ItemID,
+                Quantity = item.Quantity,
+                Uses = itemData.Uses,
+                ModifiedDate = DateTime.Now,
+                Item = itemData
+            };
+            userItemData.Add(uid);
+        }
+
+        CommonInventoryData invData = new CommonInventoryData {
+            UserID = Guid.Parse(viking.UserId),
+            Item = userItemData.ToArray()
+        };
+        return Ok(invData);
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("ContentWebService.asmx/SetCommonInventory")]
+    public IActionResult SetCommonInventory([FromForm] string apiToken, [FromForm] string commonInventoryRequestXml) {
+        CommonInventoryRequest[] request = XmlUtil.DeserializeXml<CommonInventoryRequest[]>(commonInventoryRequestXml);
+        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
+        if (viking is null || viking.Inventory is null) return Ok();
+
+        // Set inventory items
+        List<CommonInventoryResponseItem> responseItems = new();
+        foreach (var req in request) {
+            InventoryItem? item = viking.Inventory.InventoryItems.FirstOrDefault(e => e.ItemId == req.ItemID);
+            if (item is null) item = new InventoryItem { ItemId = (int)req.ItemID, Quantity = 0 };
+            int origQuantity = item.Quantity;
+            item.Quantity = request[0].Quantity;
+            responseItems.Add(new CommonInventoryResponseItem {
+                CommonInventoryID = viking.InventoryId,
+                ItemID = item.ItemId,
+                Quantity = origQuantity
+            });
+            viking.Inventory.InventoryItems.Add(item);
+        }
+
+        CommonInventoryResponse response = new CommonInventoryResponse {
+            Success = true,
+            CommonInventoryIDs = responseItems.ToArray()
+        };
+
+        ctx.SaveChanges();
+        return Ok(response);
+    }
+
 
     [HttpPost]
     [Produces("application/xml")]
     [Route("ContentWebService.asmx/GetAuthoritativeTime")]
     public IActionResult GetAuthoritativeTime() {
         return Ok(new DateTime(DateTime.Now.Ticks));
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("ItemStoreWebService.asmx/GetItem")] // NOTE: Should be in a separate controler, but it's inventory related, so I'll leave it here for now
+    public IActionResult GetItem([FromForm] int itemId) {
+        return Ok(itemService.GetItem(itemId));
     }
 
     [HttpPost]

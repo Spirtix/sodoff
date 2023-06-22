@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using sodoff.Attributes;
 using sodoff.Model;
 using sodoff.Schema;
+using sodoff.Services;
 using sodoff.Util;
 
 namespace sodoff.Controllers.Common;
@@ -10,9 +11,11 @@ namespace sodoff.Controllers.Common;
 public class RegistrationController : Controller {
 
     private readonly DBContext ctx;
+    private ItemService itemService;
 
-    public RegistrationController(DBContext ctx) {
+    public RegistrationController(DBContext ctx, ItemService itemService) {
         this.ctx = ctx;
+        this.itemService = itemService;
     }
 
     [HttpPost]
@@ -79,10 +82,13 @@ public class RegistrationController : Controller {
             return Ok(new RegistrationResult { Status = MembershipUserStatus.DuplicateUserName });
         }
 
+        Inventory inv = new Inventory { InventoryItems = new List<InventoryItem>() };
+        inv.InventoryItems.Add(new InventoryItem { ItemId = 8977, Quantity = 1 }); // DragonStableINTDO - Dragons Dragon Stable
         Viking v = new Viking {
             Id = Guid.NewGuid().ToString(),
             Name = data.ChildName,
             User = user,
+            Inventory = inv
         };
         ctx.Vikings.Add(v);
         ctx.SaveChanges();

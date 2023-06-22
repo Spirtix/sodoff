@@ -10,6 +10,9 @@ public class DBContext : DbContext {
     public DbSet<Pair> Pairs { get; set; } = null!;
     public DbSet<PairData> PairData { get; set; } = null!;
     public DbSet<TaskStatus> TaskStatuses { get; set; } = null!;
+    public DbSet<Inventory> Inventories { get; set; } = null!;
+    public DbSet<InventoryItem> InventoryItems { get; set; } = null!;
+
     public string DbPath { get; }
 
     public DBContext() {
@@ -38,6 +41,10 @@ public class DBContext : DbContext {
             .WithMany(e => e.Vikings)
             .HasForeignKey(e => e.UserId);
 
+        builder.Entity<Viking>().HasOne(v => v.Inventory)
+            .WithOne(e => e.Viking)
+            .HasForeignKey<Viking>(e => e.InventoryId);
+
         builder.Entity<User>().HasMany(u => u.Vikings)
             .WithOne(e => e.User);
 
@@ -63,6 +70,9 @@ public class DBContext : DbContext {
         builder.Entity<Viking>().HasMany(u => u.Images)
             .WithOne(e => e.Viking);
 
+        builder.Entity<Viking>().HasOne(v => v.Inventory)
+            .WithOne(e => e.Viking);
+
         builder.Entity<PairData>()
             .HasKey(e => e.Id);
 
@@ -80,5 +90,22 @@ public class DBContext : DbContext {
         builder.Entity<TaskStatus>()
             .HasOne(t => t.Viking)
             .WithMany();
+
+        builder.Entity<Inventory>().HasKey(e => e.Id);
+
+        builder.Entity<Inventory>()
+            .HasOne(i => i.Viking)
+            .WithOne(e => e.Inventory)
+            .HasForeignKey<Inventory>(e => e.VikingId);
+
+        builder.Entity<Inventory>()
+            .HasMany(i => i.InventoryItems)
+            .WithOne(e => e.Inventory);
+
+        builder.Entity<InventoryItem>()
+            .HasOne(e => e.Inventory)
+            .WithMany(e => e.InventoryItems)
+            .HasForeignKey(e => e.InventoryId);
+        
     }
 }

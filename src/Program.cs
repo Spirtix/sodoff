@@ -13,6 +13,7 @@ builder.Services.AddControllers(options => {
 });
 builder.Services.AddDbContext<DBContext>();
 builder.Services.AddScoped<KeyValueService>();
+builder.Services.AddSingleton<ItemService>();
 
 var app = builder.Build();
 
