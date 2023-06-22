@@ -17,7 +17,6 @@ public class SetTaskStateResult {
     [XmlElement(ElementName = "R")]
     public MissionCompletedResult[] MissionsCompleted;
 
-    // TODO: Not needed now (requires many additional schemas)
-    // [XmlElement(ElementName = "C")]
-    // public CommonInventoryResponse CommonInvRes;
+    [XmlElement(ElementName = "C")]
+    public CommonInventoryResponse CommonInvRes;
 }

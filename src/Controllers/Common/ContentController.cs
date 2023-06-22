@@ -13,10 +13,12 @@ public class ContentController : Controller {
     private readonly DBContext ctx;
     private KeyValueService keyValueService;
     private ItemService itemService;
-    public ContentController(DBContext ctx, KeyValueService keyValueService, ItemService itemService) {
+    private MissionService missionService;
+    public ContentController(DBContext ctx, KeyValueService keyValueService, ItemService itemService, MissionService missionService) {
         this.ctx = ctx;
         this.keyValueService = keyValueService;
         this.itemService = itemService;
+        this.missionService = missionService;
     }
 
     [HttpPost]
@@ -452,26 +454,12 @@ public class ContentController : Controller {
     [Route("V2/ContentWebService.asmx/GetUserActiveMissionState")]
     public IActionResult GetUserActiveMissionState([FromForm] string apiToken, [FromForm] string userId) {
         Session? session = ctx.Sessions.FirstOrDefault(s => s.ApiToken == apiToken);
-        UserMissionStateResult result = new UserMissionStateResult { Missions = new List<Mission>()  };
-        Mission tutorial = XmlUtil.DeserializeXml<Mission>(XmlUtil.ReadResourceXmlString("tutorialmission"));
-
-        // Update the mission with completed tasks
-        List<Model.TaskStatus> taskStatuses = ctx.TaskStatuses.Where(e => e.VikingId == userId && e.MissionId == tutorial.MissionID).ToList();
-        foreach (var task in taskStatuses) {
-            RuleItem? rule = tutorial.MissionRule.Criteria.RuleItems.Find(x => x.ID == task.Id);
-            if (rule != null && task.Completed) rule.Complete = 1;
-
-            Schema.Task? t = tutorial.Tasks.Find(x => x.TaskID == task.Id);
-            if (t != null) {
-                if (task.Completed) t.Completed = 1;
-                t.Payload = task.Payload;
-            }
-        }
-
-        result.Missions.Add(tutorial);
-
         if (session is null)
             return Ok("error");
+        UserMissionStateResult result = new UserMissionStateResult { Missions = new List<Mission>()  };
+        Mission tutorial = missionService.GetMissionWithProgress(999, userId);
+
+        result.Missions.Add(tutorial);
 
         result.UserID = Guid.Parse(session.VikingId);
         return Ok(result); // TODO: placeholder, returns the tutorial
@@ -499,24 +487,17 @@ public class ContentController : Controller {
         if (session is null || session.VikingId != userId)
             return Ok(new SetTaskStateResult { Success = false, Status = SetTaskStateStatus.Unknown });
 
-        Model.TaskStatus? status = ctx.TaskStatuses.FirstOrDefault(task => task.Id == taskId && task.MissionId == missionId && task.VikingId == userId);
+        List<MissionCompletedResult> results = missionService.UpdateTaskProgress(missionId, taskId, userId, completed, xmlPayload);
 
-        if (status is null) {
-            status = new Model.TaskStatus {
-                Id = taskId,
-                MissionId = missionId,
-                VikingId = userId,
-                Payload = xmlPayload,
-                Completed = completed
-            };
-            ctx.TaskStatuses.Add(status);
-        } else {
-            status.Payload = xmlPayload;
-            status.Completed = completed;
-        }
-        ctx.SaveChanges();
+        SetTaskStateResult taskResult = new SetTaskStateResult {
+            Success = true,
+            Status = SetTaskStateStatus.TaskCanBeDone,
+        };
 
-        return Ok(new SetTaskStateResult { Success = true, Status = SetTaskStateStatus.TaskCanBeDone });
+        if (results.Count > 0)
+            taskResult.MissionsCompleted = results.ToArray();
+
+        return Ok(taskResult);
     }
 
     private RaisedPetData GetRaisedPetDataFromDragon (Dragon dragon) {

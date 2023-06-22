@@ -4,6 +4,7 @@
     <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+	<EnableUnsafeBinaryFormatterSerialization>true</EnableUnsafeBinaryFormatterSerialization>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,9 +14,9 @@
 
   <ItemGroup>
     <None Remove="Resources\items.xml" />
+    <None Remove="Resources\missions.xml" />
     <None Remove="Resources\store.xml" />
     <None Remove="Resources\allranks.xml" />
-    <None Remove="Resources\tutorialmission.xml" />
   </ItemGroup>
   <ItemGroup>
     <None Update="Resources\childlist.xml">
@@ -41,7 +42,7 @@
     <EmbeddedResource Include="Resources\items.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
-	  <EmbeddedResource Include="Resources\tutorialmission.xml">
+	  <EmbeddedResource Include="Resources\missions.xml">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </EmbeddedResource>
   </ItemGroup>

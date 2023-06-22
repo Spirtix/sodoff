@@ -3,6 +3,7 @@
 namespace sodoff.Schema;
 
 [XmlRoot(ElementName = "Mission", Namespace = "")]
+[Serializable] // FIXME: Remove serializable once we have a different way of deep copying than BinaryFormatter
 public class Mission {
     [XmlElement(ElementName = "I")]
     public int MissionID;

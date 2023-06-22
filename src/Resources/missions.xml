@@ -1,0 +1,481 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Missions xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<Mission>
+		<RPT>false</RPT>
+		<I>999</I>
+		<N>Quest 1</N>
+		<PID>51</PID>
+		<G>3</G>
+		<P xsi:nil="true" />
+		<S>&lt;Data&gt;&lt;Setup&gt;&lt;Scene&gt;HubFTUEDO&lt;/Scene&gt;&lt;Asset&gt;RS_DATA/PfGrpQMMO_Off.unity3d/PfGrpQMMO_Off&lt;/Asset&gt;&lt;Recursive&gt;false&lt;/Recursive&gt;&lt;Persistent&gt;false&lt;/Persistent&gt;&lt;/Setup&gt;&lt;Setup&gt;&lt;Scene&gt;HubSchoolDO&lt;/Scene&gt;&lt;Asset&gt;RS_DATA/PfGrpFTUE2020T15.unity3d/PfGrpFTUE2020T15&lt;/Asset&gt;&lt;Recursive&gt;false&lt;/Recursive&gt;&lt;Persistent&gt;true&lt;/Persistent&gt;&lt;/Setup&gt;&lt;Repeat&gt;0&lt;/Repeat&gt;&lt;Hidden&gt;0&lt;/Hidden&gt;&lt;Reward&gt;&lt;Asset&gt;PfUiMissionRewardDBDO&lt;/Asset&gt;&lt;/Reward&gt;&lt;Random&gt;0&lt;/Random&gt;&lt;Title&gt;&lt;Text&gt;New Student&lt;/Text&gt;&lt;ID&gt;922059&lt;/ID&gt;&lt;/Title&gt;&lt;/Data&gt;</S>
+		<A>false</A>
+		<C>0</C>
+		<MR>
+			<Prerequisites>
+				<Type>2</Type>
+				<Value>False</Value>
+				<ClientRule>false</ClientRule>
+			</Prerequisites>
+			<Prerequisites>
+				<Type>1</Type>
+				<Value>False</Value>
+				<ClientRule>false</ClientRule>
+			</Prerequisites>
+			<Criteria>
+				<Type>all</Type>
+				<Ordered>true</Ordered>
+				<Min>4</Min>
+				<Repeat>1</Repeat>
+				<RuleItems>
+					<Type>1</Type>
+					<MissionID>999</MissionID>
+					<ID>5930</ID>
+					<Complete>0</Complete>
+				</RuleItems>
+				<RuleItems>
+					<Type>1</Type>
+					<MissionID>999</MissionID>
+					<ID>5931</ID>
+					<Complete>0</Complete>
+				</RuleItems>
+				<RuleItems>
+					<Type>1</Type>
+					<MissionID>999</MissionID>
+					<ID>5932</ID>
+					<Complete>0</Complete>
+				</RuleItems>
+				<RuleItems>
+					<Type>2</Type>
+					<MissionID>999</MissionID>
+					<ID>2880</ID>
+					<Complete>0</Complete>
+				</RuleItems>
+				<RuleItems>
+					<Type>2</Type>
+					<MissionID>999</MissionID>
+					<ID>2881</ID>
+					<Complete>0</Complete>
+				</RuleItems>
+				<RuleItems>
+					<Type>1</Type>
+					<MissionID>999</MissionID>
+					<ID>5935</ID>
+					<Complete>0</Complete>
+				</RuleItems>
+				<RuleItems>
+					<Type>1</Type>
+					<MissionID>999</MissionID>
+					<ID>5936</ID>
+					<Complete>0</Complete>
+				</RuleItems>
+				<RuleItems>
+					<Type>1</Type>
+					<MissionID>999</MissionID>
+					<ID>5937</ID>
+					<Complete>0</Complete>
+				</RuleItems>
+				<RuleItems>
+					<Type>1</Type>
+					<MissionID>999</MissionID>
+					<ID>5938</ID>
+					<Complete>0</Complete>
+				</RuleItems>
+				<RuleItems>
+					<Type>2</Type>
+					<MissionID>999</MissionID>
+					<ID>2882</ID>
+					<Complete>0</Complete>
+				</RuleItems>
+				<RuleItems>
+					<Type>1</Type>
+					<MissionID>999</MissionID>
+					<ID>5940</ID>
+					<Complete>0</Complete>
+				</RuleItems>
+				<RuleItems>
+					<Type>1</Type>
+					<MissionID>999</MissionID>
+					<ID>5941</ID>
+					<Complete>0</Complete>
+				</RuleItems>
+				<RuleItems>
+					<Type>1</Type>
+					<MissionID>999</MissionID>
+					<ID>5942</ID>
+					<Complete>0</Complete>
+				</RuleItems>
+				<RuleItems>
+					<Type>2</Type>
+					<MissionID>999</MissionID>
+					<ID>2883</ID>
+					<Complete>0</Complete>
+				</RuleItems>
+				<RuleItems>
+					<Type>1</Type>
+					<MissionID>999</MissionID>
+					<ID>5944</ID>
+					<Complete>0</Complete>
+				</RuleItems>
+				<RuleItems>
+					<Type>1</Type>
+					<MissionID>999</MissionID>
+					<ID>6619</ID>
+					<Complete>0</Complete>
+				</RuleItems>
+			</Criteria>
+		</MR>
+		<V>8</V>
+		<AID>201320</AID>
+		<AAID>0</AAID>
+		<M>
+			<RPT>false</RPT>
+			<I>2880</I>
+			<N>FTUE2020-04</N>
+			<PID>51</PID>
+			<G>3</G>
+			<P>999</P>
+			<S>&lt;Data&gt;&lt;Repeat&gt;0&lt;/Repeat&gt;&lt;Hidden&gt;0&lt;/Hidden&gt;&lt;Reward&gt;&lt;Asset /&gt;&lt;/Reward&gt;&lt;Random&gt;0&lt;/Random&gt;&lt;Title&gt;&lt;Text&gt;{{Input}} on cage&lt;/Text&gt;&lt;ID&gt;939800&lt;/ID&gt;&lt;/Title&gt;&lt;/Data&gt;</S>
+			<A>false</A>
+			<C>0</C>
+			<MR>
+				<Prerequisites>
+					<Type>2</Type>
+					<Value>False</Value>
+					<ClientRule>false</ClientRule>
+				</Prerequisites>
+				<Prerequisites>
+					<Type>1</Type>
+					<Value>False</Value>
+					<ClientRule>false</ClientRule>
+				</Prerequisites>
+				<Criteria>
+					<Type>all</Type>
+					<Ordered>true</Ordered>
+					<Min>4</Min>
+					<Repeat>1</Repeat>
+					<RuleItems>
+						<Type>1</Type>
+						<MissionID>2880</MissionID>
+						<ID>5933</ID>
+						<Complete>0</Complete>
+					</RuleItems>
+				</Criteria>
+			</MR>
+			<V>8</V>
+			<AID>0</AID>
+			<AAID>0</AAID>
+			<Task>
+				<I>5933</I>
+				<N>FTUE2020-04: Click cage</N>
+				<S>&lt;Data&gt;&lt;Offer&gt;&lt;Type&gt;Popup&lt;/Type&gt;&lt;Asset&gt;PfUiMissionActionDBDO&lt;/Asset&gt;&lt;NPC&gt;PfDWHiccup&lt;/NPC&gt;&lt;Text&gt;Be careful. Even baby dragons can be dangerous when frightened. Step forward and {{input}} on the cage door to open it. After that, just trust your instincts!@@Hey, don't worry, you got this.&lt;/Text&gt;&lt;ID&gt;939805&lt;/ID&gt;&lt;ItemID&gt;0&lt;/ItemID&gt;&lt;Priority&gt;0&lt;/Priority&gt;&lt;/Offer&gt;&lt;End&gt;&lt;Type&gt;CutScene&lt;/Type&gt;&lt;Asset&gt;RS_DATA/PfGrpFTUE2020T04CS.unity3d/PfGrpFTUE2020T04CS&lt;/Asset&gt;&lt;ItemID&gt;0&lt;/ItemID&gt;&lt;Priority&gt;0&lt;/Priority&gt;&lt;/End&gt;&lt;Objective&gt;&lt;Pair&gt;&lt;Key&gt;Scene&lt;/Key&gt;&lt;Value&gt;HubFTUEDO&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;Type&lt;/Key&gt;&lt;Value&gt;DragonSelect&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;NPC&lt;/Key&gt;&lt;Value&gt;PfDWFTUECage&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;Asset&lt;/Key&gt;&lt;Value&gt;RS_DATA/PfUiFTUEDragonSelection.unity3d/PfUiFTUEDragonSelection&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;Time&lt;/Key&gt;&lt;Value&gt;0&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;HideArrow&lt;/Key&gt;&lt;Value&gt;False&lt;/Value&gt;&lt;/Pair&gt;&lt;/Objective&gt;&lt;Type&gt;Meet&lt;/Type&gt;&lt;Title&gt;&lt;Text&gt;{{Input}} on the Dragon Cage&lt;/Text&gt;&lt;ID&gt;939804&lt;/ID&gt;&lt;/Title&gt;&lt;Desc&gt;&lt;Text&gt;{{Input}} on the Dragon Cage&lt;/Text&gt;&lt;ID&gt;939804&lt;/ID&gt;&lt;/Desc&gt;&lt;AutoComplete&gt;&lt;Pair&gt;&lt;Key&gt;RaisedPetStage&lt;/Key&gt;&lt;Value&gt;BABY&lt;/Value&gt;&lt;/Pair&gt;&lt;/AutoComplete&gt;&lt;/Data&gt;</S>
+				<C>0</C>
+			</Task>
+		</M>
+		<M>
+			<RPT>false</RPT>
+			<I>2881</I>
+			<N>FTUE2020-05</N>
+			<PID>51</PID>
+			<G>3</G>
+			<P>999</P>
+			<S>&lt;Data&gt;&lt;Repeat&gt;0&lt;/Repeat&gt;&lt;Hidden&gt;0&lt;/Hidden&gt;&lt;Reward&gt;&lt;Asset&gt;PfUiMissionRewardDBDO&lt;/Asset&gt;&lt;/Reward&gt;&lt;Random&gt;0&lt;/Random&gt;&lt;Title&gt;&lt;Text&gt;Look for a way out of the cave&lt;/Text&gt;&lt;ID&gt;939801&lt;/ID&gt;&lt;/Title&gt;&lt;/Data&gt;</S>
+			<A>false</A>
+			<C>0</C>
+			<MR>
+				<Prerequisites>
+					<Type>2</Type>
+					<Value>False</Value>
+					<ClientRule>false</ClientRule>
+				</Prerequisites>
+				<Prerequisites>
+					<Type>1</Type>
+					<Value>False</Value>
+					<ClientRule>false</ClientRule>
+				</Prerequisites>
+				<Criteria>
+					<Type>all</Type>
+					<Ordered>true</Ordered>
+					<Min>4</Min>
+					<Repeat>1</Repeat>
+					<RuleItems>
+						<Type>1</Type>
+						<MissionID>2881</MissionID>
+						<ID>5934</ID>
+						<Complete>0</Complete>
+					</RuleItems>
+				</Criteria>
+			</MR>
+			<V>8</V>
+			<AID>206555</AID>
+			<AAID>0</AAID>
+			<Task>
+				<I>5934</I>
+				<N>FTUE2020-05: Look for a way out</N>
+				<S>&lt;Data&gt;&lt;Offer&gt;&lt;Type&gt;Popup&lt;/Type&gt;&lt;Asset&gt;PfUiMissionActionDBDO&lt;/Asset&gt;&lt;NPC&gt;PfDWHiccup&lt;/NPC&gt;&lt;Text&gt;Whoa, that was unexpected. Who would have thought you two would bond so quickly?@@You’re a natural at this! Well, mission accomplished!@@Now, what do you say we find a way out of here?&lt;/Text&gt;&lt;ID&gt;939807&lt;/ID&gt;&lt;ItemID&gt;0&lt;/ItemID&gt;&lt;Priority&gt;0&lt;/Priority&gt;&lt;/Offer&gt;&lt;End&gt;&lt;Type&gt;Popup&lt;/Type&gt;&lt;Asset&gt;PfUiMissionActionDBDO&lt;/Asset&gt;&lt;NPC&gt;PfDWHiccup&lt;/NPC&gt;&lt;Text&gt;This must be the heaviest part of the cave-in. With all these boulders piled up, this might be a dead end for us.@@{{dragon name}} is only a Tiny Tooth, so their dragon fire isn't quite enough to shatter that rock. But they are very close, and we can help them to grow.&lt;/Text&gt;&lt;ID&gt;939808&lt;/ID&gt;&lt;ItemID&gt;0&lt;/ItemID&gt;&lt;Priority&gt;0&lt;/Priority&gt;&lt;/End&gt;&lt;Objective&gt;&lt;Pair&gt;&lt;Key&gt;Scene&lt;/Key&gt;&lt;Value&gt;HubFTUEDO&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;Name&lt;/Key&gt;&lt;Value&gt;PfMarker_CaveIn&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;Range&lt;/Key&gt;&lt;Value&gt;8&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;Time&lt;/Key&gt;&lt;Value&gt;0&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;HideArrow&lt;/Key&gt;&lt;Value&gt;False&lt;/Value&gt;&lt;/Pair&gt;&lt;/Objective&gt;&lt;Type&gt;Visit&lt;/Type&gt;&lt;Title&gt;&lt;Text&gt;Look for a way out of the Cave&lt;/Text&gt;&lt;ID&gt;939801&lt;/ID&gt;&lt;/Title&gt;&lt;Desc&gt;&lt;Text&gt;Look for a way out of the Cave&lt;/Text&gt;&lt;ID&gt;939801&lt;/ID&gt;&lt;/Desc&gt;&lt;/Data&gt;</S>
+				<C>0</C>
+			</Task>
+			<AR>
+				<a>1</a>
+				<p>6</p>
+				<i xsi:nil="true" />
+				<t>1</t>
+				<r>8399</r>
+				<ii>10996</ii>
+				<ai>206555</ai>
+				<amulti>true</amulti>
+				<mina>1</mina>
+				<maxa>1</maxa>
+				<d xsi:nil="true" />
+				<cid>0</cid>
+				<ui xsi:nil="true" />
+				<atinfoid>0</atinfoid>
+				<atid>0</atid>
+			</AR>
+		</M>
+		<M>
+			<RPT>false</RPT>
+			<I>2882</I>
+			<N>FTUE2020-10</N>
+			<PID>51</PID>
+			<G>3</G>
+			<P>999</P>
+			<S>&lt;Data&gt;&lt;Repeat&gt;0&lt;/Repeat&gt;&lt;Hidden&gt;0&lt;/Hidden&gt;&lt;Reward&gt;&lt;Asset /&gt;&lt;/Reward&gt;&lt;Random&gt;0&lt;/Random&gt;&lt;Title&gt;&lt;Text&gt;Light fire&lt;/Text&gt;&lt;ID&gt;939802&lt;/ID&gt;&lt;/Title&gt;&lt;/Data&gt;</S>
+			<A>false</A>
+			<C>0</C>
+			<MR>
+				<Prerequisites>
+					<Type>2</Type>
+					<Value>False</Value>
+					<ClientRule>false</ClientRule>
+				</Prerequisites>
+				<Prerequisites>
+					<Type>1</Type>
+					<Value>False</Value>
+					<ClientRule>false</ClientRule>
+				</Prerequisites>
+				<Criteria>
+					<Type>all</Type>
+					<Ordered>true</Ordered>
+					<Min>4</Min>
+					<Repeat>1</Repeat>
+					<RuleItems>
+						<Type>1</Type>
+						<MissionID>2882</MissionID>
+						<ID>5939</ID>
+						<Complete>0</Complete>
+					</RuleItems>
+				</Criteria>
+			</MR>
+			<V>8</V>
+			<AID>206242</AID>
+			<AAID>0</AAID>
+			<Task>
+				<I>5939</I>
+				<N>FTUE2020-10: Light fire</N>
+				<S>&lt;Data&gt;&lt;Setup&gt;&lt;Scene&gt;HubFTUEDO&lt;/Scene&gt;&lt;Asset&gt;PfDWHiccup&lt;/Asset&gt;&lt;Location&gt;PfMarker_HiccupFire&lt;/Location&gt;&lt;Recursive&gt;false&lt;/Recursive&gt;&lt;Persistent&gt;false&lt;/Persistent&gt;&lt;/Setup&gt;&lt;Offer&gt;&lt;Type&gt;Popup&lt;/Type&gt;&lt;Asset&gt;PfUiMissionActionDBDO&lt;/Asset&gt;&lt;NPC&gt;PfDWHiccup&lt;/NPC&gt;&lt;Text&gt;There’s a good spot for a signal fire. Would you ask {{dragon name}} to shoot it?&lt;/Text&gt;&lt;ID&gt;939810&lt;/ID&gt;&lt;ItemID&gt;0&lt;/ItemID&gt;&lt;Priority&gt;0&lt;/Priority&gt;&lt;/Offer&gt;&lt;End&gt;&lt;Type&gt;Popup&lt;/Type&gt;&lt;Asset&gt;PfUiMissionActionDBDO&lt;/Asset&gt;&lt;NPC&gt;PfDWHiccup&lt;/NPC&gt;&lt;Text&gt;That’s not going to be enough; the fire is just too small...&lt;/Text&gt;&lt;ID&gt;939811&lt;/ID&gt;&lt;ItemID&gt;0&lt;/ItemID&gt;&lt;Priority&gt;0&lt;/Priority&gt;&lt;/End&gt;&lt;Objective&gt;&lt;Pair&gt;&lt;Key&gt;Scene&lt;/Key&gt;&lt;Value&gt;HubFTUEDO&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;Location&lt;/Key&gt;&lt;Value&gt;PfMarker_FireSpot&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;Name&lt;/Key&gt;&lt;Value&gt;LightFire&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;ItemName&lt;/Key&gt;&lt;Value&gt;PfDragonLitFirePit&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;Time&lt;/Key&gt;&lt;Value&gt;0&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;HideArrow&lt;/Key&gt;&lt;Value&gt;False&lt;/Value&gt;&lt;/Pair&gt;&lt;/Objective&gt;&lt;Type&gt;Action&lt;/Type&gt;&lt;Title&gt;&lt;Text&gt;{{Input}} on the Fire Pit to Light a Signal Fire&lt;/Text&gt;&lt;ID&gt;942392&lt;/ID&gt;&lt;/Title&gt;&lt;Desc&gt;&lt;Text&gt;{{Input}} on the Fire Pit to Light a Signal Fire&lt;/Text&gt;&lt;ID&gt;942392&lt;/ID&gt;&lt;/Desc&gt;&lt;/Data&gt;</S>
+				<C>0</C>
+			</Task>
+		</M>
+		<M>
+			<RPT>false</RPT>
+			<I>2883</I>
+			<N>FTUE2020-14</N>
+			<PID>51</PID>
+			<G>3</G>
+			<P>999</P>
+			<S>&lt;Data&gt;&lt;Repeat&gt;0&lt;/Repeat&gt;&lt;Hidden&gt;0&lt;/Hidden&gt;&lt;Reward&gt;&lt;Asset&gt;PfUiMissionRewardDBDO&lt;/Asset&gt;&lt;/Reward&gt;&lt;Random&gt;0&lt;/Random&gt;&lt;Title&gt;&lt;Text&gt;Follow Hiccup&lt;/Text&gt;&lt;ID&gt;939803&lt;/ID&gt;&lt;/Title&gt;&lt;/Data&gt;</S>
+			<A>false</A>
+			<C>0</C>
+			<MR>
+				<Prerequisites>
+					<Type>2</Type>
+					<Value>False</Value>
+					<ClientRule>false</ClientRule>
+				</Prerequisites>
+				<Prerequisites>
+					<Type>1</Type>
+					<Value>False</Value>
+					<ClientRule>false</ClientRule>
+				</Prerequisites>
+				<Criteria>
+					<Type>all</Type>
+					<Ordered>true</Ordered>
+					<Min>4</Min>
+					<Repeat>1</Repeat>
+					<RuleItems>
+						<Type>1</Type>
+						<MissionID>2883</MissionID>
+						<ID>5943</ID>
+						<Complete>0</Complete>
+					</RuleItems>
+				</Criteria>
+			</MR>
+			<V>8</V>
+			<AID>207960</AID>
+			<AAID>0</AAID>
+			<Task>
+				<I>5943</I>
+				<N>FTUE2020-14: Follow Hiccup</N>
+				<S>&lt;Data&gt;&lt;Setup&gt;&lt;Scene&gt;HubFTUEDO&lt;/Scene&gt;&lt;Asset&gt;PfDWToothlessAlphaHiccupRiderPortal&lt;/Asset&gt;&lt;Location&gt;PfMarker_HiccupAndToothless&lt;/Location&gt;&lt;Recursive&gt;false&lt;/Recursive&gt;&lt;Persistent&gt;false&lt;/Persistent&gt;&lt;/Setup&gt;&lt;Offer&gt;&lt;Type&gt;Popup&lt;/Type&gt;&lt;Asset&gt;PfUiMissionActionDBDO&lt;/Asset&gt;&lt;NPC&gt;PfDWHiccup&lt;/NPC&gt;&lt;Text&gt;Now that you've got the hang of this, follow me and Toothless! Come on, I want to show you something cool!&lt;/Text&gt;&lt;ID&gt;939813&lt;/ID&gt;&lt;ItemID&gt;0&lt;/ItemID&gt;&lt;Priority&gt;0&lt;/Priority&gt;&lt;/Offer&gt;&lt;Objective&gt;&lt;Pair&gt;&lt;Key&gt;Scene&lt;/Key&gt;&lt;Value&gt;HubSchoolDO&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;Location&lt;/Key&gt;&lt;Value&gt;PfMarker_LoadSchool&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;Time&lt;/Key&gt;&lt;Value&gt;0&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;HideArrow&lt;/Key&gt;&lt;Value&gt;False&lt;/Value&gt;&lt;/Pair&gt;&lt;/Objective&gt;&lt;Type&gt;Visit&lt;/Type&gt;&lt;Title&gt;&lt;Text&gt;Follow Hiccup and Toothless&lt;/Text&gt;&lt;ID&gt;942393&lt;/ID&gt;&lt;/Title&gt;&lt;Desc&gt;&lt;Text&gt;Follow Hiccup and Toothless&lt;/Text&gt;&lt;ID&gt;942393&lt;/ID&gt;&lt;/Desc&gt;&lt;/Data&gt;</S>
+				<C>0</C>
+			</Task>
+			<AR>
+				<a>1</a>
+				<p>6</p>
+				<i xsi:nil="true" />
+				<t>1</t>
+				<r>10897</r>
+				<ii>20882</ii>
+				<ai>207960</ai>
+				<amulti>true</amulti>
+				<mina>1</mina>
+				<maxa>1</maxa>
+				<d xsi:nil="true" />
+				<cid>0</cid>
+				<ui xsi:nil="true" />
+				<atinfoid>0</atinfoid>
+				<atid>0</atid>
+			</AR>
+		</M>
+		<Task>
+			<I>5930</I>
+			<N>FTUE2020-01: Talk to Hiccup</N>
+			<S>&lt;Data&gt;&lt;Offer&gt;&lt;Type&gt;Popup&lt;/Type&gt;&lt;Asset&gt;PfUiMissionActionDBDO&lt;/Asset&gt;&lt;NPC&gt;PfDWHiccup&lt;/NPC&gt;&lt;Text&gt;Hey, are you all right, {{Name}}? That cave collapse was no joke. Give me a hand, will you? Use the movement controls to walk here and {{input}} on me.&lt;/Text&gt;&lt;ID&gt;939815&lt;/ID&gt;&lt;ItemID&gt;0&lt;/ItemID&gt;&lt;Priority&gt;0&lt;/Priority&gt;&lt;/Offer&gt;&lt;End&gt;&lt;Type&gt;Popup&lt;/Type&gt;&lt;Asset&gt;PfUiMissionActionDBDO&lt;/Asset&gt;&lt;NPC&gt;PfDWHiccup&lt;/NPC&gt;&lt;Text&gt;I'm glad you're okay. I guess our investigation about potential Dragon Hunters lurking in these caves paid off, it seems they had a camp right under our feet this entire time.&lt;/Text&gt;&lt;ID&gt;939816&lt;/ID&gt;&lt;ItemID&gt;0&lt;/ItemID&gt;&lt;Priority&gt;0&lt;/Priority&gt;&lt;/End&gt;&lt;Objective&gt;&lt;Pair&gt;&lt;Key&gt;Scene&lt;/Key&gt;&lt;Value&gt;HubFTUEDO&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;NPC&lt;/Key&gt;&lt;Value&gt;PfDWHiccup&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;Time&lt;/Key&gt;&lt;Value&gt;0&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;HideArrow&lt;/Key&gt;&lt;Value&gt;False&lt;/Value&gt;&lt;/Pair&gt;&lt;/Objective&gt;&lt;Type&gt;Meet&lt;/Type&gt;&lt;Title&gt;&lt;Text&gt;Walk forward and {{input}} on Hiccup&lt;/Text&gt;&lt;ID&gt;929442&lt;/ID&gt;&lt;/Title&gt;&lt;/Data&gt;</S>
+			<C>0</C>
+		</Task>
+		<Task>
+			<I>5931</I>
+			<N>FTUE2020-02: Find axe</N>
+			<S>&lt;Data&gt;&lt;Offer&gt;&lt;Type&gt;Popup&lt;/Type&gt;&lt;Asset&gt;PfUiMissionActionDBDO&lt;/Asset&gt;&lt;NPC&gt;PfDWHiccup&lt;/NPC&gt;&lt;Text&gt;I’d like to meet up with Toothless again, but there are a few cages here that might have dragons in them.@@We can’t just leave them. I’ll start opening this other one, do you think you could handle the one on your right?@@That lock looks rusted, though... Maybe there’s an axe somewhere around here...&lt;/Text&gt;&lt;ID&gt;939818&lt;/ID&gt;&lt;ItemID&gt;0&lt;/ItemID&gt;&lt;Priority&gt;0&lt;/Priority&gt;&lt;/Offer&gt;&lt;Objective&gt;&lt;Pair&gt;&lt;Key&gt;Scene&lt;/Key&gt;&lt;Value&gt;HubFTUEDO&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;Name&lt;/Key&gt;&lt;Value&gt;PfCollectDWAxe&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;Quantity&lt;/Key&gt;&lt;Value&gt;1&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;Time&lt;/Key&gt;&lt;Value&gt;0&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;HideArrow&lt;/Key&gt;&lt;Value&gt;False&lt;/Value&gt;&lt;/Pair&gt;&lt;/Objective&gt;&lt;Type&gt;Collect&lt;/Type&gt;&lt;Title&gt;&lt;Text&gt;Find the Axe in the Cave&lt;/Text&gt;&lt;ID&gt;939817&lt;/ID&gt;&lt;/Title&gt;&lt;Desc&gt;&lt;Text&gt;Find the Axe in the Cave&lt;/Text&gt;&lt;ID&gt;939817&lt;/ID&gt;&lt;/Desc&gt;&lt;/Data&gt;</S>
+			<C>0</C>
+		</Task>
+		<Task>
+			<I>5932</I>
+			<N>FTUE2020-03: Chop padlock</N>
+			<S>&lt;Data&gt;&lt;Offer&gt;&lt;Type&gt;Popup&lt;/Type&gt;&lt;Asset&gt;PfUiMissionActionDBDO&lt;/Asset&gt;&lt;NPC&gt;PfDWHiccup&lt;/NPC&gt;&lt;Text&gt;Perfect! That axe looks strong enough. I'm sure it can chop the padlock off the dragon cage without a problem!&lt;/Text&gt;&lt;ID&gt;939820&lt;/ID&gt;&lt;ItemID&gt;0&lt;/ItemID&gt;&lt;Priority&gt;0&lt;/Priority&gt;&lt;/Offer&gt;&lt;End&gt;&lt;Type&gt;Popup&lt;/Type&gt;&lt;Asset&gt;PfUiMissionActionDBDO&lt;/Asset&gt;&lt;NPC&gt;PfDWHiccup&lt;/NPC&gt;&lt;Text&gt;All right, that did the trick!&lt;/Text&gt;&lt;ID&gt;939821&lt;/ID&gt;&lt;ItemID&gt;0&lt;/ItemID&gt;&lt;Priority&gt;0&lt;/Priority&gt;&lt;/End&gt;&lt;Objective&gt;&lt;Pair&gt;&lt;Key&gt;Scene&lt;/Key&gt;&lt;Value&gt;HubFTUEDO&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;Location&lt;/Key&gt;&lt;Value&gt;ChoppableCage&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;Name&lt;/Key&gt;&lt;Value&gt;Chop&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;ItemName&lt;/Key&gt;&lt;Value&gt;PfDragonCageChop&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;Time&lt;/Key&gt;&lt;Value&gt;0&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;HideArrow&lt;/Key&gt;&lt;Value&gt;False&lt;/Value&gt;&lt;/Pair&gt;&lt;/Objective&gt;&lt;Type&gt;Action&lt;/Type&gt;&lt;Title&gt;&lt;Text&gt;Chop the Padlock on the Dragon Cage&lt;/Text&gt;&lt;ID&gt;939819&lt;/ID&gt;&lt;/Title&gt;&lt;Desc&gt;&lt;Text&gt;Chop the Padlock on the Dragon Cage&lt;/Text&gt;&lt;ID&gt;939819&lt;/ID&gt;&lt;/Desc&gt;&lt;/Data&gt;</S>
+			<C>0</C>
+		</Task>
+		<Task>
+			<I>5935</I>
+			<N>FTUE2020-06: Age Up</N>
+			<S>&lt;Data&gt;&lt;Setup&gt;&lt;Scene&gt;HubFTUEDO&lt;/Scene&gt;&lt;Asset&gt;PfDWHiccup&lt;/Asset&gt;&lt;Location&gt;PfMarker_HiccupCaveIn&lt;/Location&gt;&lt;Recursive&gt;false&lt;/Recursive&gt;&lt;Persistent&gt;false&lt;/Persistent&gt;&lt;/Setup&gt;&lt;Offer&gt;&lt;Type&gt;Popup&lt;/Type&gt;&lt;Asset&gt;PfUiMissionActionDBDO&lt;/Asset&gt;&lt;NPC&gt;PfDWHiccup&lt;/NPC&gt;&lt;Text&gt;This will allow us to take a dragon straight to Broad Wing Stage! I'll show you how.&lt;/Text&gt;&lt;ID&gt;939823&lt;/ID&gt;&lt;ItemID&gt;0&lt;/ItemID&gt;&lt;Priority&gt;0&lt;/Priority&gt;&lt;/Offer&gt;&lt;Objective&gt;&lt;Pair&gt;&lt;Key&gt;Scene&lt;/Key&gt;&lt;Value&gt;HubFTUEDO&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;Name&lt;/Key&gt;&lt;Value&gt;AgeUp&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;Time&lt;/Key&gt;&lt;Value&gt;0&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;HideArrow&lt;/Key&gt;&lt;Value&gt;False&lt;/Value&gt;&lt;/Pair&gt;&lt;/Objective&gt;&lt;Type&gt;Action&lt;/Type&gt;&lt;Title&gt;&lt;Text&gt;Age Up {{dragon name}}&lt;/Text&gt;&lt;ID&gt;942394&lt;/ID&gt;&lt;/Title&gt;&lt;Desc&gt;&lt;Text&gt;Age Up {{dragon name}}&lt;/Text&gt;&lt;ID&gt;942394&lt;/ID&gt;&lt;/Desc&gt;&lt;AutoComplete&gt;&lt;Pair&gt;&lt;Key&gt;RaisedPetStage&lt;/Key&gt;&lt;Value&gt;ADULT&lt;/Value&gt;&lt;/Pair&gt;&lt;/AutoComplete&gt;&lt;/Data&gt;</S>
+			<C>0</C>
+		</Task>
+		<Task>
+			<I>5936</I>
+			<N>FTUE2020-07: Shoot</N>
+			<S>&lt;Data&gt;&lt;Setup&gt;&lt;Scene&gt;HubFTUEDO&lt;/Scene&gt;&lt;Asset&gt;PfDWHiccup&lt;/Asset&gt;&lt;Location&gt;PfMarker_HiccupCaveIn&lt;/Location&gt;&lt;Recursive&gt;false&lt;/Recursive&gt;&lt;Persistent&gt;false&lt;/Persistent&gt;&lt;/Setup&gt;&lt;Offer&gt;&lt;Type&gt;Popup&lt;/Type&gt;&lt;Asset&gt;PfUiMissionActionDBDO&lt;/Asset&gt;&lt;NPC&gt;PfDWHiccup&lt;/NPC&gt;&lt;Text&gt;All right, let's try this now! Look for a weak spot in the rocks, then have {{dragon name}} shoot some fireballs!@@{{Input}} on the cave-in and select the [c][3eebff]Fire[/c][ffffff] button.&lt;/Text&gt;&lt;ID&gt;939825&lt;/ID&gt;&lt;ItemID&gt;0&lt;/ItemID&gt;&lt;Priority&gt;0&lt;/Priority&gt;&lt;/Offer&gt;&lt;Objective&gt;&lt;Pair&gt;&lt;Key&gt;Scene&lt;/Key&gt;&lt;Value&gt;HubFTUEDO&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;Location&lt;/Key&gt;&lt;Value&gt;PfCaveInTarget&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;Name&lt;/Key&gt;&lt;Value&gt;LightFire&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;ItemName&lt;/Key&gt;&lt;Value&gt;PfCaveInTarget&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;Time&lt;/Key&gt;&lt;Value&gt;0&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;HideArrow&lt;/Key&gt;&lt;Value&gt;False&lt;/Value&gt;&lt;/Pair&gt;&lt;/Objective&gt;&lt;Type&gt;Action&lt;/Type&gt;&lt;Title&gt;&lt;Text&gt;{{Input}} on the Cave-In&lt;/Text&gt;&lt;ID&gt;942395&lt;/ID&gt;&lt;/Title&gt;&lt;Desc&gt;&lt;Text&gt;{{Input}} on the Cave-In&lt;/Text&gt;&lt;ID&gt;942395&lt;/ID&gt;&lt;/Desc&gt;&lt;/Data&gt;</S>
+			<C>0</C>
+		</Task>
+		<Task>
+			<I>5937</I>
+			<N>FTUE2020-08: Collect Box</N>
+			<S>&lt;Data&gt;&lt;Setup&gt;&lt;Scene&gt;HubFTUEDO&lt;/Scene&gt;&lt;Asset&gt;PfDWHiccup&lt;/Asset&gt;&lt;Location&gt;PfMarker_HiccupCaveIn&lt;/Location&gt;&lt;Recursive&gt;false&lt;/Recursive&gt;&lt;Persistent&gt;false&lt;/Persistent&gt;&lt;/Setup&gt;&lt;Offer&gt;&lt;Type&gt;Popup&lt;/Type&gt;&lt;Asset&gt;PfUiMissionActionDBDO&lt;/Asset&gt;&lt;NPC&gt;PfDWHiccup&lt;/NPC&gt;&lt;Text&gt;That was perfect!&lt;/Text&gt;&lt;ID&gt;939828&lt;/ID&gt;&lt;ItemID&gt;0&lt;/ItemID&gt;&lt;Priority&gt;0&lt;/Priority&gt;&lt;/Offer&gt;&lt;Offer&gt;&lt;Type&gt;Popup&lt;/Type&gt;&lt;Asset&gt;PfUiMissionActionDBDO&lt;/Asset&gt;&lt;NPC&gt;PfDWHiccup&lt;/NPC&gt;&lt;Text&gt;Wait... What's that? Is that a chest?&lt;/Text&gt;&lt;ID&gt;939829&lt;/ID&gt;&lt;ItemID&gt;0&lt;/ItemID&gt;&lt;Priority&gt;1&lt;/Priority&gt;&lt;/Offer&gt;&lt;End&gt;&lt;Type&gt;Popup&lt;/Type&gt;&lt;Asset&gt;PfUiMissionActionDBDO&lt;/Asset&gt;&lt;NPC&gt;PfDWHiccup&lt;/NPC&gt;&lt;Text&gt;A box of dragon eggs...@@Those Dragon Hunters are getting bolder than we expected.&lt;/Text&gt;&lt;ID&gt;941113&lt;/ID&gt;&lt;ItemID&gt;0&lt;/ItemID&gt;&lt;Priority&gt;0&lt;/Priority&gt;&lt;/End&gt;&lt;Objective&gt;&lt;Pair&gt;&lt;Key&gt;Scene&lt;/Key&gt;&lt;Value&gt;HubFTUEDO&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;Location&lt;/Key&gt;&lt;Value&gt;PfCollectDWOpenArcticChest&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;Name&lt;/Key&gt;&lt;Value&gt;PfCollectDWOpenArcticChest&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;Quantity&lt;/Key&gt;&lt;Value&gt;1&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;Time&lt;/Key&gt;&lt;Value&gt;0&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;HideArrow&lt;/Key&gt;&lt;Value&gt;False&lt;/Value&gt;&lt;/Pair&gt;&lt;/Objective&gt;&lt;Type&gt;Collect&lt;/Type&gt;&lt;Title&gt;&lt;Text&gt;Pick up the Chest&lt;/Text&gt;&lt;ID&gt;939827&lt;/ID&gt;&lt;/Title&gt;&lt;Desc&gt;&lt;Text&gt;Pick up the Chest&lt;/Text&gt;&lt;ID&gt;939827&lt;/ID&gt;&lt;/Desc&gt;&lt;/Data&gt;</S>
+			<C>0</C>
+		</Task>
+		<Task>
+			<I>5938</I>
+			<N>FTUE2020-09: Exit cave</N>
+			<S>&lt;Data&gt;&lt;Setup&gt;&lt;Scene&gt;HubFTUEDO&lt;/Scene&gt;&lt;Asset&gt;PfDWHiccup&lt;/Asset&gt;&lt;Location&gt;PfMarker_HiccupChest&lt;/Location&gt;&lt;Recursive&gt;false&lt;/Recursive&gt;&lt;Persistent&gt;false&lt;/Persistent&gt;&lt;/Setup&gt;&lt;Offer&gt;&lt;Type&gt;Popup&lt;/Type&gt;&lt;Asset&gt;PfUiMissionActionDBDO&lt;/Asset&gt;&lt;NPC&gt;PfDWHiccup&lt;/NPC&gt;&lt;Text&gt;Well, one problem at a time. {{Name}}, can you follow the path of the cave and figure out a way to set up a signal? @@My friends should be nearby, they'll be able to help us out!&lt;/Text&gt;&lt;ID&gt;939831&lt;/ID&gt;&lt;ItemID&gt;0&lt;/ItemID&gt;&lt;Priority&gt;0&lt;/Priority&gt;&lt;/Offer&gt;&lt;Objective&gt;&lt;Pair&gt;&lt;Key&gt;Scene&lt;/Key&gt;&lt;Value&gt;HubFTUEDO&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;Name&lt;/Key&gt;&lt;Value&gt;PfMarker_CaveExit&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;Range&lt;/Key&gt;&lt;Value&gt;3&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;Time&lt;/Key&gt;&lt;Value&gt;0&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;HideArrow&lt;/Key&gt;&lt;Value&gt;False&lt;/Value&gt;&lt;/Pair&gt;&lt;/Objective&gt;&lt;Type&gt;Visit&lt;/Type&gt;&lt;Title&gt;&lt;Text&gt;Leave the Cave&lt;/Text&gt;&lt;ID&gt;939830&lt;/ID&gt;&lt;/Title&gt;&lt;Desc&gt;&lt;Text&gt;Leave the Cave&lt;/Text&gt;&lt;ID&gt;939830&lt;/ID&gt;&lt;/Desc&gt;&lt;/Data&gt;</S>
+			<C>0</C>
+		</Task>
+		<Task>
+			<I>5940</I>
+			<N>FTUE2020-11: Collect Leaves</N>
+			<S>&lt;Data&gt;&lt;Setup&gt;&lt;Scene&gt;HubFTUEDO&lt;/Scene&gt;&lt;Asset&gt;PfDWHiccup&lt;/Asset&gt;&lt;Location&gt;PfMarker_HiccupFire&lt;/Location&gt;&lt;Recursive&gt;false&lt;/Recursive&gt;&lt;Persistent&gt;false&lt;/Persistent&gt;&lt;/Setup&gt;&lt;Offer&gt;&lt;Type&gt;Popup&lt;/Type&gt;&lt;Asset&gt;PfUiMissionActionDBDO&lt;/Asset&gt;&lt;NPC&gt;PfDWHiccup&lt;/NPC&gt;&lt;Text&gt;I’ll get some more wood stacked; can you grab some green leaves to help make this fire more smokey?&lt;/Text&gt;&lt;ID&gt;939833&lt;/ID&gt;&lt;ItemID&gt;0&lt;/ItemID&gt;&lt;Priority&gt;0&lt;/Priority&gt;&lt;/Offer&gt;&lt;End&gt;&lt;Type&gt;CutScene&lt;/Type&gt;&lt;Asset&gt;RS_DATA/PfGrpFTUE2020T11CS.unity3d/PfGrpFTUE2020T11CS&lt;/Asset&gt;&lt;ItemID&gt;0&lt;/ItemID&gt;&lt;Priority&gt;0&lt;/Priority&gt;&lt;/End&gt;&lt;End&gt;&lt;Type&gt;Popup&lt;/Type&gt;&lt;Asset&gt;PfUiMissionActionDBDO&lt;/Asset&gt;&lt;NPC&gt;PfDWAstrid&lt;/NPC&gt;&lt;Text&gt;There you are! Glad to see you're safe. @@Oh? I don’t think we’ve met, have we?@@{{Name}}? It's great to meet you, I’m Astrid. Seems that Hiccup's gotten himself in over his head again, huh? @@He's lucky he has good people like you around to help him out. And that’s one incredible dragon you’ve found, wow!&lt;/Text&gt;&lt;ID&gt;941114&lt;/ID&gt;&lt;ItemID&gt;0&lt;/ItemID&gt;&lt;Priority&gt;1&lt;/Priority&gt;&lt;/End&gt;&lt;Objective&gt;&lt;Pair&gt;&lt;Key&gt;Scene&lt;/Key&gt;&lt;Value&gt;HubFTUEDO&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;Name&lt;/Key&gt;&lt;Value&gt;PfCollectFTUELeaf&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;Quantity&lt;/Key&gt;&lt;Value&gt;5&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;Time&lt;/Key&gt;&lt;Value&gt;0&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;HideArrow&lt;/Key&gt;&lt;Value&gt;False&lt;/Value&gt;&lt;/Pair&gt;&lt;/Objective&gt;&lt;Type&gt;Collect&lt;/Type&gt;&lt;Title&gt;&lt;Text&gt;Collect Green Leaves&lt;/Text&gt;&lt;ID&gt;942396&lt;/ID&gt;&lt;/Title&gt;&lt;Desc&gt;&lt;Text&gt;Collect Green Leaves&lt;/Text&gt;&lt;ID&gt;942396&lt;/ID&gt;&lt;/Desc&gt;&lt;/Data&gt;</S>
+			<C>0</C>
+		</Task>
+		<Task>
+			<I>5941</I>
+			<N>FTUE2020-12: Mount</N>
+			<S>&lt;Data&gt;&lt;Offer&gt;&lt;Type&gt;Popup&lt;/Type&gt;&lt;Asset&gt;PfUiMissionActionDBDO&lt;/Asset&gt;&lt;NPC&gt;PfDWHiccup&lt;/NPC&gt;&lt;Text&gt;{{Name}} bonded with {{dragon name}} right away, you should’ve seen it, Astrid.  I bet they’ll be flying together in no time. Speaking of which...@@{{Name}} let’s do a quick flying lesson. I’ll show you the ropes!@@First, {{input}} on the [c][3eebff]Mount[/c][ffffff] button to climb aboard your dragon.&lt;/Text&gt;&lt;ID&gt;939835&lt;/ID&gt;&lt;ItemID&gt;0&lt;/ItemID&gt;&lt;Priority&gt;0&lt;/Priority&gt;&lt;/Offer&gt;&lt;Objective&gt;&lt;Pair&gt;&lt;Key&gt;Name&lt;/Key&gt;&lt;Value&gt;MountDragon&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;Time&lt;/Key&gt;&lt;Value&gt;0&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;HideArrow&lt;/Key&gt;&lt;Value&gt;False&lt;/Value&gt;&lt;/Pair&gt;&lt;/Objective&gt;&lt;Type&gt;Action&lt;/Type&gt;&lt;Title&gt;&lt;Text&gt;Mount {{dragon name}}&lt;/Text&gt;&lt;ID&gt;939834&lt;/ID&gt;&lt;/Title&gt;&lt;Desc&gt;&lt;Text&gt;Mount {{dragon name}}&lt;/Text&gt;&lt;ID&gt;939834&lt;/ID&gt;&lt;/Desc&gt;&lt;AutoComplete&gt;&lt;Pair&gt;&lt;Key&gt;Mounted&lt;/Key&gt;&lt;Value&gt;true&lt;/Value&gt;&lt;/Pair&gt;&lt;/AutoComplete&gt;&lt;/Data&gt;</S>
+			<C>0</C>
+		</Task>
+		<Task>
+			<I>5942</I>
+			<N>FTUE2020-13: Fly through rings</N>
+			<S>&lt;Data&gt;&lt;Offer&gt;&lt;Type&gt;Popup&lt;/Type&gt;&lt;Asset&gt;PfUiMissionActionDBDO&lt;/Asset&gt;&lt;NPC&gt;PfDWHiccup&lt;/NPC&gt;&lt;Text&gt;Alright! {{dragon name}} is ready to go. Now, you just have to learn how to fly! Why don't you get used to the controls and soar through these rings?@@{{Input}} on the [c][3eebff]Jump[/c][ffffff] button [c][3eebff]twice[/c][ffffff] to get up into the air and we can go from there.&lt;/Text&gt;&lt;ID&gt;939837&lt;/ID&gt;&lt;ItemID&gt;0&lt;/ItemID&gt;&lt;Priority&gt;0&lt;/Priority&gt;&lt;/Offer&gt;&lt;End&gt;&lt;Type&gt;Popup&lt;/Type&gt;&lt;Asset&gt;PfUiMissionActionDBDO&lt;/Asset&gt;&lt;NPC&gt;PfDWHiccup&lt;/NPC&gt;&lt;Text&gt;You're a natural!&lt;/Text&gt;&lt;ID&gt;905008&lt;/ID&gt;&lt;ItemID&gt;0&lt;/ItemID&gt;&lt;Priority&gt;0&lt;/Priority&gt;&lt;/End&gt;&lt;Objective&gt;&lt;Pair&gt;&lt;Key&gt;Scene&lt;/Key&gt;&lt;Value&gt;HubFTUEDO&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;Location&lt;/Key&gt;&lt;Value&gt;PfDWToothlessAlphaGuide&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;Name&lt;/Key&gt;&lt;Value&gt;PfCollectRing&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;Quantity&lt;/Key&gt;&lt;Value&gt;5&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;Time&lt;/Key&gt;&lt;Value&gt;0&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;HideArrow&lt;/Key&gt;&lt;Value&gt;False&lt;/Value&gt;&lt;/Pair&gt;&lt;/Objective&gt;&lt;Type&gt;Collect&lt;/Type&gt;&lt;Title&gt;&lt;Text&gt;Fly through the Rings&lt;/Text&gt;&lt;ID&gt;938870&lt;/ID&gt;&lt;/Title&gt;&lt;Desc&gt;&lt;Text&gt;Fly through the Rings&lt;/Text&gt;&lt;ID&gt;938870&lt;/ID&gt;&lt;/Desc&gt;&lt;/Data&gt;</S>
+			<C>0</C>
+		</Task>
+		<Task>
+			<I>5944</I>
+			<N>FTUE2020-15: Deliver Headmaster</N>
+			<S>&lt;Data&gt;&lt;Offer&gt;&lt;Type&gt;Popup&lt;/Type&gt;&lt;Asset&gt;PfUiMissionActionDBDO&lt;/Asset&gt;&lt;NPC&gt;PfDWHiccup&lt;/NPC&gt;&lt;Text&gt;Welcome to the School of Dragons! I have a feeling you'll fit right in.@@Can you give the box of dragon eggs that you found to the Headmaster of the School? You can't miss him – he's the stout one with all the hair!&lt;/Text&gt;&lt;ID&gt;939840&lt;/ID&gt;&lt;ItemID&gt;0&lt;/ItemID&gt;&lt;Priority&gt;1&lt;/Priority&gt;&lt;/Offer&gt;&lt;Offer&gt;&lt;Type&gt;CutScene&lt;/Type&gt;&lt;Asset&gt;RS_DATA/PfGrpFTUE2020T14CS.unity3d/PfGrpFTUE2020T14CS&lt;/Asset&gt;&lt;ItemID&gt;0&lt;/ItemID&gt;&lt;Priority&gt;0&lt;/Priority&gt;&lt;/Offer&gt;&lt;End&gt;&lt;Type&gt;Popup&lt;/Type&gt;&lt;Asset&gt;PfUiMissionActionDBDO&lt;/Asset&gt;&lt;NPC&gt;PfDWHeadmaster&lt;/NPC&gt;&lt;Text&gt;You come highly recommended from the Chieftain of Berk himself. Welcome, {{Name}}. So, are you ready to learn how to become the Ultimate Dragon Trainer?&lt;/Text&gt;&lt;ID&gt;939841&lt;/ID&gt;&lt;ItemID&gt;0&lt;/ItemID&gt;&lt;Priority&gt;0&lt;/Priority&gt;&lt;/End&gt;&lt;Objective&gt;&lt;Pair&gt;&lt;Key&gt;Scene&lt;/Key&gt;&lt;Value&gt;HubSchoolDO&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;NPC&lt;/Key&gt;&lt;Value&gt;PfDWHeadmaster&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;Time&lt;/Key&gt;&lt;Value&gt;0&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;HideArrow&lt;/Key&gt;&lt;Value&gt;False&lt;/Value&gt;&lt;/Pair&gt;&lt;/Objective&gt;&lt;Type&gt;Meet&lt;/Type&gt;&lt;Title&gt;&lt;Text&gt;Deliver the Dragon Eggs to the Headmaster&lt;/Text&gt;&lt;ID&gt;942397&lt;/ID&gt;&lt;/Title&gt;&lt;Desc&gt;&lt;Text&gt;Deliver the Dragon Eggs to the Headmaster&lt;/Text&gt;&lt;ID&gt;942397&lt;/ID&gt;&lt;/Desc&gt;&lt;/Data&gt;</S>
+			<C>0</C>
+		</Task>
+		<Task>
+			<I>6619</I>
+			<N>FTUE2020-16: Explain Branch Quest</N>
+			<S>&lt;Data&gt;&lt;Offer&gt;&lt;Type&gt;Popup&lt;/Type&gt;&lt;Asset&gt;PfUiMissionActionDBDO&lt;/Asset&gt;&lt;NPC&gt;PfDWHeadmaster&lt;/NPC&gt;&lt;Text&gt;Now {{Name}}, you can learn about the many things we have to offer here at the School through our [c][3eebff]Branch Quests[/c][ffffff]&lt;/Text&gt;&lt;ID&gt;941799&lt;/ID&gt;&lt;ItemID&gt;0&lt;/ItemID&gt;&lt;Priority&gt;0&lt;/Priority&gt;&lt;/Offer&gt;&lt;End&gt;&lt;Type&gt;Popup&lt;/Type&gt;&lt;Asset&gt;PfUiMissionActionDBDO&lt;/Asset&gt;&lt;NPC&gt;PfDWHeadmaster&lt;/NPC&gt;&lt;Text&gt;Feel free to also explore the campus, you might even encounter other students. @@We are happy to have you here with us!&lt;/Text&gt;&lt;ID&gt;941800&lt;/ID&gt;&lt;ItemID&gt;0&lt;/ItemID&gt;&lt;Priority&gt;0&lt;/Priority&gt;&lt;/End&gt;&lt;Objective&gt;&lt;Pair&gt;&lt;Key&gt;Scene&lt;/Key&gt;&lt;Value&gt;HubSchoolDO&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;Name&lt;/Key&gt;&lt;Value&gt;CompleteTutorial&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;ItemName&lt;/Key&gt;&lt;Value&gt;BranchUiTutorial&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;Time&lt;/Key&gt;&lt;Value&gt;0&lt;/Value&gt;&lt;/Pair&gt;&lt;Pair&gt;&lt;Key&gt;HideArrow&lt;/Key&gt;&lt;Value&gt;False&lt;/Value&gt;&lt;/Pair&gt;&lt;/Objective&gt;&lt;Type&gt;Action&lt;/Type&gt;&lt;Title&gt;&lt;Text&gt;Check out the Branch Quests&lt;/Text&gt;&lt;ID&gt;941798&lt;/ID&gt;&lt;/Title&gt;&lt;Desc&gt;&lt;Text&gt;Check out the Branch Quests&lt;/Text&gt;&lt;ID&gt;941798&lt;/ID&gt;&lt;/Desc&gt;&lt;/Data&gt;</S>
+			<C>0</C>
+		</Task>
+		<AR>
+			<a>5</a>
+			<p>1</p>
+			<i xsi:nil="true" />
+			<t>1</t>
+			<r>3</r>
+			<ii>0</ii>
+			<ai>201320</ai>
+			<amulti>true</amulti>
+			<mina>5</mina>
+			<maxa>5</maxa>
+			<d xsi:nil="true" />
+			<cid>0</cid>
+			<ui xsi:nil="true" />
+			<atinfoid>0</atinfoid>
+			<atid>0</atid>
+		</AR>
+		<AR>
+			<a>100</a>
+			<p>2</p>
+			<i xsi:nil="true" />
+			<t>1</t>
+			<r>23</r>
+			<ii>0</ii>
+			<ai>201320</ai>
+			<amulti>true</amulti>
+			<mina>100</mina>
+			<maxa>100</maxa>
+			<d xsi:nil="true" />
+			<cid>0</cid>
+			<ui xsi:nil="true" />
+			<atinfoid>0</atinfoid>
+			<atid>0</atid>
+		</AR>
+		<AR>
+			<a>50</a>
+			<p>8</p>
+			<i xsi:nil="true" />
+			<t>1</t>
+			<r>609</r>
+			<ii>0</ii>
+			<ai>201320</ai>
+			<amulti>true</amulti>
+			<mina>50</mina>
+			<maxa>50</maxa>
+			<d xsi:nil="true" />
+			<cid>0</cid>
+			<ui xsi:nil="true" />
+			<atinfoid>0</atinfoid>
+			<atid>0</atid>
+		</AR>
+		<AR>
+			<a>50</a>
+			<p>12</p>
+			<i xsi:nil="true" />
+			<t>1</t>
+			<r>913</r>
+			<ii>0</ii>
+			<ai>201320</ai>
+			<amulti>true</amulti>
+			<mina>50</mina>
+			<maxa>50</maxa>
+			<d xsi:nil="true" />
+			<cid>0</cid>
+			<ui xsi:nil="true" />
+			<atinfoid>0</atinfoid>
+			<atid>0</atid>
+		</AR>
+	</Mission>
+</Missions>

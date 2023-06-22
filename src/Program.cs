@@ -14,6 +14,8 @@ builder.Services.AddControllers(options => {
 builder.Services.AddDbContext<DBContext>();
 builder.Services.AddScoped<KeyValueService>();
 builder.Services.AddSingleton<ItemService>();
+builder.Services.AddSingleton<MissionStoreSingleton>();
+builder.Services.AddScoped<MissionService>();
 
 var app = builder.Build();
 
