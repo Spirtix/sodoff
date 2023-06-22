@@ -48,6 +48,14 @@ public class DBContext : DbContext {
         builder.Entity<Viking>().HasMany(u => u.Dragons)
             .WithOne(e => e.Viking);
 
+        builder.Entity<Viking>().HasOne(s => s.SelectedDragon)
+            .WithOne(e => e.SelectedViking)
+            .HasForeignKey<Dragon>(e => e.SelectedVikingId);
+
+        builder.Entity<Dragon>().HasOne(s => s.SelectedViking)
+            .WithOne(e => e.SelectedDragon)
+            .HasForeignKey<Viking>(e => e.SelectedDragonId);
+
         builder.Entity<Image>().HasOne(s => s.Viking)
             .WithMany(e => e.Images)
             .HasForeignKey(e => e.VikingId);

@@ -14,7 +14,10 @@ public class Dragon {
     [Required]
     public string VikingId { get; set; } = null!;
 
+    public string? SelectedVikingId { get; set; }
+
     public string? RaisedPetData { get; set; }
 
     public virtual Viking Viking { get; set; } = null!;
+    public virtual Viking SelectedViking { get; set; } = null!;
 }

@@ -34,8 +34,11 @@ methods = [
   'SetTaskState',
   'CreatePet',
   'SetRaisedPet',
+  'SetSelectedPet',
+  'GetSelectedRaisedPet',
   'SetImage',
-  'GetImage'
+  'GetImage',
+  'GetImageByUserId'
 ]
 
 def routable(path):

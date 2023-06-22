@@ -199,6 +199,7 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("V2/ContentWebService.asmx/CreatePet")]
+    [SignResponse]
     public IActionResult CreatePet([FromForm] string apiToken, [FromForm] string request) {
         Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
         if (viking is null) {
@@ -225,23 +226,23 @@ public class ContentController : Controller {
             Viking = viking,
             RaisedPetData = XmlUtil.SerializeXml(raisedPetRequest.RaisedPetData),
         };
+
+        if (raisedPetRequest.SetAsSelectedPet == true) {
+            viking.SelectedDragon = dragon;
+            ctx.Update(viking);
+        }
         ctx.Dragons.Add(dragon);
         ctx.SaveChanges();
 
-        // Now update the RaisedPetData with the dragon id
-        raisedPetRequest.RaisedPetData.RaisedPetID = dragon.Id;
-        dragon.RaisedPetData = XmlUtil.SerializeXml(raisedPetRequest.RaisedPetData);
-        ctx.Dragons.Update(dragon);
-        ctx.SaveChanges();
-
         return Ok(new CreatePetResponse {
-            RaisedPetData = raisedPetRequest.RaisedPetData
+            RaisedPetData = GetRaisedPetDataFromDragon(dragon)
         });
     }
 
     [HttpPost]
     [Produces("application/xml")]
     [Route("v3/ContentWebService.asmx/SetRaisedPet")]
+    [SignResponse]
     public IActionResult SetRaisedPet([FromForm] string apiToken, [FromForm] string request) {
         Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
         if (viking is null) {
@@ -260,6 +261,7 @@ public class ContentController : Controller {
         }
 
         dragon.RaisedPetData = XmlUtil.SerializeXml(raisedPetRequest.RaisedPetData);
+        ctx.Update(dragon);
         ctx.SaveChanges();
 
         return Ok(new SetRaisedPetResponse {
@@ -270,6 +272,7 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("ContentWebService.asmx/SetSelectedPet")]
+    [SignResponse]
     public IActionResult SetSelectedPet([FromForm] string apiToken, [FromForm] int raisedPetID) {
         Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
         if (viking is null) {
@@ -286,12 +289,9 @@ public class ContentController : Controller {
         }
 
         // Set the dragon as selected
-        RaisedPetData dragonData = XmlUtil.DeserializeXml<RaisedPetData>(dragon.RaisedPetData);
-        dragonData.IsSelected = true;
-        dragon.RaisedPetData = XmlUtil.SerializeXml(dragonData);
+        viking.SelectedDragon = dragon;
+        ctx.Update(viking);
         ctx.SaveChanges();
-
-        // TODO: make all other dragons unselected
 
         return Ok(new SetRaisedPetResponse {
             RaisedPetSetResult = RaisedPetSetResult.Success
@@ -301,25 +301,42 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("V2/ContentWebService.asmx/GetAllActivePetsByuserId")]
-    [Route("ContentWebService.asmx/GetSelectedRaisedPet")]
-    public RaisedPetData[]? GetAllActivePetsByuserId([FromForm] string apiToken, [FromForm] string userId, [FromForm] bool active, [FromForm] bool isActive) {
+    [SignResponse]
+    public RaisedPetData[]? GetAllActivePetsByuserId([FromForm] string apiToken, [FromForm] string userId, [FromForm] bool active) {
         Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
         if (viking is null) {
             return null;
         }
 
-        // GetAllActivePetsByuserId uses active, and GetSelectedRaisedPet uses active, so OR them together
-        bool isActiveSet = active || isActive;
-
         RaisedPetData[] dragons = viking.Dragons
             .Where(d => d.RaisedPetData is not null)
-            .Select(d => XmlUtil.DeserializeXml<RaisedPetData>(d.RaisedPetData))
+            .Select(GetRaisedPetDataFromDragon)
             .ToArray();
 
         if (dragons.Length == 0) {
             return null;
         }
         return dragons;
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("ContentWebService.asmx/GetSelectedRaisedPet")]
+    [SignResponse]
+    public RaisedPetData[]? GetSelectedRaisedPet([FromForm] string apiToken, [FromForm] string userId, [FromForm] bool isActive) {
+        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
+        if (viking is null) {
+            return null;
+        }
+
+        Dragon? dragon = viking.SelectedDragon;
+        if (dragon is null) {
+            return null;
+        }
+
+        return new RaisedPetData[] {
+            GetRaisedPetDataFromDragon(dragon)
+        };
     }
 
     [HttpPost]
@@ -342,6 +359,7 @@ public class ContentController : Controller {
                 ImageSlot = ImageSlot,
                 Viking = viking,
             };
+            newImage = true;
         }
 
         // Save the image in the db
@@ -367,16 +385,21 @@ public class ContentController : Controller {
             return null;
         }
 
-        Image? image = viking.Images.FirstOrDefault(e => e.ImageType == ImageType && e.ImageSlot == ImageSlot);
-        if (image is null) {
+        return GetImageData(viking, ImageType, ImageSlot);
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("ContentWebService.asmx/GetImageByUserId")]
+    public ImageData? GetImageByUserId([FromForm] string userId, [FromForm] string ImageType, [FromForm] int ImageSlot) {
+        Viking? viking = ctx.Vikings.FirstOrDefault(e => e.Id == userId);
+        if (viking is null || viking.Images is null) {
             return null;
         }
 
-        // TODO: test this
-        return new ImageData {
-            ImageURL = image.ImageData,
-            TemplateName = image.TemplateName,
-        };
+        // TODO: should we restrict images to only those the caller owns?
+
+        return GetImageData(viking, ImageType, ImageSlot);
     }
 
     [HttpPost]
@@ -463,5 +486,27 @@ public class ContentController : Controller {
         ctx.SaveChanges();
 
         return Ok(new SetTaskStateResult { Success = true, Status = SetTaskStateStatus.TaskCanBeDone });
+    }
+
+    private RaisedPetData GetRaisedPetDataFromDragon (Dragon dragon) {
+        RaisedPetData data = XmlUtil.DeserializeXml<RaisedPetData>(dragon.RaisedPetData);
+        data.RaisedPetID = dragon.Id;
+        data.EntityID = Guid.Parse(dragon.EntityId);
+        data.IsSelected = dragon.SelectedViking is not null;
+        return data;
+    }
+
+    private ImageData? GetImageData (Viking viking, String ImageType, int ImageSlot) {
+        Image? image = viking.Images.FirstOrDefault(e => e.ImageType == ImageType && e.ImageSlot == ImageSlot);
+        if (image is null) {
+            return null;
+        }
+
+        string imageUrl = string.Format("{0}://{1}/RawImage/{2}/{3}/{4}", HttpContext.Request.Scheme, HttpContext.Request.Host, viking.Id, ImageType, ImageSlot);
+
+        return new ImageData {
+            ImageURL = imageUrl,
+            TemplateName = image.TemplateName,
+        };
     }
 }
