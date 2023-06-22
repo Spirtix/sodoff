@@ -45,17 +45,20 @@ Then run School of Dragons.
 - SetAvatar
 - RegisterParent
 - RegisterChild
+- CreatePet
 - SetRaisedPet
+- SetSelectedPet
 - GetAllActivePetsByuserId
+- GetSelectedRaisedPet
 - SetImage
 - GetImage
+- GetImageByUserId
 
 #### Implemented enough (probably)
 - GetRules (doesn't return any rules, probably doesn't need to)
 - GetQuestions (doesn't return all questions, probably doesn't need to)
 - GetSubscriptionInfo (always returns member, with end date 10 years from now)
 - SetTaskState (only the TaskCanBeDone status is supported)
-- CreatePet (doesn't handle SetAsSelectedPet/UnSelectOtherPets)
 
 #### Partially implemented
 - GetUserProfileByUserID (a lot is still placeholder)
