@@ -45,6 +45,14 @@ Then run School of Dragons.
 - SetAvatar
 - RegisterParent
 - RegisterChild
+- CreatePet
+- SetRaisedPet
+- SetSelectedPet
+- GetAllActivePetsByuserId
+- GetSelectedRaisedPet
+- SetImage
+- GetImage
+- GetImageByUserId
 
 #### Implemented enough (probably)
 - GetRules (doesn't return any rules, probably doesn't need to)
@@ -64,7 +72,6 @@ Then run School of Dragons.
 - GetStore (needs to filter out stores from request)
 - GetAllRanks (needs to be populated with what ranks the user has)
 - GetCommonInventory
-- GetAllActivePetsByuserId (always returns null)
 - GetPetAchievementsByUserId (always returns null)
 - GetUserUpcomingMissionState (returns no missions)
 - GetUserCompletedMissionState (returns no missions)
