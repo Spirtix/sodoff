@@ -58,7 +58,9 @@ Then run School of Dragons.
 - GetRules (doesn't return any rules, probably doesn't need to)
 - GetQuestions (doesn't return all questions, probably doesn't need to)
 - GetSubscriptionInfo (always returns member, with end date 10 years from now)
-- SetTaskState (only the TaskCanBeDone status is supported)
+- SetTaskState (only the TaskCanBeDone status is supported; might contain a serious problem - see the MissionService class)
+- GetItem
+- GetCommonInventory
 
 #### Partially implemented
 - GetUserProfileByUserID (a lot is still placeholder)
@@ -67,11 +69,11 @@ Then run School of Dragons.
 - ValidateName (needs to do pets, groups, default)
 - GetDefaultNameSuggestion (needs to return unused names)
 - GetUserActiveMissionState (returns the tutorial mission and updates it with progress)
+- SetCommonInventory (some properties are not retained, doesn't support delete)
 
 #### Currently static or stubbed
 - GetStore (needs to filter out stores from request)
 - GetAllRanks (needs to be populated with what ranks the user has)
-- GetCommonInventory
 - GetPetAchievementsByUserId (always returns null)
 - GetUserUpcomingMissionState (returns no missions)
 - GetUserCompletedMissionState (returns no missions)
