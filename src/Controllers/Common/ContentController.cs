@@ -199,7 +199,6 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("V2/ContentWebService.asmx/CreatePet")]
-    [SignResponse]
     public IActionResult CreatePet([FromForm] string apiToken, [FromForm] string request) {
         Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
         if (viking is null) {
@@ -242,7 +241,6 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("v3/ContentWebService.asmx/SetRaisedPet")]
-    [SignResponse]
     public IActionResult SetRaisedPet([FromForm] string apiToken, [FromForm] string request) {
         Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
         if (viking is null) {
@@ -272,7 +270,6 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("ContentWebService.asmx/SetSelectedPet")]
-    [SignResponse]
     public IActionResult SetSelectedPet([FromForm] string apiToken, [FromForm] int raisedPetID) {
         Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
         if (viking is null) {
@@ -301,7 +298,6 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("V2/ContentWebService.asmx/GetAllActivePetsByuserId")]
-    [SignResponse]
     public RaisedPetData[]? GetAllActivePetsByuserId([FromForm] string apiToken, [FromForm] string userId, [FromForm] bool active) {
         Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
         if (viking is null) {
@@ -322,7 +318,6 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("ContentWebService.asmx/GetSelectedRaisedPet")]
-    [SignResponse]
     public RaisedPetData[]? GetSelectedRaisedPet([FromForm] string apiToken, [FromForm] string userId, [FromForm] bool isActive) {
         Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
         if (viking is null) {
