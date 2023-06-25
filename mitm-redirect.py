@@ -4,6 +4,7 @@ import mitmproxy.http
 methods = [
   'GetRules',
   'LoginParent',
+  'AuthenticateUser',
   'RegisterParent',
   'GetSubscriptionInfo',
   'GetUserInfoByApiToken',

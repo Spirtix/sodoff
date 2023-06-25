@@ -66,6 +66,24 @@ public class AuthenticationController : Controller {
 
     [HttpPost]
     [Produces("application/xml")]
+    [Route("v3/AuthenticationWebService.asmx/AuthenticateUser")]
+    [DecryptRequest("username")]
+    [DecryptRequest("password")]
+    public bool AuthenticateUser() {
+        String username = Request.Form["username"];
+        String password = Request.Form["password"];
+
+        // Authenticate the user
+        User? user = ctx.Users.FirstOrDefault(e => e.Username == username);
+        if (user is null || new PasswordHasher<object>().VerifyHashedPassword(null, user.Password, password) != PasswordVerificationResult.Success) {
+            return false;
+        }
+
+        return true;
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
     [Route("AuthenticationWebService.asmx/GetUserInfoByApiToken")]
     public IActionResult GetUserInfoByApiToken([FromForm] string apiToken) {
         // First check if this is a user session
