@@ -271,6 +271,8 @@ public class ContentController : Controller {
         ctx.Dragons.Add(dragon);
         ctx.SaveChanges();
 
+        // TODO: handle CommonInventoryRequests here too
+
         return Ok(new CreatePetResponse {
             RaisedPetData = GetRaisedPetDataFromDragon(dragon)
         });
@@ -296,9 +298,11 @@ public class ContentController : Controller {
             });
         }
 
-        dragon.RaisedPetData = XmlUtil.SerializeXml(raisedPetRequest.RaisedPetData);
+        dragon.RaisedPetData = XmlUtil.SerializeXml(UpdateDragon(dragon, raisedPetRequest.RaisedPetData));
         ctx.Update(dragon);
         ctx.SaveChanges();
+
+        // TODO: handle CommonInventoryRequests here too
 
         return Ok(new SetRaisedPetResponse {
             RaisedPetSetResult = RaisedPetSetResult.Success
@@ -506,6 +510,48 @@ public class ContentController : Controller {
         data.EntityID = Guid.Parse(dragon.EntityId);
         data.IsSelected = dragon.SelectedViking is not null;
         return data;
+    }
+
+    // Needs to merge newDragonData into dragonData
+    private RaisedPetData UpdateDragon (Dragon dragon, RaisedPetData newDragonData) {
+        RaisedPetData dragonData = XmlUtil.DeserializeXml<RaisedPetData>(dragon.RaisedPetData);
+
+        // The simple attributes
+        dragonData.IsPetCreated = newDragonData.IsPetCreated;
+        if (newDragonData.ValidationMessage is not null) dragonData.ValidationMessage = newDragonData.ValidationMessage;
+        if (newDragonData.EntityID is not null) dragonData.EntityID = newDragonData.EntityID;
+        if (newDragonData.Name is not null) dragonData.Name = newDragonData.Name;
+        dragonData.PetTypeID = newDragonData.PetTypeID;
+        if (newDragonData.GrowthState is not null) dragonData.GrowthState = newDragonData.GrowthState;
+        if (newDragonData.ImagePosition is not null) dragonData.ImagePosition = newDragonData.ImagePosition;
+        if (newDragonData.Geometry is not null) dragonData.Geometry = newDragonData.Geometry;
+        if (newDragonData.Texture is not null) dragonData.Texture = newDragonData.Texture;
+        dragonData.Gender = newDragonData.Gender;
+        if (newDragonData.Accessories is not null) dragonData.Accessories = newDragonData.Accessories;
+        if (newDragonData.Colors is not null) dragonData.Colors = newDragonData.Colors;
+        if (newDragonData.Skills is not null) dragonData.Skills = newDragonData.Skills;
+        if (newDragonData.States is not null) dragonData.States = newDragonData.States;
+
+        dragonData.IsSelected = newDragonData.IsSelected;
+        dragonData.IsReleased = newDragonData.IsReleased;
+        dragonData.UpdateDate = newDragonData.UpdateDate;
+
+        // Attributes is special - the entire list isn't re-sent, so we need to manually update each
+        if (dragonData.Attributes is null) dragonData.Attributes = new RaisedPetAttribute[] { };
+        if (newDragonData.Attributes is not null) {
+            foreach (RaisedPetAttribute newAttribute in newDragonData.Attributes) {
+                RaisedPetAttribute? attribute = dragonData.Attributes.FirstOrDefault(a => a.Key == newAttribute.Key);
+                if (attribute is null) {
+                    dragonData.Attributes.Append(newAttribute);
+                }
+                else {
+                    attribute.Value = newAttribute.Value;
+                    attribute.Type = newAttribute.Type;
+                }
+            }
+        }
+
+        return dragonData;
     }
 
     private ImageData? GetImageData (Viking viking, String ImageType, int ImageSlot) {

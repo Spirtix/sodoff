@@ -5,6 +5,7 @@ using sodoff.Util;
 
 namespace sodoff.Attributes;
 
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
 public class DecryptRequest : Attribute, IAsyncActionFilter {
     const string key = "56BB211B-CF06-48E1-9C1D-E40B5173D759";
 
