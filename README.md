@@ -28,7 +28,8 @@ Then run School of Dragons.
 - register/login
 - create profile
 - list profiles
-- start tutorial
+- tutorial
+- roaming in the open world
 
 ### Methods
 
@@ -77,3 +78,13 @@ Then run School of Dragons.
 - GetPetAchievementsByUserId (always returns null)
 - GetUserUpcomingMissionState (returns no missions)
 - GetUserCompletedMissionState (returns no missions)
+- GetAchievementTaskInfo (returns a static XML)
+- GetAllRewardTypeMultiplier (returns a static XML)
+- GetBuddyList (returns an emtpy array)
+- GetRankAttributeData (returns a static XML)
+- GetUserMessageQueue (returns an emtpy array)
+- SendMessage (doesn't do anything and returns false)
+- SaveMessage (doesn't do anything and returns false)
+- GetMMOServerInfoWithZone (returns an empty array)
+- GetActiveChallenges (returns an empty array)
+- GetAchievementsByUserID (returns an achievement with the provided user ID)
