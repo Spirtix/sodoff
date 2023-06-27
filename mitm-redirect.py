@@ -41,7 +41,17 @@ methods = [
   'GetSelectedRaisedPet',
   'SetImage',
   'GetImage',
-  'GetImageByUserId'
+  'GetImageByUserId',
+  'GetAchievementTaskInfo',
+  'GetAllRewardTypeMultiplier',
+  'GetBuddyList',
+  'GetRankAttributeData',
+  'GetUserMessageQueue',
+  'SendMessage',
+  'SaveMessage',
+  'GetMMOServerInfoWithZone',
+  'GetActiveChallenges',
+  'GetAchievementsByUserID'
 ]
 
 def routable(path):

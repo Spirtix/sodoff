@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ArrayOfRewardTypeMultiplier xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<RewardTypeMultiplier>
+		<RT>1</RT>
+		<MF>2</MF>
+		<FD>2022-04-05T00:00:00</FD>
+		<TD>2023-07-01T07:00:00</TD>
+		<MO>false</MO>
+	</RewardTypeMultiplier>
+	<RewardTypeMultiplier>
+		<RT>12</RT>
+		<MF>2</MF>
+		<FD>2021-09-23T00:00:00</FD>
+		<TD>2023-07-01T07:00:00</TD>
+		<MO>false</MO>
+	</RewardTypeMultiplier>
+	<RewardTypeMultiplier>
+		<RT>8</RT>
+		<MF>2</MF>
+		<FD>2023-05-09T00:00:00</FD>
+		<TD>2023-07-01T07:00:00</TD>
+		<MO>false</MO>
+	</RewardTypeMultiplier>
+</ArrayOfRewardTypeMultiplier>

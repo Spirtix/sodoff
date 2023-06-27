@@ -2,6 +2,7 @@
 
 using Microsoft.AspNetCore.Mvc;
 using sodoff.Model;
+using sodoff.Util;
 
 namespace sodoff.Controllers.Common;
 public class ItemStoreController : Controller {
@@ -24,5 +25,13 @@ public class ItemStoreController : Controller {
             string result = reader.ReadToEnd();
             return Ok(result);
         }
+    }
+
+    [HttpPost]
+    //[Produces("application/xml")]
+    [Route("ItemStoreWebService.asmx/GetRankAttributeData")]
+    public IActionResult GetRankAttributeData() {
+        // TODO
+        return Ok(XmlUtil.ReadResourceXmlString("rankattrib"));
     }
 }

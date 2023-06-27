@@ -2,6 +2,7 @@
 
 using Microsoft.AspNetCore.Mvc;
 using sodoff.Model;
+using sodoff.Schema;
 using sodoff.Util;
 
 namespace sodoff.Controllers.Common;
@@ -26,5 +27,40 @@ public class AchievementController : Controller {
     public IActionResult GetAllRanks() {
         // TODO, this is a placeholder
         return Ok(XmlUtil.ReadResourceXmlString("allranks"));
+    }
+
+    [HttpPost]
+    //[Produces("application/xml")]
+    [Route("AchievementWebService.asmx/GetAchievementTaskInfo")]
+    public IActionResult GetAchievementTaskInfo() {
+        // TODO
+        return Ok(XmlUtil.ReadResourceXmlString("achievementtaskinfo"));
+    }
+
+    [HttpPost]
+    //[Produces("application/xml")]
+    [Route("AchievementWebService.asmx/GetAllRewardTypeMultiplier")]
+    public IActionResult GetAllRewardTypeMultiplier() {
+        // TODO
+        return Ok(XmlUtil.ReadResourceXmlString("rewardmultiplier"));
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("AchievementWebService.asmx/GetAchievementsByUserID")]
+    public IActionResult GetAchievementsByUserID([FromForm] string userId) {
+        // TODO: this is a placeholder
+        ArrayOfUserAchievementInfo arrAchievements = new ArrayOfUserAchievementInfo {
+            UserAchievementInfo = new UserAchievementInfo[]{
+                new UserAchievementInfo {
+                    UserID = Guid.Parse(userId),
+                    AchievementPointTotal = 0,
+                    RankID = 1,
+                    PointTypeID = 1
+                }
+            }
+        };
+
+        return Ok(arrAchievements);
     }
 }

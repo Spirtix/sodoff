@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -13,8 +13,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="Resources\achievementtaskinfo.xml" />
     <None Remove="Resources\items.xml" />
     <None Remove="Resources\missions.xml" />
+    <None Remove="Resources\rankattrib.xml" />
+    <None Remove="Resources\rewardmultiplier.xml" />
     <None Remove="Resources\store.xml" />
     <None Remove="Resources\allranks.xml" />
   </ItemGroup>
@@ -33,6 +36,15 @@
 	  </None>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Resources\rewardmultiplier.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\rankattrib.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\achievementtaskinfo.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
     <EmbeddedResource Include="Resources\store.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>

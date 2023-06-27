@@ -504,6 +504,14 @@ public class ContentController : Controller {
         return Ok(taskResult);
     }
 
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("ContentWebService.asmx/GetBuddyList")]
+    public IActionResult GetBuddyList() {
+        // TODO: this is a placeholder
+        return Ok(new BuddyList[0]);
+    }
+
     private RaisedPetData GetRaisedPetDataFromDragon (Dragon dragon) {
         RaisedPetData data = XmlUtil.DeserializeXml<RaisedPetData>(dragon.RaisedPetData);
         data.RaisedPetID = dragon.Id;
