@@ -546,17 +546,19 @@ public class ContentController : Controller {
 
         // Attributes is special - the entire list isn't re-sent, so we need to manually update each
         if (dragonData.Attributes is null) dragonData.Attributes = new RaisedPetAttribute[] { };
+        List<RaisedPetAttribute> attribs = dragonData.Attributes.ToList();
         if (newDragonData.Attributes is not null) {
             foreach (RaisedPetAttribute newAttribute in newDragonData.Attributes) {
-                RaisedPetAttribute? attribute = dragonData.Attributes.FirstOrDefault(a => a.Key == newAttribute.Key);
+                RaisedPetAttribute? attribute = attribs.Find(a => a.Key == newAttribute.Key);
                 if (attribute is null) {
-                    dragonData.Attributes.Append(newAttribute);
+                    attribs.Add(newAttribute);
                 }
                 else {
                     attribute.Value = newAttribute.Value;
                     attribute.Type = newAttribute.Type;
                 }
             }
+            dragonData.Attributes = attribs.ToArray();
         }
 
         return dragonData;
