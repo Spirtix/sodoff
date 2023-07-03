@@ -2,29 +2,36 @@
 
 using Microsoft.AspNetCore.Mvc;
 using sodoff.Model;
+using sodoff.Schema;
+using sodoff.Services;
 using sodoff.Util;
 
 namespace sodoff.Controllers.Common;
 public class ItemStoreController : Controller {
 
     private readonly DBContext ctx;
-    public ItemStoreController(DBContext ctx) {
+    private StoreService storeService;
+    public ItemStoreController(DBContext ctx, StoreService storeService) {
         this.ctx = ctx;
+        this.storeService = storeService;
     }
 
     [HttpPost]
-    //[Produces("application/xml")]
+    [Produces("application/xml")]
     [Route("ItemStoreWebService.asmx/GetStore")]
-    public IActionResult GetStore() {
-        // TODO, this may be implemented enough, but may not be
-        var assembly = Assembly.GetExecutingAssembly();
-        string resourceName = assembly.GetManifestResourceNames().Single(str => str.EndsWith("store.xml"));
+    public IActionResult GetStore([FromForm] string getStoreRequest) {
+        GetStoreRequest request = XmlUtil.DeserializeXml<GetStoreRequest>(getStoreRequest);
 
-        using (Stream stream = assembly.GetManifestResourceStream(resourceName))
-        using (StreamReader reader = new StreamReader(stream)) {
-            string result = reader.ReadToEnd();
-            return Ok(result);
+        ItemsInStoreData[] stores = new ItemsInStoreData[request.StoreIDs.Length];
+        for (int i = 0; i < request.StoreIDs.Length; i++) {
+            stores[i] = storeService.GetStore(request.StoreIDs[i]);
         }
+
+        GetStoreResponse response = new GetStoreResponse {
+            Stores = stores
+        };
+
+        return Ok(response);
     }
 
     [HttpPost]

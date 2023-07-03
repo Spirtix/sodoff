@@ -146,6 +146,7 @@ public class ContentController : Controller {
         List<InventoryItem> items = viking.Inventory.InventoryItems.ToList();
         List<UserItemData> userItemData = new();
         foreach (InventoryItem item in items) {
+            if (item.Quantity == 0) continue; // Don't include an item that the viking doesn't have
             ItemData itemData = itemService.GetItem(item.ItemId);
             UserItemData uid = new UserItemData {
                 UserInventoryID = viking.Inventory.Id,
@@ -175,17 +176,33 @@ public class ContentController : Controller {
 
         // Set inventory items
         List<CommonInventoryResponseItem> responseItems = new();
+
+        // SetCommonInventory can remove any number of items from the inventory, this checks if it's possible
+        foreach (var req in request) {
+            if (req.Quantity >= 0) continue;
+            InventoryItem? item = viking.Inventory.InventoryItems.FirstOrDefault(e => e.ItemId == req.ItemID);
+            if (item is null || item.Quantity < req.Quantity)
+                return Ok(new CommonInventoryResponse { Success = false });
+        }
+
+        // Now that we know the request is valid, update the inventory
         foreach (var req in request) {
             InventoryItem? item = viking.Inventory.InventoryItems.FirstOrDefault(e => e.ItemId == req.ItemID);
-            if (item is null) item = new InventoryItem { ItemId = (int)req.ItemID, Quantity = 0 };
-            int origQuantity = item.Quantity;
-            item.Quantity = request[0].Quantity;
-            responseItems.Add(new CommonInventoryResponseItem {
-                CommonInventoryID = viking.InventoryId,
-                ItemID = item.ItemId,
-                Quantity = origQuantity
-            });
-            viking.Inventory.InventoryItems.Add(item);
+            if (item is null) {
+                item = new InventoryItem { ItemId = (int)req.ItemID, Quantity = 0 };
+                viking.Inventory.InventoryItems.Add(item);
+            }
+            int updateQuantity = 0; // The game expects 0 if quantity got updated by just 1
+            if (req.Quantity > 1)
+                updateQuantity = req.Quantity; // Otherwise it expects the quantity from the request
+            item.Quantity += req.Quantity;
+            ctx.SaveChanges(); // We need to get an ID of a newly created item
+            if (req.Quantity > 0)
+                responseItems.Add(new CommonInventoryResponseItem {
+                    CommonInventoryID = item.Id,
+                    ItemID = item.ItemId,
+                    Quantity = updateQuantity
+                });
         }
 
         CommonInventoryResponse response = new CommonInventoryResponse {
@@ -332,9 +349,7 @@ public class ContentController : Controller {
         ctx.Update(viking);
         ctx.SaveChanges();
 
-        return Ok(new SetRaisedPetResponse {
-            RaisedPetSetResult = RaisedPetSetResult.Success
-        });
+        return Ok(true); // RaisedPetSetResult.Success doesn't work, this does
     }
 
     [HttpPost]
@@ -510,6 +525,44 @@ public class ContentController : Controller {
     public IActionResult GetBuddyList() {
         // TODO: this is a placeholder
         return Ok(new BuddyList[0]);
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("V2/ContentWebService.asmx/PurchaseItems")]
+    public IActionResult PurchaseItems([FromForm] string apiToken, [FromForm] string purchaseItemRequest) {
+        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
+        if (viking is null)
+            return Ok();
+
+        PurchaseStoreItemRequest request = XmlUtil.DeserializeXml<PurchaseStoreItemRequest>(purchaseItemRequest);
+        CommonInventoryResponseItem[] items = new CommonInventoryResponseItem[request.Items.Length];
+        for (int i = 0; i < request.Items.Length; i++) {
+            InventoryItem? item = viking.Inventory.InventoryItems.FirstOrDefault(e => e.ItemId == request.Items[i]);
+            if (item is null) {
+                item = new InventoryItem { ItemId = request.Items[i], Quantity = 0 };
+                viking.Inventory.InventoryItems.Add(item);
+            }
+            item.Quantity++;
+            ctx.SaveChanges();
+            items[i] = new CommonInventoryResponseItem {
+                CommonInventoryID = item.Id,
+                ItemID = request.Items[i],
+                Quantity = 0 // The quantity of purchased items is always 0 and the items are instead duplicated in both the request and the response
+            };
+        }
+
+        CommonInventoryResponse response = new CommonInventoryResponse {
+            Success = true,
+            CommonInventoryIDs = items,
+            UserGameCurrency = new UserGameCurrency {
+                UserID = Guid.Parse(viking.Id),
+                UserGameCurrencyID = 1, // TODO: user's wallet ID?
+                CashCurrency = 1000,
+                GameCurrency = 1000,
+            }
+        };
+        return Ok(response);
     }
 
     private RaisedPetData GetRaisedPetDataFromDragon (Dragon dragon) {

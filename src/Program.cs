@@ -16,6 +16,7 @@ builder.Services.AddScoped<KeyValueService>();
 builder.Services.AddSingleton<ItemService>();
 builder.Services.AddSingleton<MissionStoreSingleton>();
 builder.Services.AddScoped<MissionService>();
+builder.Services.AddSingleton<StoreService>();
 
 var app = builder.Build();
 

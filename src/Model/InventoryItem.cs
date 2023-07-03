@@ -11,6 +11,6 @@ namespace sodoff.Model {
 
         public virtual Inventory Inventory { get; set; }
 
-        public int Quantity;
+        public int Quantity { get; set; }
     }
 }
