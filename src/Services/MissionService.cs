@@ -36,10 +36,16 @@ public class MissionService {
         if (completed) {
             Mission mission = GetMissionWithProgress(missionId, userId);
             if (AllMissionsCompleted(mission) && AllTasksCompleted(mission)) {
+                // Get mission rewards
                 result.Add(new MissionCompletedResult {
                     MissionID = missionId,
                     Rewards = mission.Rewards.ToArray()
                 });
+                // Update mission from active to completed
+                MissionState? missionState = ctx.Vikings.FirstOrDefault(x => x.Id == userId)!.MissionStates.FirstOrDefault(x => x.MissionId == missionId);
+                if (missionState != null && missionState.MissionStatus == MissionStatus.Active)
+                    missionState.MissionStatus = MissionStatus.Completed;
+                ctx.SaveChanges();
             }
         }
         return result;
@@ -72,6 +78,23 @@ public class MissionService {
                 RuleItem? rule = mission.MissionRule.Criteria.RuleItems.Find(x => x.ID == innerMission.MissionID && x.Type == RuleItemType.Mission);
                 if (rule != null) rule.Complete = 1;
             }
+        }
+    }
+
+    public void SetUpMissions(Viking viking) {
+        viking.MissionStates = new List<MissionState>();
+        foreach (int m in missionStore.GetActiveMissions()) {
+            viking.MissionStates.Add(new MissionState {
+                MissionId = m,
+                MissionStatus = MissionStatus.Active
+            });
+        }
+        
+        foreach (int m in missionStore.GetUpcomingMissions()) {
+            viking.MissionStates.Add(new MissionState {
+                MissionId = m,
+                MissionStatus = MissionStatus.Upcoming
+            });
         }
     }
 

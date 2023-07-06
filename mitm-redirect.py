@@ -52,7 +52,9 @@ methods = [
   'GetMMOServerInfoWithZone',
   'GetActiveChallenges',
   'GetAchievementsByUserID',
-  'PurchaseItems'
+  'PurchaseItems',
+  'AcceptMission',
+  'GetUserMissionState'
 ]
 
 def routable(path):

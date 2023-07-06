@@ -458,44 +458,83 @@ public class ContentController : Controller {
     [Produces("application/xml")]
     [Route("V2/ContentWebService.asmx/GetUserUpcomingMissionState")]
     public IActionResult GetUserUpcomingMissionState([FromForm] string apiToken, [FromForm] string userId) {
-        Session? session = ctx.Sessions.FirstOrDefault(s => s.ApiToken == apiToken);
-        UserMissionStateResult result = new UserMissionStateResult();
+        Viking? viking = ctx.Vikings.FirstOrDefault(x => x.Id == userId);
+        if (viking is null)
+            return Ok("error");
+        
+        UserMissionStateResult result = new UserMissionStateResult { Missions = new List<Mission>() };
+        foreach (var mission in viking.MissionStates.Where(x => x.MissionStatus == MissionStatus.Upcoming))
+            result.Missions.Add(missionService.GetMissionWithProgress(mission.MissionId, viking.Id));
 
-        if (session is null)
-            return Ok(result);
-
-        result.UserID = Guid.Parse(session.VikingId);
-        return Ok(result); // TODO: placeholder, returns no upcoming missions
+        result.UserID = Guid.Parse(viking.Id);
+        return Ok(result);
     }
 
     [HttpPost]
     [Produces("application/xml")]
     [Route("V2/ContentWebService.asmx/GetUserActiveMissionState")]
     public IActionResult GetUserActiveMissionState([FromForm] string apiToken, [FromForm] string userId) {
-        Session? session = ctx.Sessions.FirstOrDefault(s => s.ApiToken == apiToken);
-        if (session is null)
+        Viking? viking = ctx.Vikings.FirstOrDefault(x => x.Id == userId);
+        if (viking is null)
             return Ok("error");
+        
         UserMissionStateResult result = new UserMissionStateResult { Missions = new List<Mission>()  };
-        Mission tutorial = missionService.GetMissionWithProgress(999, userId);
-
-        result.Missions.Add(tutorial);
-
-        result.UserID = Guid.Parse(session.VikingId);
-        return Ok(result); // TODO: placeholder, returns the tutorial
+        foreach (var mission in viking.MissionStates.Where(x => x.MissionStatus == MissionStatus.Active))
+            result.Missions.Add(missionService.GetMissionWithProgress(mission.MissionId, viking.Id));
+        
+        result.UserID = Guid.Parse(viking.Id);
+        return Ok(result);
     }
 
     [HttpPost]
     [Produces("application/xml")]
     [Route("V2/ContentWebService.asmx/GetUserCompletedMissionState")]
     public IActionResult GetUserCompletedMissionState([FromForm] string apiToken, [FromForm] string userId) {
-        Session? session = ctx.Sessions.FirstOrDefault(s => s.ApiToken == apiToken);
-        UserMissionStateResult result = new UserMissionStateResult();
+        Viking? viking = ctx.Vikings.FirstOrDefault(x => x.Id == userId);
+        if (viking is null)
+            return Ok("error");
 
-        if (session is null)
-            return Ok(result);
+        UserMissionStateResult result = new UserMissionStateResult { Missions = new List<Mission>()  };
+        foreach (var mission in viking.MissionStates.Where(x => x.MissionStatus == MissionStatus.Completed))
+            result.Missions.Add(missionService.GetMissionWithProgress(mission.MissionId, viking.Id));
 
-        result.UserID = Guid.Parse(session.VikingId);
-        return Ok(result); // TODO: placeholder, returns no completed missions
+        result.UserID = Guid.Parse(viking.Id);
+        return Ok(result);
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("ContentWebService.asmx/AcceptMission")]
+    public IActionResult AcceptMission([FromForm] string userId, [FromForm] int missionId) {
+        Viking? viking = ctx.Vikings.FirstOrDefault(x => x.Id == userId);
+        if (viking is null)
+            return Ok(false);
+
+        MissionState? missionState = viking.MissionStates.FirstOrDefault(x => x.MissionId == missionId);
+        if (missionState is null || missionState.MissionStatus != MissionStatus.Upcoming)
+            return Ok(false);
+
+        missionState.MissionStatus = MissionStatus.Active;
+        ctx.SaveChanges();
+        return Ok(true);
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("V2/ContentWebService.asmx/GetUserMissionState")]
+    public IActionResult GetUserMissionState([FromForm] string userId, [FromForm] string filter) {
+        MissionRequestFilterV2 filterV2 = XmlUtil.DeserializeXml<MissionRequestFilterV2>(filter);
+        Viking? viking = ctx.Vikings.FirstOrDefault(x => x.Id == userId);
+        if (viking is null)
+            return Ok("error");
+
+        UserMissionStateResult result = new UserMissionStateResult { Missions = new List<Mission>()  };
+        foreach (var m in filterV2.MissionPair)
+            if (m.MissionID != null)
+            result.Missions.Add(missionService.GetMissionWithProgress((int)m.MissionID, viking.Id));
+
+        result.UserID = Guid.Parse(viking.Id);
+        return Ok(result);
     }
 
     [HttpPost]

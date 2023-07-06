@@ -12,10 +12,12 @@ public class RegistrationController : Controller {
 
     private readonly DBContext ctx;
     private ItemService itemService;
+    private MissionService missionService;
 
-    public RegistrationController(DBContext ctx, ItemService itemService) {
+    public RegistrationController(DBContext ctx, ItemService itemService, MissionService missionService) {
         this.ctx = ctx;
         this.itemService = itemService;
+        this.missionService = missionService;
     }
 
     [HttpPost]
@@ -90,6 +92,9 @@ public class RegistrationController : Controller {
             User = user,
             Inventory = inv
         };
+        
+        missionService.SetUpMissions(v);
+        
         ctx.Vikings.Add(v);
         ctx.SaveChanges();
 

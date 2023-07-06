@@ -6,16 +6,29 @@ namespace sodoff.Services;
 public class MissionStoreSingleton {
 
     private Dictionary<int, Mission> missions = new();
+    private int[] activeMissions;
+    private int[] upcomingMissions;
 
     public MissionStoreSingleton() {
         ServerMissionArray missionArray = XmlUtil.DeserializeXml<ServerMissionArray>(XmlUtil.ReadResourceXmlString("missions"));
+        DefaultMissions defaultMissions = XmlUtil.DeserializeXml<DefaultMissions>(XmlUtil.ReadResourceXmlString("defaultmissionlist"));
         foreach (var mission in missionArray.MissionDataArray) {
             SetUpRecursive(mission);
         }
+        activeMissions = defaultMissions.Active;
+        upcomingMissions = defaultMissions.Upcoming;
     }
 
     public Mission GetMission(int missionID) {
         return DeepCopy(missions[missionID]);
+    }
+
+    public int[] GetActiveMissions() {
+        return activeMissions;
+    }
+
+    public int[] GetUpcomingMissions() {
+        return upcomingMissions;
     }
 
     private void SetUpRecursive(Mission mission) {

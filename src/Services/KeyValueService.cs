@@ -35,7 +35,8 @@ public class KeyValueService {
             };
             exists = false;
         }
-
+        if (schemaData is null || schemaData.Pairs is null)
+            return true;
         // Update or create the key-value pairs
         foreach (var p in schemaData.Pairs) {
             if (string.IsNullOrEmpty(p.PairValue))

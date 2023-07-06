@@ -20,6 +20,7 @@
     <None Remove="Resources\rewardmultiplier.xml" />
     <None Remove="Resources\store.xml" />
     <None Remove="Resources\allranks.xml" />
+    <None Remove="Resources\defaultmissionlist.xml" />
   </ItemGroup>
   <ItemGroup>
     <None Update="Resources\childlist.xml">
@@ -55,6 +56,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
 	  <EmbeddedResource Include="Resources\missions.xml">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </EmbeddedResource>
+    <EmbeddedResource Include="Resources\defaultmissionlist.xml">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </EmbeddedResource>
   </ItemGroup>
