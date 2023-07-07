@@ -69,11 +69,20 @@ class LocalRedirect:
     print('Loaded redirect addon')
 
   def request(self, flow: mitmproxy.http.HTTPFlow):
-    if ('api.sodoff.spirtix.com' in flow.request.pretty_host or 'api.jumpstart.com' in flow.request.pretty_host) and routable(flow.request.path):
+    if 'api.sodoff.spirtix.com' in flow.request.pretty_host and routable(flow.request.path):
       flow.request.host = "localhost"
       flow.request.scheme = 'http'
       flow.request.port = 5000
 
+class RedirectMediaRequests:
+  def __init__(self):
+    print('Loaded media request redirector')
+
+  def request(self, flow: mitmproxy.http.HTTPFlow):
+    if "media.jumpstart.com" in flow.request.pretty_host:
+      flow.request.host = "media.sodoff.spirtix.com"
+
 addons = [
   LocalRedirect()
+  RedirectMediaRequests()
 ]
