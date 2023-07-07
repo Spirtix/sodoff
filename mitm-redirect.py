@@ -83,6 +83,6 @@ class RedirectMediaRequests:
       flow.request.host = "media.sodoff.spirtix.com"
 
 addons = [
-  LocalRedirect()
+  LocalRedirect(),
   RedirectMediaRequests()
 ]
