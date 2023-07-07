@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 
 using Microsoft.AspNetCore.Mvc;
+using sodoff.Attributes;
 using sodoff.Model;
 using sodoff.Schema;
 using sodoff.Util;
@@ -62,5 +63,49 @@ public class AchievementController : Controller {
         };
 
         return Ok(arrAchievements);
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("AchievementWebService.asmx/SetAchievementAndGetReward")]
+    public IActionResult SetAchievementAndGetReward([FromForm] string apiToken, [FromForm] int achievementID) {
+        // TODO: This is a placeholder; returns 5 gems
+        Viking? viking = ctx.Sessions.FirstOrDefault(x => x.ApiToken == apiToken).Viking;
+        return Ok(new AchievementReward[1] {
+            new AchievementReward {
+                Amount = 5,
+                PointTypeID = 5,
+                EntityID = Guid.Parse(viking.Id),
+                EntityTypeID = 1,
+                RewardID = 552
+            }
+        });
+    }
+
+        [HttpPost]
+    [Produces("application/xml")]
+    [Route("V2/AchievementWebService.asmx/SetUserAchievementTask")]
+    [DecryptRequest("achievementTaskSetRequest")]
+    public IActionResult SetUserAchievementTask([FromForm] string apiToken, [FromForm] int achievementID) {
+        // TODO: This is a placeholder
+        string xml = Request.Form["achievementTaskSetRequest"];
+        AchievementTaskSetResponse response = new AchievementTaskSetResponse {
+            Success = true,
+            UserMessage = true,
+            AchievementName = "Placeholder Achievement",
+            Level = 1,
+            AchievementTaskGroupID = 1279,
+            LastLevelCompleted = true,
+            AchievementInfoID = 1279,
+            AchievementRewards = new AchievementReward[1] {
+                new AchievementReward {
+                    Amount = 25,
+                    PointTypeID = 1,
+                    RewardID = 910,
+                    EntityTypeID =1
+                }
+            }
+        };
+        return Ok(new ArrayOfAchievementTaskSetResponse { AchievementTaskSetResponse = new AchievementTaskSetResponse[1] { response } });
     }
 }

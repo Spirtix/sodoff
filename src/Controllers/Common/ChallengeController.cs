@@ -6,7 +6,7 @@ public class ChallengeController : Controller {
 
     [HttpPost]
     [Produces("application/xml")]
-    [Route("ContentWebService.asmx/ChallengeWebService.asmx/GetActiveChallenges")]
+    [Route("ChallengeWebService.asmx/GetActiveChallenges")]
     public IActionResult GetActiveChallenges() {
         // TODO: this is a placeholder
         return Ok(new ChallengeInfo[0]);
