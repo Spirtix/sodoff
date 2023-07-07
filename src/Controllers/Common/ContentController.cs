@@ -662,7 +662,7 @@ public class ContentController : Controller {
             return null;
         }
 
-        string imageUrl = string.Format("{0}://{1}/RawImage/{2}/{3}/{4}", HttpContext.Request.Scheme, HttpContext.Request.Host, viking.Id, ImageType, ImageSlot);
+        string imageUrl = string.Format("{0}://{1}/RawImage/{2}/{3}/{4}.jpg", HttpContext.Request.Scheme, HttpContext.Request.Host, viking.Id, ImageType, ImageSlot);
 
         return new ImageData {
             ImageURL = imageUrl,

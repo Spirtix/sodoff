@@ -20,7 +20,7 @@ public class ImageController : Controller {
     // SetImage and GetImage are defined in ContentController
 
     [HttpGet]
-    [Route("RawImage/{VikingId}/{ImageType}/{ImageSlot}")]
+    [Route("RawImage/{VikingId}/{ImageType}/{ImageSlot}.jpg")]
     public IActionResult RawImage(String VikingId, String ImageType, int ImageSlot) {
         Image? image = ctx.Images.FirstOrDefault(e => e.VikingId == VikingId && e.ImageType == ImageType && e.ImageSlot == ImageSlot);
         if (image is null) {
