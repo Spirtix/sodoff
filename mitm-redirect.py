@@ -69,7 +69,7 @@ class LocalRedirect:
     print('Loaded redirect addon')
 
   def request(self, flow: mitmproxy.http.HTTPFlow):
-    if 'api.sodoff.spirtix.com' in flow.request.pretty_host and routable(flow.request.path):
+    if ('api.sodoff.spirtix.com' in flow.request.pretty_host or 'api.jumpstart.com' in flow.request.pretty_host) and routable(flow.request.path):
       flow.request.host = "localhost"
       flow.request.scheme = 'http'
       flow.request.port = 5000
