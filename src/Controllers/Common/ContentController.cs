@@ -273,6 +273,7 @@ public class ContentController : Controller {
         raisedPetRequest.RaisedPetData.IsSelected = false; // The api returns false, not sure why
         raisedPetRequest.RaisedPetData.CreateDate = new DateTime(DateTime.Now.Ticks);
         raisedPetRequest.RaisedPetData.UpdateDate = new DateTime(DateTime.Now.Ticks);
+        raisedPetRequest.RaisedPetData.ImagePosition = (viking.Images.Select(i => i.ImageSlot).DefaultIfEmpty(-1).Max() + 1);
 
         // Save the dragon in the db
         Dragon dragon = new Dragon {
