@@ -605,6 +605,44 @@ public class ContentController : Controller {
         return Ok(response);
     }
 
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("ContentWebService.asmx/PurchaseItems")]
+    public IActionResult PurchaseItemsV1([FromForm] string apiToken, [FromForm] string itemIDArrayXml) {
+        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
+        if (viking is null)
+            return Ok();
+
+        int[] itemIdArr = XmlUtil.DeserializeXml<int[]>(itemIDArrayXml);
+        CommonInventoryResponseItem[] items = new CommonInventoryResponseItem[itemIdArr.Length];
+        for (int i = 0; i < itemIdArr.Length; i++) {
+            InventoryItem? item = viking.Inventory.InventoryItems.FirstOrDefault(e => e.ItemId == itemIdArr[i]);
+            if (item is null) {
+                item = new InventoryItem { ItemId = itemIdArr[i], Quantity = 0 };
+                viking.Inventory.InventoryItems.Add(item);
+            }
+            item.Quantity++;
+            ctx.SaveChanges();
+            items[i] = new CommonInventoryResponseItem {
+                CommonInventoryID = item.Id,
+                ItemID = itemIdArr[i],
+                Quantity = 0 // The quantity of purchased items is always 0 and the items are instead duplicated in both the request and the response
+            };
+        }
+
+        CommonInventoryResponse response = new CommonInventoryResponse {
+            Success = true,
+            CommonInventoryIDs = items,
+            UserGameCurrency = new UserGameCurrency {
+                UserID = Guid.Parse(viking.Id),
+                UserGameCurrencyID = 1, // TODO: user's wallet ID?
+                CashCurrency = 1000,
+                GameCurrency = 1000,
+            }
+        };
+        return Ok(response);
+    }
+
     private RaisedPetData GetRaisedPetDataFromDragon (Dragon dragon) {
         RaisedPetData data = XmlUtil.DeserializeXml<RaisedPetData>(dragon.RaisedPetData);
         data.RaisedPetID = dragon.Id;
