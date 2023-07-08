@@ -30,6 +30,9 @@ Then run School of Dragons.
 - list profiles
 - tutorial
 - roaming in the open world
+- inventory
+- store
+- many missions
 
 ### Methods
 
@@ -54,13 +57,21 @@ Then run School of Dragons.
 - SetImage
 - GetImage
 - GetImageByUserId
+- GetItem
+- GetStore
+- PurchaseItems (V1)
+- PurchaseItems (V2)
+- AcceptMission
+- GetUserMissionState
+- GetUserActiveMissionState
+- GetUserUpcomingMissionState
+- GetUserCompletedMissionState
 
 #### Implemented enough (probably)
 - GetRules (doesn't return any rules, probably doesn't need to)
 - GetQuestions (doesn't return all questions, probably doesn't need to)
 - GetSubscriptionInfo (always returns member, with end date 10 years from now)
 - SetTaskState (only the TaskCanBeDone status is supported; might contain a serious problem - see the MissionService class)
-- GetItem
 - GetCommonInventory
 
 #### Partially implemented
@@ -69,15 +80,11 @@ Then run School of Dragons.
 - GetDetailedChildList (a lot is still placeholder)
 - ValidateName (needs to do pets, groups, default)
 - GetDefaultNameSuggestion (needs to return unused names)
-- GetUserActiveMissionState (returns the tutorial mission and updates it with progress)
 - SetCommonInventory (some properties are not retained, doesn't support delete)
 
 #### Currently static or stubbed
-- GetStore (needs to filter out stores from request)
 - GetAllRanks (needs to be populated with what ranks the user has)
 - GetPetAchievementsByUserId (always returns null)
-- GetUserUpcomingMissionState (returns no missions)
-- GetUserCompletedMissionState (returns no missions)
 - GetAchievementTaskInfo (returns a static XML)
 - GetAllRewardTypeMultiplier (returns a static XML)
 - GetBuddyList (returns an emtpy array)
@@ -88,3 +95,5 @@ Then run School of Dragons.
 - GetMMOServerInfoWithZone (returns an empty array)
 - GetActiveChallenges (returns an empty array)
 - GetAchievementsByUserID (returns an achievement with the provided user ID)
+- SetAchievementAndGetReward (returns 5 gems)
+- SetUserAchievementTask (returns a placeholder achievement)
