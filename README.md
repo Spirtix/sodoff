@@ -97,3 +97,4 @@ Then run School of Dragons.
 - GetAchievementsByUserID (returns an achievement with the provided user ID)
 - SetAchievementAndGetReward (returns 5 gems)
 - SetUserAchievementTask (returns a placeholder achievement)
+- GetAnnouncementsByUser (returns no announcements, but that might be sufficient)

@@ -41,4 +41,12 @@ public class ItemStoreController : Controller {
         // TODO
         return Ok(XmlUtil.ReadResourceXmlString("rankattrib"));
     }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("ItemStoreWebService.asmx/GetAnnouncementsByUser")]
+    public IActionResult GetAnnouncements([FromForm] string apiToken, [FromForm] int worldObjectID) {
+        // TODO: This is a placeholder, although this endpoint seems to be only used to send announcements to the user (such as the server shutdown), so this might be sufficient.
+        return Ok(new AnnouncementList());
+    }
 }

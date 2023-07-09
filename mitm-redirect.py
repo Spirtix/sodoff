@@ -56,7 +56,8 @@ methods = [
   'AcceptMission',
   'GetUserMissionState',
   'SetAchievementAndGetReward',
-  'SetUserAchievementTask'
+  'SetUserAchievementTask',
+  'GetAnnouncementsByUser'
 ]
 
 def routable(path):
