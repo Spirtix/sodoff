@@ -69,9 +69,6 @@ public class MissionService {
             }
         }
 
-        if (taskStatuses.Count == mission.Tasks.Count && AllMissionsCompleted(mission))
-            mission.Completed = 1;
-
         // Update all inner missions
         // Update rules with missions
         foreach (var innerMission in mission.Missions) {
@@ -81,6 +78,9 @@ public class MissionService {
                 if (rule != null) rule.Complete = 1;
             }
         }
+
+        if (taskStatuses.Count == mission.Tasks.Count && AllMissionsCompleted(mission))
+            mission.Completed = 1;
     }
 
     public void SetUpMissions(Viking viking) {
