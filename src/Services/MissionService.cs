@@ -43,8 +43,10 @@ public class MissionService {
                 });
                 // Update mission from active to completed
                 MissionState? missionState = ctx.Vikings.FirstOrDefault(x => x.Id == userId)!.MissionStates.FirstOrDefault(x => x.MissionId == missionId);
-                if (missionState != null && missionState.MissionStatus == MissionStatus.Active)
+                if (missionState != null && missionState.MissionStatus == MissionStatus.Active) {
                     missionState.MissionStatus = MissionStatus.Completed;
+                    missionState.UserAccepted = null;
+                }
                 ctx.SaveChanges();
             }
         }

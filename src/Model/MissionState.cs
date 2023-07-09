@@ -13,6 +13,8 @@ public class MissionState {
     public virtual Viking? Viking { get; set; }
 
     public MissionStatus MissionStatus { get; set; }
+
+    public bool? UserAccepted { get; set; }
 }
 
 public enum MissionStatus {

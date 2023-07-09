@@ -480,8 +480,12 @@ public class ContentController : Controller {
             return Ok("error");
         
         UserMissionStateResult result = new UserMissionStateResult { Missions = new List<Mission>()  };
-        foreach (var mission in viking.MissionStates.Where(x => x.MissionStatus == MissionStatus.Active))
-            result.Missions.Add(missionService.GetMissionWithProgress(mission.MissionId, viking.Id));
+        foreach (var mission in viking.MissionStates.Where(x => x.MissionStatus == MissionStatus.Active)) {
+            Mission updatedMission = missionService.GetMissionWithProgress(mission.MissionId, viking.Id);
+            if (mission.UserAccepted != null)
+                updatedMission.Accepted = (bool)mission.UserAccepted;
+            result.Missions.Add(updatedMission);
+        }
         
         result.UserID = Guid.Parse(viking.Id);
         return Ok(result);
@@ -516,6 +520,7 @@ public class ContentController : Controller {
             return Ok(false);
 
         missionState.MissionStatus = MissionStatus.Active;
+        missionState.UserAccepted = true;
         ctx.SaveChanges();
         return Ok(true);
     }
