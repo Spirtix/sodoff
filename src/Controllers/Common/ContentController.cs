@@ -273,8 +273,15 @@ public class ContentController : Controller {
         raisedPetRequest.RaisedPetData.IsSelected = false; // The api returns false, not sure why
         raisedPetRequest.RaisedPetData.CreateDate = new DateTime(DateTime.Now.Ticks);
         raisedPetRequest.RaisedPetData.UpdateDate = new DateTime(DateTime.Now.Ticks);
-        raisedPetRequest.RaisedPetData.ImagePosition = (viking.Images.Select(i => i.ImageSlot).DefaultIfEmpty(-1).Max() + 1);
-
+        int imageSlot = (viking.Images.Select(i => i.ImageSlot).DefaultIfEmpty(-1).Max() + 1);
+        raisedPetRequest.RaisedPetData.ImagePosition = imageSlot;
+        // NOTE: Placing an egg into a hatchery slot calls CreatePet, but doesn't SetImage.
+        // NOTE: We need to force create an image slot because hatching multiple eggs at once would create dragons with the same slot
+        Image image = new Image {
+            ImageType = "EggColor", // NOTE: The game doesn't seem to use anything other than EggColor.
+            ImageSlot = imageSlot,
+            Viking = viking,
+        };
         // Save the dragon in the db
         Dragon dragon = new Dragon {
             EntityId = Guid.NewGuid().ToString(),
@@ -287,6 +294,7 @@ public class ContentController : Controller {
             ctx.Update(viking);
         }
         ctx.Dragons.Add(dragon);
+        ctx.Images.Add(image);
         ctx.SaveChanges();
 
         // TODO: handle CommonInventoryRequests here too
