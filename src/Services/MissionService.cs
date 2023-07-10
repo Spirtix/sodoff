@@ -35,7 +35,7 @@ public class MissionService {
         List<MissionCompletedResult> result = new();
         if (completed) {
             Mission mission = GetMissionWithProgress(missionId, userId);
-            if (AllMissionsCompleted(mission) && AllTasksCompleted(mission)) {
+            if (MissionCompleted(mission)) {
                 // Get mission rewards
                 result.Add(new MissionCompletedResult {
                     MissionID = missionId,
@@ -79,7 +79,7 @@ public class MissionService {
             }
         }
 
-        if (taskStatuses.Count == mission.Tasks.Count && AllMissionsCompleted(mission))
+        if (MissionCompleted(mission))
             mission.Completed = 1;
     }
 
@@ -119,11 +119,7 @@ public class MissionService {
         ctx.SaveChanges();
     }
 
-    private bool AllMissionsCompleted(Mission mission) {
-        return mission.Missions.FindAll(x => x.Completed == 1).Count == mission.Missions.Count;
-    }
-
-    private bool AllTasksCompleted(Mission mission) {
-        return mission.Tasks.FindAll(x => x.Completed == 1).Count == mission.Tasks.Count;
+    private bool MissionCompleted(Mission mission) {
+        return mission.MissionRule.Criteria.RuleItems.All(x => x.Complete == 1);
     }
 }
