@@ -114,7 +114,7 @@ public class MissionService {
             ctx.TaskStatuses.Add(status);
         } else {
             status.Payload = xmlPayload;
-            status.Completed = completed;
+            if (!status.Completed) status.Completed = completed; // NOTE: Lab missions update the payload after the task is marked as completed with the completed flag set to false. The official servers ignore this flag when it's already been set to true
         }
         ctx.SaveChanges();
     }
