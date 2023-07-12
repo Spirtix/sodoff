@@ -12,6 +12,9 @@ public class DBContext : DbContext {
     public DbSet<TaskStatus> TaskStatuses { get; set; } = null!;
     public DbSet<Inventory> Inventories { get; set; } = null!;
     public DbSet<InventoryItem> InventoryItems { get; set; } = null!;
+    public DbSet<MissionState> MissionStates { get; set; } = null!;
+    public DbSet<Room> Rooms { get; set; } = null!;
+    public DbSet<RoomItem> RoomItems { get; set; } = null!;
 
     public string DbPath { get; }
 
@@ -38,6 +41,9 @@ public class DBContext : DbContext {
             .WithOne(e => e.Viking);
 
         builder.Entity<Viking>().HasMany(v => v.MissionStates)
+            .WithOne(e => e.Viking);
+
+        builder.Entity<Viking>().HasMany(v => v.Rooms)
             .WithOne(e => e.Viking);
 
         builder.Entity<Viking>().HasOne(s => s.User)
@@ -113,6 +119,16 @@ public class DBContext : DbContext {
         builder.Entity<MissionState>().HasOne(m => m.Viking)
             .WithMany(e => e.MissionStates)
             .HasForeignKey(e => e.VikingId);
-        
+
+        builder.Entity<Room>().HasOne(r => r.Viking)
+            .WithMany(e => e.Rooms)
+            .HasForeignKey(e => e.VikingId);
+
+        builder.Entity<Room>().HasMany(r => r.Items)
+            .WithOne(e => e.Room);
+
+        builder.Entity<RoomItem>().HasOne(i => i.Room)
+            .WithMany(r => r.Items)
+            .HasForeignKey(e => e.RoomId);
     }
 }

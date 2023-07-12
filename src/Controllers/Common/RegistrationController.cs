@@ -13,11 +13,13 @@ public class RegistrationController : Controller {
     private readonly DBContext ctx;
     private ItemService itemService;
     private MissionService missionService;
+    private RoomService roomService;
 
-    public RegistrationController(DBContext ctx, ItemService itemService, MissionService missionService) {
+    public RegistrationController(DBContext ctx, ItemService itemService, MissionService missionService, RoomService roomService) {
         this.ctx = ctx;
         this.itemService = itemService;
         this.missionService = missionService;
+        this.roomService = roomService;
     }
 
     [HttpPost]
@@ -90,13 +92,16 @@ public class RegistrationController : Controller {
             Id = Guid.NewGuid().ToString(),
             Name = data.ChildName,
             User = user,
-            Inventory = inv
+            Inventory = inv,
+            Rooms = new List<Room>()
         };
         
         missionService.SetUpMissions(v);
         
         ctx.Vikings.Add(v);
         ctx.SaveChanges();
+
+        roomService.CreateRoom(v, "MyRoomINT");
 
         return Ok(new RegistrationResult {
             UserID = v.Id,

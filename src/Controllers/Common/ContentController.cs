@@ -14,11 +14,13 @@ public class ContentController : Controller {
     private KeyValueService keyValueService;
     private ItemService itemService;
     private MissionService missionService;
-    public ContentController(DBContext ctx, KeyValueService keyValueService, ItemService itemService, MissionService missionService) {
+    private RoomService roomService;
+    public ContentController(DBContext ctx, KeyValueService keyValueService, ItemService itemService, MissionService missionService, RoomService roomService) {
         this.ctx = ctx;
         this.keyValueService = keyValueService;
         this.itemService = itemService;
         this.missionService = missionService;
+        this.roomService = roomService;
     }
 
     [HttpPost]
@@ -149,7 +151,7 @@ public class ContentController : Controller {
             if (item.Quantity == 0) continue; // Don't include an item that the viking doesn't have
             ItemData itemData = itemService.GetItem(item.ItemId);
             UserItemData uid = new UserItemData {
-                UserInventoryID = viking.Inventory.Id,
+                UserInventoryID = item.Id,
                 ItemID = itemData.ItemID,
                 Quantity = item.Quantity,
                 Uses = itemData.Uses,
@@ -653,6 +655,44 @@ public class ContentController : Controller {
                 GameCurrency = 1000,
             }
         };
+        return Ok(response);
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("ContentWebService.asmx/GetUserRoomItemPositions")]
+    public IActionResult GetUserRoomItemPositions([FromForm] string apiToken, [FromForm] string roomID) {
+        Room? room = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking?.Rooms.FirstOrDefault(x => x.RoomId == roomID);
+        if (room is null)
+            return Ok();
+        return Ok(roomService.GetUserItemPositionList(room));
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("ContentWebService.asmx/SetUserRoomItemPositions")]
+    public IActionResult SetUserRoomItemPositions([FromForm] string apiToken, [FromForm] string createXml, [FromForm] string updateXml, [FromForm] string removeXml, [FromForm] string roomID) {
+        Room? room = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking?.Rooms.FirstOrDefault(x => x.RoomId == roomID);
+        if (room is null)
+            return Ok();
+
+        UserItemPositionSetRequest[] createItems = XmlUtil.DeserializeXml<UserItemPositionSetRequest[]>(createXml);
+        UserItemPositionSetRequest[] updateItems = XmlUtil.DeserializeXml<UserItemPositionSetRequest[]>(updateXml);
+        int[] deleteItems = XmlUtil.DeserializeXml<int[]>(removeXml);
+
+        int[] ids = roomService.CreateItems(createItems, room);
+        UserItemState[] state = roomService.UpdateItems(updateItems, room);
+        roomService.DeleteItems(deleteItems, room);
+
+        UserItemPositionSetResponse response = new UserItemPositionSetResponse {
+            Success = true,
+            CreatedUserItemPositionIDs = ids,
+            Result = ItemPositionValidationResult.Valid
+        };
+
+        if (state.Length > 0)
+            response.UserItemStates = state;
+
         return Ok(response);
     }
 
