@@ -54,7 +54,17 @@ methods = [
   'GetAchievementsByUserID',
   'PurchaseItems',
   'AcceptMission',
-  'GetUserMissionState'
+  'GetUserMissionState',
+  'SetAchievementAndGetReward',
+  'SetUserAchievementTask',
+  'GetAnnouncementsByUser',
+  'GetUserRoomItemPositions',
+  'SetUserRoomItemPositions',
+  'GetAverageRatingForRoom',
+  'GetUserRoomList',
+  'GetUserActivityByUserID',
+  'SetNextItemState',
+  'SetUserRoom'
 ]
 
 def routable(path):
