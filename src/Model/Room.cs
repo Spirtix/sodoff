@@ -10,6 +10,8 @@ public class Room {
 
     public string VikingId { get; set; } = null!;
 
+    public string? Name { get; set; }
+
     public virtual Viking? Viking { get; set; }
 
     public virtual ICollection<RoomItem> Items { get; set; } = null!;

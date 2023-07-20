@@ -19,13 +19,13 @@ public class RoomService {
         ctx.SaveChanges();
     }
 
-    public int[] CreateItems(UserItemPositionSetRequest[] roomItemRequest, Room room) {
+    public Tuple<int[], UserItemState[]> CreateItems(UserItemPositionSetRequest[] roomItemRequest, Room room) {
         List<int> ids = new();
+        List<UserItemState> states = new();
         foreach (var itemRequest in roomItemRequest) {
             // TODO: Remove item from inventory (using CommonInventoryID)
             InventoryItem? i = room.Viking?.Inventory.InventoryItems.FirstOrDefault(x => x.Id == itemRequest.UserInventoryCommonID);
-            if (i != null) i.Quantity--; 
-            UserItemPosition uip = itemRequest;
+            if (i != null) i.Quantity--;
             RoomItem roomItem = new RoomItem {
                 RoomItemData = XmlUtil.SerializeXml<UserItemPosition>(itemRequest).Replace(" xsi:type=\"UserItemPositionSetRequest\"", "") // NOTE: No way to avoid this hack when we're serializing a child class into a base class
             };
@@ -33,8 +33,22 @@ public class RoomService {
             room.Items.Add(roomItem);
             ctx.SaveChanges();
             ids.Add(roomItem.Id);
+            if (itemRequest.Item.ItemStates.Count > 0) {
+                ItemState defaultState = itemRequest.Item.ItemStates.Find(x => x.Order == 1)!;
+                UserItemState userDefaultState = new UserItemState {
+                    CommonInventoryID = (int)itemRequest.UserInventoryCommonID!,
+                    UserItemPositionID = roomItem.Id,
+                    ItemID = (int)itemRequest.Item.ItemID,
+                    ItemStateID = defaultState.ItemStateID,
+                    StateChangeDate = DateTime.Now
+                };
+                states.Add(userDefaultState);
+                itemRequest.UserItemState = userDefaultState;
+                roomItem.RoomItemData = XmlUtil.SerializeXml<UserItemPosition>(itemRequest).Replace(" xsi:type=\"UserItemPositionSetRequest\"", "");
+                ctx.SaveChanges();
+            }
         }
-        return ids.ToArray();
+        return new(ids.ToArray(), states.ToArray());
     }
 
     public UserItemState[] UpdateItems(UserItemPositionSetRequest[] roomItemRequest, Room room) {
@@ -84,8 +98,68 @@ public class RoomService {
         foreach (var item in room.Items) {
             UserItemPosition data = XmlUtil.DeserializeXml<UserItemPosition>(item.RoomItemData);
             data.UserItemPositionID = item.Id;
+            data.ItemID = data.Item.ItemID;
             itemPosition.Add(data);
         }
         return new UserItemPositionList { UserItemPosition = itemPosition.ToArray() };
+    }
+
+    public SetNextItemStateResult NextItemState(RoomItem item, bool speedup) {
+        SetNextItemStateResult response = new SetNextItemStateResult {
+            Success = true,
+            ErrorCode = ItemStateChangeError.Success
+        };
+        UserItemPosition pos = XmlUtil.DeserializeXml<UserItemPosition>(item.RoomItemData);
+
+        int nextStateID = GetNextStateID(pos, speedup);
+        DateTime stateChange = DateTime.Now;
+        if (nextStateID == -1) {
+            nextStateID = pos.UserItemState.ItemStateID;
+            stateChange = pos.UserItemState.StateChangeDate;
+            ctx.RoomItems.Remove(item);
+            ctx.SaveChanges();
+        }
+
+        response.UserItemState = new UserItemState {
+            CommonInventoryID = (int)pos.UserInventoryCommonID!,
+            UserItemPositionID = item.Id,
+            ItemID = pos.Item.ItemID,
+            ItemStateID = nextStateID,
+            StateChangeDate = stateChange
+        };
+
+        if (nextStateID != -1) {
+            pos.UserItemState = response.UserItemState;
+            item.RoomItemData = XmlUtil.SerializeXml<UserItemPosition>(pos);
+            ctx.SaveChanges();
+        }
+
+        return response;
+    }
+
+    private int GetNextStateID(UserItemPosition pos, bool speedup) {
+        if (pos.UserItemState == null)
+            return pos.Item.ItemStates.Find(x => x.Order == 1)!.ItemStateID;
+
+        ItemState currState = pos.Item.ItemStates.Find(x => x.ItemStateID == pos.UserItemState.ItemStateID)!;
+        if (speedup)
+            return ((ItemStateCriteriaSpeedUpItem)currState.Rule.Criterias.Find(x => x.Type == ItemStateCriteriaType.SpeedUpItem)!).EndStateID;
+
+        ItemStateCriteriaExpiry? expiry = (ItemStateCriteriaExpiry?)currState.Rule.Criterias.Find(x => x.Type == ItemStateCriteriaType.StateExpiry);
+        if (expiry != null) {
+            DateTime start = pos.UserItemState.StateChangeDate;
+            if (start.AddSeconds(expiry.Period) <= DateTime.Now)
+                return expiry.EndStateID; 
+        }
+
+        switch (currState.Rule.CompletionAction.Transition) {
+            default:
+                return pos.Item.ItemStates.Find(x => x.Order == currState.Order + 1)!.ItemStateID;
+            case StateTransition.InitialState:
+                return pos.Item.ItemStates.Find(x => x.Order == 1)!.ItemStateID;
+            case StateTransition.Deletion:
+                return -1;
+
+        }
     }
 }

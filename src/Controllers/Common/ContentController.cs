@@ -579,7 +579,7 @@ public class ContentController : Controller {
     [Route("ContentWebService.asmx/GetBuddyList")]
     public IActionResult GetBuddyList() {
         // TODO: this is a placeholder
-        return Ok(new BuddyList[0]);
+        return Ok(new BuddyList { Buddy = new Buddy[0] });
     }
 
     [HttpPost]
@@ -662,9 +662,11 @@ public class ContentController : Controller {
     [Produces("application/xml")]
     [Route("ContentWebService.asmx/GetUserRoomItemPositions")]
     public IActionResult GetUserRoomItemPositions([FromForm] string apiToken, [FromForm] string roomID) {
+        if (roomID is null)
+            roomID = "";
         Room? room = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking?.Rooms.FirstOrDefault(x => x.RoomId == roomID);
         if (room is null)
-            return Ok();
+            return Ok(new UserItemPositionList { UserItemPosition = new UserItemPosition[0] });
         return Ok(roomService.GetUserItemPositionList(room));
     }
 
@@ -672,21 +674,30 @@ public class ContentController : Controller {
     [Produces("application/xml")]
     [Route("ContentWebService.asmx/SetUserRoomItemPositions")]
     public IActionResult SetUserRoomItemPositions([FromForm] string apiToken, [FromForm] string createXml, [FromForm] string updateXml, [FromForm] string removeXml, [FromForm] string roomID) {
+        if (roomID is null)
+            roomID = "";
         Room? room = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking?.Rooms.FirstOrDefault(x => x.RoomId == roomID);
-        if (room is null)
-            return Ok();
+        if (room is null) {
+            room = new Room {
+                RoomId = roomID,
+                Items = new List<RoomItem>()
+            };
+            ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking?.Rooms.Add(room);
+            ctx.SaveChanges();
+        }
 
         UserItemPositionSetRequest[] createItems = XmlUtil.DeserializeXml<UserItemPositionSetRequest[]>(createXml);
         UserItemPositionSetRequest[] updateItems = XmlUtil.DeserializeXml<UserItemPositionSetRequest[]>(updateXml);
         int[] deleteItems = XmlUtil.DeserializeXml<int[]>(removeXml);
 
-        int[] ids = roomService.CreateItems(createItems, room);
+        Tuple<int[], UserItemState[]> createData = roomService.CreateItems(createItems, room);
         UserItemState[] state = roomService.UpdateItems(updateItems, room);
         roomService.DeleteItems(deleteItems, room);
 
         UserItemPositionSetResponse response = new UserItemPositionSetResponse {
             Success = true,
-            CreatedUserItemPositionIDs = ids,
+            CreatedUserItemPositionIDs = createData.Item1,
+            UserItemStates = createData.Item2,
             Result = ItemPositionValidationResult.Valid
         };
 
@@ -694,6 +705,66 @@ public class ContentController : Controller {
             response.UserItemStates = state;
 
         return Ok(response);
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("ContentWebService.asmx/GetUserRoomList")]
+    public IActionResult GetUserRoomList([FromForm] string request) {
+        // TODO: Categories are not supported
+        UserRoomGetRequest userRoomRequest = XmlUtil.DeserializeXml<UserRoomGetRequest>(request);
+        ICollection<Room>? rooms = ctx.Vikings.FirstOrDefault(x => x.Id == userRoomRequest.UserID.ToString())?.Rooms;
+        UserRoomResponse response = new UserRoomResponse { UserRoomList = new List<UserRoom>() };
+        if (rooms is null)
+            return Ok(response);
+        foreach (var room in rooms) {
+            if (room.RoomId == "MyRoomINT" || room.RoomId == "StaticFarmItems") continue;
+            UserRoom ur = new UserRoom {
+                RoomID = room.RoomId,
+                CategoryID = 541, // Placeholder
+                CreativePoints = 0, // Placeholder
+                ItemID = 0,
+                Name = room.Name
+            };
+            response.UserRoomList.Add(ur);
+        }
+        return Ok(response);
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("ContentWebService.asmx/SetUserRoom")]
+    public IActionResult SetUserRoom([FromForm] string apiToken, [FromForm] string request) {
+        UserRoom roomRequest = XmlUtil.DeserializeXml<UserRoom>(request);
+        Room? room = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking?.Rooms.FirstOrDefault(x => x.RoomId == roomRequest.RoomID);
+        if (room is null)
+            return Ok(new UserItemPositionList { UserItemPosition = new UserItemPosition[0] });
+        room.Name = roomRequest.Name;
+        ctx.SaveChanges();
+        return Ok(new UserRoomSetResponse {
+            Success = true,
+            StatusCode = UserRoomValidationResult.Valid
+        });
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("ContentWebService.asmx/GetUserActivityByUserID")]
+    public IActionResult GetUserActivityByUserID() {
+        return Ok(new ArrayOfUserActivity { UserActivity = new UserActivity[0] });
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("ContentWebService.asmx/SetNextItemState")]
+    public IActionResult SetNextItemState([FromForm] string setNextItemStateRequest) {
+        SetNextItemStateRequest request = XmlUtil.DeserializeXml<SetNextItemStateRequest>(setNextItemStateRequest);
+        RoomItem? item = ctx.RoomItems.FirstOrDefault(x => x.Id == request.UserItemPositionID);
+        if (item is null)
+            return Ok();
+
+        // NOTE: The game sets OverrideStateCriteria only if a speedup is used
+        return Ok(roomService.NextItemState(item, request.OverrideStateCriteria));
     }
 
     private RaisedPetData GetRaisedPetDataFromDragon (Dragon dragon) {
