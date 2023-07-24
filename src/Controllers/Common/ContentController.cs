@@ -767,6 +767,19 @@ public class ContentController : Controller {
         return Ok(roomService.NextItemState(item, request.OverrideStateCriteria));
     }
 
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("ContentWebService.asmx/GetUserGameCurrency")]
+    public IActionResult GetUserGameCurrency([FromForm] string userId) {
+        // TODO: This is a placeholder
+        return Ok(new UserGameCurrency {
+            CashCurrency = 1000,
+            GameCurrency = 1000,
+            UserGameCurrencyID = 0,
+            UserID = Guid.Parse(userId)
+        });
+    }
+
     private RaisedPetData GetRaisedPetDataFromDragon (Dragon dragon) {
         RaisedPetData data = XmlUtil.DeserializeXml<RaisedPetData>(dragon.RaisedPetData);
         data.RaisedPetID = dragon.Id;

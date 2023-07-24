@@ -143,10 +143,22 @@ public class ProfileController : Controller {
             Achievements = new UserAchievementInfo[] {
                 new UserAchievementInfo {
                     UserID = Guid.Parse(viking.Id),
-                    AchievementPointTotal = 0, // placeholder
-                    RankID = 1, // placeholder
-                    PointTypeID = 1 // placeholder
-                }
+                    AchievementPointTotal = 5000,
+                    RankID = 30,
+                    PointTypeID = 1
+                },
+                new UserAchievementInfo {
+                    UserID = Guid.Parse(viking.Id),
+                    AchievementPointTotal = 5000,
+                    RankID = 30,
+                    PointTypeID = 9
+                },
+                new UserAchievementInfo {
+                    UserID = Guid.Parse(viking.Id),
+                    AchievementPointTotal = 5000,
+                    RankID = 30,
+                    PointTypeID = 10
+                },
             }
         };
 

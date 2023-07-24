@@ -55,10 +55,22 @@ public class AchievementController : Controller {
             UserAchievementInfo = new UserAchievementInfo[]{
                 new UserAchievementInfo {
                     UserID = Guid.Parse(userId),
-                    AchievementPointTotal = 0,
-                    RankID = 1,
+                    AchievementPointTotal = 5000,
+                    RankID = 30,
                     PointTypeID = 1
-                }
+                },
+                new UserAchievementInfo {
+                    UserID = Guid.Parse(userId),
+                    AchievementPointTotal = 5000,
+                    RankID = 30,
+                    PointTypeID = 9
+                },
+                new UserAchievementInfo {
+                    UserID = Guid.Parse(userId),
+                    AchievementPointTotal = 5000,
+                    RankID = 30,
+                    PointTypeID = 10
+                },
             }
         };
 

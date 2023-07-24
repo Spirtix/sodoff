@@ -111,7 +111,28 @@ public class RoomService {
         };
         UserItemPosition pos = XmlUtil.DeserializeXml<UserItemPosition>(item.RoomItemData);
 
-        int nextStateID = GetNextStateID(pos, speedup);
+        AchievementReward[]? rewards;
+        int nextStateID = GetNextStateID(pos, speedup, out rewards);
+
+        if (rewards != null) {
+            response.Rewards = rewards;
+            foreach (var reward in rewards) {
+                if (reward.PointTypeID == 6) {
+                    // TODO: This is not a pretty solution. Use inventory service in the future
+                    InventoryItem? ii = item.Room.Viking.Inventory.InventoryItems.FirstOrDefault(x => x.ItemId == reward.ItemID);
+                    if (ii is null) {
+                        ii = new InventoryItem {
+                            ItemId = reward.ItemID,
+                            Quantity = 0
+                        };
+                        item.Room.Viking.Inventory.InventoryItems.Add(ii);
+                    }
+                    ii.Quantity += (int)reward.Amount!;
+                }
+            }
+            ctx.SaveChanges();
+        }
+
         DateTime stateChange = DateTime.Now;
         if (nextStateID == -1) {
             nextStateID = pos.UserItemState.ItemStateID;
@@ -137,11 +158,14 @@ public class RoomService {
         return response;
     }
 
-    private int GetNextStateID(UserItemPosition pos, bool speedup) {
+    private int GetNextStateID(UserItemPosition pos, bool speedup, out AchievementReward[]? rewards) {
+        rewards = null;
         if (pos.UserItemState == null)
             return pos.Item.ItemStates.Find(x => x.Order == 1)!.ItemStateID;
 
         ItemState currState = pos.Item.ItemStates.Find(x => x.ItemStateID == pos.UserItemState.ItemStateID)!;
+        rewards = currState.Rewards;
+
         if (speedup)
             return ((ItemStateCriteriaSpeedUpItem)currState.Rule.Criterias.Find(x => x.Type == ItemStateCriteriaType.SpeedUpItem)!).EndStateID;
 
