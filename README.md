@@ -66,6 +66,7 @@ Then run School of Dragons.
 - GetUserActiveMissionState
 - GetUserUpcomingMissionState
 - GetUserCompletedMissionState
+- GetChildList
 
 #### Implemented enough (probably)
 - GetRules (doesn't return any rules, probably doesn't need to)

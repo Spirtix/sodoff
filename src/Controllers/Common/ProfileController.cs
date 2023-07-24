@@ -171,6 +171,7 @@ public class ProfileController : Controller {
             GameCurrency = 1000,
             CashCurrency = 1000,
             ActivityCount = 0,
+            BuddyCount = 0,
             UserGradeData = new UserGrade { UserGradeID = 0 }
         };
     }
