@@ -65,6 +65,7 @@ methods = [
   'GetUserActivityByUserID',
   'SetNextItemState',
   'SetUserRoom',
+  'GetChildList',
   'GetUserGameCurrency',
   'SetAchievementByEntityIDs'
 ]

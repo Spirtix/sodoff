@@ -92,6 +92,8 @@ public class AuthenticationController : Controller {
             return Ok(new UserInfo {
                 UserID = user.Id,
                 Username = user.Username,
+                MembershipID = "ef84db9-59c6-4950-b8ea-bbc1521f899b", // placeholder
+                FacebookUserID = 0,
                 MultiplayerEnabled = true,
                 Age = 24,
                 OpenChatEnabled = true
