@@ -120,4 +120,21 @@ public class AchievementController : Controller {
         };
         return Ok(new ArrayOfAchievementTaskSetResponse { AchievementTaskSetResponse = new AchievementTaskSetResponse[1] { response } });
     }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("AchievementWebService.asmx/SetAchievementByEntityIDs")]
+    public IActionResult SetAchievementByEntityIDs([FromForm] string apiToken, [FromForm] int achievementID) {
+        // TODO: This is a placeholder
+        Viking? viking = ctx.Sessions.FirstOrDefault(x => x.ApiToken == apiToken).Viking;
+        return Ok(new AchievementReward[1] {
+            new AchievementReward {
+                Amount = 25,
+                PointTypeID = 1,
+                EntityID = Guid.Parse(viking.Id),
+                EntityTypeID = 1,
+                RewardID = 552
+            }
+        });
+    }
 }
