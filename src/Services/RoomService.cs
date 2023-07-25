@@ -112,7 +112,15 @@ public class RoomService {
         UserItemPosition pos = XmlUtil.DeserializeXml<UserItemPosition>(item.RoomItemData);
 
         AchievementReward[]? rewards;
-        int nextStateID = GetNextStateID(pos, speedup, out rewards);
+        List<ItemStateCriteria> consumables;
+        int nextStateID = GetNextStateID(pos, speedup, out rewards, out consumables);
+
+        foreach (var consumable in consumables) {
+            ItemStateCriteriaConsumable c = (ItemStateCriteriaConsumable)consumable;
+            InventoryItem? invItem = item.Room.Viking?.Inventory.InventoryItems.FirstOrDefault(x => x.ItemId == c.ItemID);
+            if (invItem != null)
+                invItem.Quantity = invItem.Quantity - c.Amount < 0 ? 0 : invItem.Quantity - c.Amount;
+        }
 
         if (rewards != null) {
             response.Rewards = rewards;
@@ -130,7 +138,6 @@ public class RoomService {
                     ii.Quantity += (int)reward.Amount!;
                 }
             }
-            ctx.SaveChanges();
         }
 
         DateTime stateChange = DateTime.Now;
@@ -158,13 +165,16 @@ public class RoomService {
         return response;
     }
 
-    private int GetNextStateID(UserItemPosition pos, bool speedup, out AchievementReward[]? rewards) {
+    private int GetNextStateID(UserItemPosition pos, bool speedup, out AchievementReward[]? rewards, out List<ItemStateCriteria> consumables) {
         rewards = null;
+        consumables = new List<ItemStateCriteria>();
+
         if (pos.UserItemState == null)
             return pos.Item.ItemStates.Find(x => x.Order == 1)!.ItemStateID;
 
         ItemState currState = pos.Item.ItemStates.Find(x => x.ItemStateID == pos.UserItemState.ItemStateID)!;
         rewards = currState.Rewards;
+        consumables = currState.Rule.Criterias.FindAll(x => x.Type == ItemStateCriteriaType.ConsumableItem);
 
         if (speedup)
             return ((ItemStateCriteriaSpeedUpItem)currState.Rule.Criterias.Find(x => x.Type == ItemStateCriteriaType.SpeedUpItem)!).EndStateID;
@@ -175,7 +185,7 @@ public class RoomService {
             if (start.AddSeconds(expiry.Period) <= DateTime.Now)
                 return expiry.EndStateID; 
         }
-
+        
         switch (currState.Rule.CompletionAction.Transition) {
             default:
                 return pos.Item.ItemStates.Find(x => x.Order == currState.Order + 1)!.ItemStateID;
