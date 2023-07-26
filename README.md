@@ -33,6 +33,8 @@ Then run School of Dragons.
 - inventory
 - store
 - many missions
+- hideouts
+- farms
 
 ### Methods
 
@@ -74,6 +76,8 @@ Then run School of Dragons.
 - GetSubscriptionInfo (always returns member, with end date 10 years from now)
 - SetTaskState (only the TaskCanBeDone status is supported; might contain a serious problem - see the MissionService class)
 - GetCommonInventory
+- GetUserRoomItemPositions
+- SetUserRoomItemPositions
 
 #### Partially implemented
 - GetUserProfileByUserID (a lot is still placeholder)
@@ -82,6 +86,9 @@ Then run School of Dragons.
 - ValidateName (needs to do pets, groups, default)
 - GetDefaultNameSuggestion (needs to return unused names)
 - SetCommonInventory (some properties are not retained, doesn't support delete)
+- GetUserRoomList (room categories are not implemented)
+- SetNextItemState (may require more work, we don't know yet)
+- SetUserRoom
 
 #### Currently static or stubbed
 - GetAllRanks (needs to be populated with what ranks the user has)
@@ -99,3 +106,7 @@ Then run School of Dragons.
 - SetAchievementAndGetReward (returns 5 gems)
 - SetUserAchievementTask (returns a placeholder achievement)
 - GetAnnouncementsByUser (returns no announcements, but that might be sufficient)
+- GetAverageRatingForRoom (return max rating)
+- GetUserActivityByUserID (returns an empty array)
+- GetUserGameCurrency (return 1000 gems and 1000 coins)
+- SetAchievementByEntityIDs (returns a static achievement)
