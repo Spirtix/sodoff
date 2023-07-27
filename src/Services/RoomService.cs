@@ -40,7 +40,7 @@ public class RoomService {
                     UserItemPositionID = roomItem.Id,
                     ItemID = (int)itemRequest.Item.ItemID,
                     ItemStateID = defaultState.ItemStateID,
-                    StateChangeDate = DateTime.Now
+                    StateChangeDate = new DateTime(DateTime.Now.Ticks)
                 };
                 states.Add(userDefaultState);
                 itemRequest.UserItemState = userDefaultState;
@@ -140,7 +140,7 @@ public class RoomService {
             }
         }
 
-        DateTime stateChange = DateTime.Now;
+        DateTime stateChange = new DateTime(DateTime.Now.Ticks);
         if (nextStateID == -1) {
             nextStateID = pos.UserItemState.ItemStateID;
             stateChange = pos.UserItemState.StateChangeDate;
@@ -182,7 +182,7 @@ public class RoomService {
         ItemStateCriteriaExpiry? expiry = (ItemStateCriteriaExpiry?)currState.Rule.Criterias.Find(x => x.Type == ItemStateCriteriaType.StateExpiry);
         if (expiry != null) {
             DateTime start = pos.UserItemState.StateChangeDate;
-            if (start.AddSeconds(expiry.Period) <= DateTime.Now)
+            if (start.AddSeconds(expiry.Period) <= new DateTime(DateTime.Now.Ticks))
                 return expiry.EndStateID; 
         }
         

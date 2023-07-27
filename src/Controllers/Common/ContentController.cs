@@ -155,7 +155,7 @@ public class ContentController : Controller {
                 ItemID = itemData.ItemID,
                 Quantity = item.Quantity,
                 Uses = itemData.Uses,
-                ModifiedDate = DateTime.Now,
+                ModifiedDate = new DateTime(DateTime.Now.Ticks),
                 Item = itemData
             };
             userItemData.Add(uid);
