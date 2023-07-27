@@ -45,7 +45,8 @@ public class AuthenticationController : Controller {
         // Create session
         Session session = new Session {
             User = user,
-            ApiToken = Guid.NewGuid().ToString()
+            ApiToken = Guid.NewGuid().ToString(),
+            CreatedAt = DateTime.Now
         };
 
         ctx.Sessions.Add(session);
@@ -148,7 +149,8 @@ public class AuthenticationController : Controller {
         // Create session
         Session session = new Session {
             Viking = viking,
-            ApiToken = Guid.NewGuid().ToString()
+            ApiToken = Guid.NewGuid().ToString(),
+            CreatedAt = DateTime.Now,
         };
         ctx.Sessions.Add(session);
         ctx.SaveChanges();

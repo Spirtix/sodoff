@@ -9,6 +9,8 @@ public class Session {
 
     public string? VikingId { get; set; }
 
+    public DateTime? CreatedAt { get; set; }
+
     public virtual User? User { get; set; }
 
     public virtual Viking? Viking { get; set; }
