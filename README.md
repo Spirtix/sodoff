@@ -2,6 +2,9 @@
 
 On 7th June, 2023, School of Dragons announced they were "sunsetting" the game, and turning the servers off on the 30th of June.
 
+## Discord
+[![Discord Banner](https://discordapp.com/api/guilds/1124405524679643318/widget.png?style=banner2)](https://discord.gg/bqHtMRbhM3)
+
 ## Getting started
 
 For the first time setup, run the following command:
