@@ -42,10 +42,25 @@ public class MissionService {
                     Rewards = mission.Rewards.ToArray()
                 });
                 // Update mission from active to completed
-                MissionState? missionState = ctx.Vikings.FirstOrDefault(x => x.Id == userId)!.MissionStates.FirstOrDefault(x => x.MissionId == missionId);
+                Viking viking = ctx.Vikings.FirstOrDefault(x => x.Id == userId)!;
+                MissionState? missionState = viking.MissionStates.FirstOrDefault(x => x.MissionId == missionId);
                 if (missionState != null && missionState.MissionStatus == MissionStatus.Active) {
                     missionState.MissionStatus = MissionStatus.Completed;
                     missionState.UserAccepted = null;
+                }
+                foreach (var reward in mission.Rewards) {
+                    if (reward.PointTypeID == 6) {
+                        // TODO: This is not a pretty solution. Use inventory service in the future
+                        InventoryItem? ii = viking.Inventory.InventoryItems.FirstOrDefault(x => x.ItemId == reward.ItemID);
+                        if (ii is null) {
+                            ii = new InventoryItem {
+                                ItemId = reward.ItemID,
+                                Quantity = 0
+                            };
+                            viking.Inventory.InventoryItems.Add(ii);
+                        }
+                        ii.Quantity += (int)reward.Amount!;
+                    }
                 }
                 ctx.SaveChanges();
             }
