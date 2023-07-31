@@ -189,6 +189,7 @@ public class ContentController : Controller {
 
         // Now that we know the request is valid, update the inventory
         foreach (var req in request) {
+            if (req.ItemID == 0) continue; // Do not save a null item
             InventoryItem? item = viking.Inventory.InventoryItems.FirstOrDefault(e => e.ItemId == req.ItemID);
             if (item is null) {
                 item = new InventoryItem { ItemId = (int)req.ItemID, Quantity = 0 };
@@ -198,7 +199,7 @@ public class ContentController : Controller {
             if (req.Quantity > 1)
                 updateQuantity = req.Quantity; // Otherwise it expects the quantity from the request
             item.Quantity += req.Quantity;
-            ctx.SaveChanges(); // We need to get an ID of a newly created item
+            ctx.SaveChanges(); // We need to get the ID of the newly created item
             if (req.Quantity > 0)
                 responseItems.Add(new CommonInventoryResponseItem {
                     CommonInventoryID = item.Id,
@@ -228,6 +229,8 @@ public class ContentController : Controller {
     [Produces("application/xml")]
     [Route("ItemStoreWebService.asmx/GetItem")] // NOTE: Should be in a separate controler, but it's inventory related, so I'll leave it here for now
     public IActionResult GetItem([FromForm] int itemId) {
+        if (itemId == 0) // For a null item, return an empty item
+            return Ok(new ItemData());
         return Ok(itemService.GetItem(itemId));
     }
 
