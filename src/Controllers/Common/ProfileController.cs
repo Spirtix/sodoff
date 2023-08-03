@@ -103,6 +103,7 @@ public class ProfileController : Controller {
         AvatarData avatarData = null;
         if (viking.AvatarSerialized is not null) {
             avatarData = XmlUtil.DeserializeXml<AvatarData>(viking.AvatarSerialized);
+            avatarData.Id = viking.Inventory.Id;
         }
 
         // Build the AvatarDisplayData
