@@ -23,8 +23,8 @@ public class ImageController : Controller {
     [Route("RawImage/{VikingId}/{ImageType}/{ImageSlot}.jpg")]
     public IActionResult RawImage(String VikingId, String ImageType, int ImageSlot) {
         Image? image = ctx.Images.FirstOrDefault(e => e.VikingId == VikingId && e.ImageType == ImageType && e.ImageSlot == ImageSlot);
-        if (image is null) {
-            return null;
+        if (image is null || image.ImageData is null) {
+            return NotFound();
         }
 
         byte[] imageBytes = Convert.FromBase64String(image.ImageData);
