@@ -10,6 +10,8 @@ public class BluePrintSpecification
 	[XmlElement(ElementName = "BPIID", IsNullable = false)]
 	public int BluePrintItemID { get; set; }
 
+	public bool ShouldSerializeBluePrintItemID() { return BluePrintItemID != 0; }
+
 	[XmlElement(ElementName = "IID", IsNullable = true)]
 	public int? ItemID { get; set; }
 
@@ -25,6 +27,8 @@ public class BluePrintSpecification
 	[XmlElement(ElementName = "QTY", IsNullable = false)]
 	public int Quantity { get; set; }
 
-	[XmlElement(ElementName = "ST", IsNullable = false)]
-	public SpecificationType SpecificationType { get; set; }
+	[XmlElement(ElementName = "ST", IsNullable = true)]
+	public SpecificationType? SpecificationType { get; set; }
+
+	public bool ShouldSerializeSpecificationType() { return SpecificationType != null; }
 }
