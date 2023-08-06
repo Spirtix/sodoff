@@ -16,8 +16,8 @@ public class ProfileController : Controller {
     [Produces("application/xml")]
     [Route("ProfileWebService.asmx/GetUserProfileByUserID")]
     public IActionResult GetUserProfileByUserID([FromForm] string apiToken, [FromForm] string userId) {
-        User? user = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.User;
-        if (user is null) {
+        Session session = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken);
+        if (session?.User is null && session?.Viking is null) {
             // TODO: what response for not logged in?
             return Ok();
         }

@@ -72,6 +72,7 @@ Then run School of Dragons.
 - GetUserUpcomingMissionState
 - GetUserCompletedMissionState
 - GetChildList
+- GetUnselectedPetByTypes
 
 #### Implemented enough (probably)
 - GetRules (doesn't return any rules, probably doesn't need to)

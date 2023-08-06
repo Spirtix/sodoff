@@ -66,6 +66,7 @@ methods = [
   'SetNextItemState',
   'SetUserRoom',
   'GetChildList',
+  'GetUnselectedPetByTypes',
   'GetUserGameCurrency',
   'SetAchievementByEntityIDs'
 ]
