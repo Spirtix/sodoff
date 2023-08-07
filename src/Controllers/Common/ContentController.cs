@@ -722,11 +722,23 @@ public class ContentController : Controller {
             return Ok(response);
         foreach (var room in rooms) {
             if (room.RoomId == "MyRoomINT" || room.RoomId == "StaticFarmItems") continue;
+
+            int itemID = 0;
+            if (room.RoomId != "") {
+                // farm expansion room: RoomId is Id for expansion item
+                if (Int32.TryParse(room.RoomId, out int inventoryItemId)) {
+                    InventoryItem? item = room.Viking.Inventory.InventoryItems.FirstOrDefault(e => e.Id == inventoryItemId);
+                    if (item != null) {
+                        itemID = item.ItemId;
+                    }
+                }
+            }
+
             UserRoom ur = new UserRoom {
                 RoomID = room.RoomId,
                 CategoryID = 541, // Placeholder
                 CreativePoints = 0, // Placeholder
-                ItemID = 0,
+                ItemID = itemID,
                 Name = room.Name
             };
             response.UserRoomList.Add(ur);
@@ -740,9 +752,15 @@ public class ContentController : Controller {
     public IActionResult SetUserRoom([FromForm] string apiToken, [FromForm] string request) {
         UserRoom roomRequest = XmlUtil.DeserializeXml<UserRoom>(request);
         Room? room = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking?.Rooms.FirstOrDefault(x => x.RoomId == roomRequest.RoomID);
-        if (room is null)
-            return Ok(new UserItemPositionList { UserItemPosition = new UserItemPosition[0] });
-        room.Name = roomRequest.Name;
+        if (room is null) {
+            // setting farm room name can be done before call SetUserRoomItemPositions
+            room = new Room {
+                RoomId = roomRequest.RoomID
+            };
+            ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking?.Rooms.Add(room);
+        } else {
+            room.Name = roomRequest.Name;
+        }
         ctx.SaveChanges();
         return Ok(new UserRoomSetResponse {
             Success = true,
