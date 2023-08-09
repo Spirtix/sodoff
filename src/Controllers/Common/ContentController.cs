@@ -217,6 +217,22 @@ public class ContentController : Controller {
         return Ok(response);
     }
 
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("ContentWebService.asmx/UseInventory")]
+    public IActionResult UseInventory([FromForm] string apiToken, [FromForm] int userInventoryId, [FromForm] int numberOfUses) {
+        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
+        InventoryItem? item = viking.Inventory.InventoryItems.FirstOrDefault(e => e.Id == userInventoryId);
+        if (item is null)
+            return Ok(false);
+        if (item.Quantity < numberOfUses)
+            return Ok(false);
+        
+        item.Quantity -= numberOfUses;
+        ctx.SaveChanges();
+        return Ok(true);
+    }
+    
 
     [HttpPost]
     [Produces("application/xml")]
