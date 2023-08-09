@@ -755,7 +755,8 @@ public class ContentController : Controller {
         if (room is null) {
             // setting farm room name can be done before call SetUserRoomItemPositions
             room = new Room {
-                RoomId = roomRequest.RoomID
+                RoomId = roomRequest.RoomID,
+                Name = roomRequest.Name
             };
             ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking?.Rooms.Add(room);
         } else {
