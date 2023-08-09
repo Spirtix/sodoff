@@ -772,6 +772,14 @@ public class ContentController : Controller {
 
     [HttpPost]
     [Produces("application/xml")]
+    [Route("V2/ContentWebService.asmx/GetGameData")]
+    public IActionResult GetGameData() {
+        // TODO: This is a placeholder
+        return Ok(new GetGameDataResponse());
+    }
+    
+    [HttpPost]
+    [Produces("application/xml")]
     [Route("ContentWebService.asmx/GetUserGameCurrency")]
     public IActionResult GetUserGameCurrency([FromForm] string userId) {
         // TODO: This is a placeholder
