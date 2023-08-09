@@ -182,30 +182,49 @@ public class ContentController : Controller {
         // SetCommonInventory can remove any number of items from the inventory, this checks if it's possible
         foreach (var req in request) {
             if (req.Quantity >= 0) continue;
-            InventoryItem? item = viking.Inventory.InventoryItems.FirstOrDefault(e => e.ItemId == req.ItemID);
-            if (item is null || item.Quantity < req.Quantity)
+            int inventorySum = viking.Inventory.InventoryItems.Sum(e => {if (e.ItemId == req.ItemID) return e.Quantity; return 0;});
+            if (inventorySum < -req.Quantity)
                 return Ok(new CommonInventoryResponse { Success = false });
         }
 
         // Now that we know the request is valid, update the inventory
         foreach (var req in request) {
             if (req.ItemID == 0) continue; // Do not save a null item
-            InventoryItem? item = viking.Inventory.InventoryItems.FirstOrDefault(e => e.ItemId == req.ItemID);
-            if (item is null) {
-                item = new InventoryItem { ItemId = (int)req.ItemID, Quantity = 0 };
-                viking.Inventory.InventoryItems.Add(item);
+            
+            if (isFarmExpansion((int)req.ItemID)) {
+                // if req.Quantity < 0 remove unique items
+                for (int i=req.Quantity; i<0; ++i) {
+                     InventoryItem? item = viking.Inventory.InventoryItems.FirstOrDefault(e => e.ItemId == req.ItemID && e.Quantity>0);
+                     item.Quantity--;
+                }
+                // if req.Quantity > 0 add unique items
+                for (int i=0; i<req.Quantity; ++i) {
+                    InventoryItem item = new InventoryItem { ItemId = (int)req.ItemID, Quantity = 1 };
+                    viking.Inventory.InventoryItems.Add(item);
+                    responseItems.Add(new CommonInventoryResponseItem {
+                        CommonInventoryID = item.Id,
+                        ItemID = item.ItemId,
+                        Quantity = 0
+                    });
+                }
+            } else {
+                InventoryItem? item = viking.Inventory.InventoryItems.FirstOrDefault(e => e.ItemId == req.ItemID);
+                if (item is null) {
+                    item = new InventoryItem { ItemId = (int)req.ItemID, Quantity = 0 };
+                    viking.Inventory.InventoryItems.Add(item);
+                }
+                int updateQuantity = 0; // The game expects 0 if quantity got updated by just 1
+                if (req.Quantity > 1)
+                    updateQuantity = req.Quantity; // Otherwise it expects the quantity from the request
+                item.Quantity += req.Quantity;
+                ctx.SaveChanges(); // We need to get the ID of the newly created item
+                if (req.Quantity > 0)
+                    responseItems.Add(new CommonInventoryResponseItem {
+                        CommonInventoryID = item.Id,
+                        ItemID = item.ItemId,
+                        Quantity = updateQuantity
+                    });
             }
-            int updateQuantity = 0; // The game expects 0 if quantity got updated by just 1
-            if (req.Quantity > 1)
-                updateQuantity = req.Quantity; // Otherwise it expects the quantity from the request
-            item.Quantity += req.Quantity;
-            ctx.SaveChanges(); // We need to get the ID of the newly created item
-            if (req.Quantity > 0)
-                responseItems.Add(new CommonInventoryResponseItem {
-                    CommonInventoryID = item.Id,
-                    ItemID = item.ItemId,
-                    Quantity = updateQuantity
-                });
         }
 
         CommonInventoryResponse response = new CommonInventoryResponse {
@@ -596,7 +615,9 @@ public class ContentController : Controller {
         PurchaseStoreItemRequest request = XmlUtil.DeserializeXml<PurchaseStoreItemRequest>(purchaseItemRequest);
         CommonInventoryResponseItem[] items = new CommonInventoryResponseItem[request.Items.Length];
         for (int i = 0; i < request.Items.Length; i++) {
-            InventoryItem? item = viking.Inventory.InventoryItems.FirstOrDefault(e => e.ItemId == request.Items[i]);
+            InventoryItem? item = null;
+            if (!isFarmExpansion(request.Items[i])) 
+                item = viking.Inventory.InventoryItems.FirstOrDefault(e => e.ItemId == request.Items[i]);
             if (item is null) {
                 item = new InventoryItem { ItemId = request.Items[i], Quantity = 0 };
                 viking.Inventory.InventoryItems.Add(item);
@@ -866,5 +887,17 @@ public class ContentController : Controller {
             ImageURL = imageUrl,
             TemplateName = image.TemplateName,
         };
+    }
+
+    private bool isFarmExpansion(int itemId) {
+        ItemData? itemData = itemService.GetItem(itemId);
+        if (itemData != null && itemData.Category != null) {
+            foreach (ItemDataCategory itemCategory in itemData.Category) {
+                if (itemCategory.CategoryId == 541) { // if item is farm expansion
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }
