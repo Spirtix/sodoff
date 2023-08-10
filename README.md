@@ -111,5 +111,5 @@ Then run School of Dragons.
 - GetAnnouncementsByUser (returns no announcements, but that might be sufficient)
 - GetAverageRatingForRoom (return max rating)
 - GetUserActivityByUserID (returns an empty array)
-- GetUserGameCurrency (return 1000 gems and 1000 coins)
+- GetUserGameCurrency (return 65536 gems and 65536 coins)
 - SetAchievementByEntityIDs (returns a static achievement)

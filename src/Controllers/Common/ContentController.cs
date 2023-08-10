@@ -632,8 +632,8 @@ public class ContentController : Controller {
             UserGameCurrency = new UserGameCurrency {
                 UserID = Guid.Parse(viking.Id),
                 UserGameCurrencyID = 1, // TODO: user's wallet ID?
-                CashCurrency = 1000,
-                GameCurrency = 1000,
+                CashCurrency = 65536,
+                GameCurrency = 65536,
             }
         };
         return Ok(response);
@@ -670,8 +670,8 @@ public class ContentController : Controller {
             UserGameCurrency = new UserGameCurrency {
                 UserID = Guid.Parse(viking.Id),
                 UserGameCurrencyID = 1, // TODO: user's wallet ID?
-                CashCurrency = 1000,
-                GameCurrency = 1000,
+                CashCurrency = 65536,
+                GameCurrency = 65536,
             }
         };
         return Ok(response);
@@ -800,8 +800,8 @@ public class ContentController : Controller {
     public IActionResult GetUserGameCurrency([FromForm] string userId) {
         // TODO: This is a placeholder
         return Ok(new UserGameCurrency {
-            CashCurrency = 1000,
-            GameCurrency = 1000,
+            CashCurrency = 65536,
+            GameCurrency = 65536,
             UserGameCurrencyID = 0,
             UserID = Guid.Parse(userId)
         });
