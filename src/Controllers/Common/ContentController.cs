@@ -201,6 +201,7 @@ public class ContentController : Controller {
                 for (int i=0; i<req.Quantity; ++i) {
                     InventoryItem item = new InventoryItem { ItemId = (int)req.ItemID, Quantity = 1 };
                     viking.Inventory.InventoryItems.Add(item);
+                    ctx.SaveChanges(); // We need to get the ID of the newly created item
                     responseItems.Add(new CommonInventoryResponseItem {
                         CommonInventoryID = item.Id,
                         ItemID = item.ItemId,
