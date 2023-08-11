@@ -49,7 +49,7 @@ public class MissionService {
                     missionState.UserAccepted = null;
                 }
                 foreach (var reward in mission.Rewards) {
-                    if (reward.PointTypeID == 6) {
+                    if (reward.PointTypeID == AchievementPointTypes.ItemReward) {
                         // TODO: This is not a pretty solution. Use inventory service in the future
                         InventoryItem? ii = viking.Inventory.InventoryItems.FirstOrDefault(x => x.ItemId == reward.ItemID);
                         if (ii is null) {

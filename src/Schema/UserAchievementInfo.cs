@@ -19,7 +19,7 @@ public class UserAchievementInfo
 	public int RankID;
 
 	[XmlElement(ElementName = "p")]
-	public int? PointTypeID;
+	public AchievementPointTypes? PointTypeID;
 
 	[XmlElement(ElementName = "FBUID", IsNullable = true)]
 	public long? FacebookUserID;

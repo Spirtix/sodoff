@@ -10,7 +10,7 @@ public enum AchievementPointTypes {
     GameCurrency = 2, // gold
     
     [XmlEnum("4")]
-    Unused1 = 4, // unknown
+    Unknown4 = 4,
     
     [XmlEnum("5")]
     CashCurrency = 5, // gems
@@ -29,4 +29,7 @@ public enum AchievementPointTypes {
     
     [XmlEnum("12")]
     UDTPoints = 12,
+    
+    [XmlEnum("13")]
+    Unknown13 = 13,
 }

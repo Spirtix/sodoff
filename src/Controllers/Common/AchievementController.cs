@@ -29,7 +29,7 @@ public class AchievementController : Controller {
         List<UserAchievementInfo> dragonsAchievement = new List<UserAchievementInfo>();
         foreach (Dragon dragon in viking.Dragons) { // TODO (multiplayer) we should use userId
             dragonsAchievement.Add(new UserAchievementInfo{
-                PointTypeID = (int) AchievementPointTypes.DragonXP,
+                PointTypeID = AchievementPointTypes.DragonXP,
                 UserID = Guid.Parse(dragon.EntityId),
                 AchievementPointTotal = dragon.PetXP,
                 RankID = rankService.getRankFromXP(dragon.PetXP, AchievementPointTypes.DragonXP)
@@ -79,19 +79,19 @@ public class AchievementController : Controller {
                     UserID = Guid.Parse(userId),
                     AchievementPointTotal = 5000,
                     RankID = 30,
-                    PointTypeID = (int) AchievementPointTypes.PlayerXP
+                    PointTypeID = AchievementPointTypes.PlayerXP
                 },
                 new UserAchievementInfo {
                     UserID = Guid.Parse(userId),
                     AchievementPointTotal = 5000,
                     RankID = 30,
-                    PointTypeID = (int) AchievementPointTypes.PlayerFarmingXP
+                    PointTypeID = AchievementPointTypes.PlayerFarmingXP
                 },
                 new UserAchievementInfo {
                     UserID = Guid.Parse(userId),
                     AchievementPointTotal = 5000,
                     RankID = 30,
-                    PointTypeID = (int) AchievementPointTypes.PlayerFishingXP
+                    PointTypeID = AchievementPointTypes.PlayerFishingXP
                 },
             }
         };
@@ -108,7 +108,7 @@ public class AchievementController : Controller {
         return Ok(new AchievementReward[1] {
             new AchievementReward {
                 Amount = 5,
-                PointTypeID = (int) AchievementPointTypes.CashCurrency,
+                PointTypeID = AchievementPointTypes.CashCurrency,
                 EntityID = Guid.Parse(viking.Id),
                 EntityTypeID = 1,
                 RewardID = 552
@@ -134,7 +134,7 @@ public class AchievementController : Controller {
             AchievementRewards = new AchievementReward[1] {
                 new AchievementReward {
                     Amount = 25,
-                    PointTypeID = (int) AchievementPointTypes.PlayerXP,
+                    PointTypeID = AchievementPointTypes.PlayerXP,
                     RewardID = 910,
                     EntityTypeID =1
                 }
@@ -152,7 +152,7 @@ public class AchievementController : Controller {
         return Ok(new AchievementReward[1] {
             new AchievementReward {
                 Amount = 25,
-                PointTypeID = (int) AchievementPointTypes.PlayerXP,
+                PointTypeID = AchievementPointTypes.PlayerXP,
                 EntityID = Guid.Parse(viking.Id),
                 EntityTypeID = 1,
                 RewardID = 552

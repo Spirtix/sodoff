@@ -13,7 +13,7 @@ public class AchievementReward
 	public int? Amount;
 
 	[XmlElement(ElementName = "p", IsNullable = true)]
-	public int? PointTypeID;
+	public AchievementPointTypes? PointTypeID;
 
 	[XmlElement(ElementName = "ii")]
 	public int ItemID;
