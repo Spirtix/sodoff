@@ -18,7 +18,7 @@ builder.Services.AddSingleton<MissionStoreSingleton>();
 builder.Services.AddScoped<MissionService>();
 builder.Services.AddSingleton<StoreService>();
 builder.Services.AddScoped<RoomService>();
-builder.Services.AddSingleton<RankService>();
+builder.Services.AddSingleton<AchievementService>();
 
 var app = builder.Build();
 

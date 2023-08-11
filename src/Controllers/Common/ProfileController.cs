@@ -9,10 +9,10 @@ namespace sodoff.Controllers.Common;
 public class ProfileController : Controller {
 
     private readonly DBContext ctx;
-    private RankService rankService;
-    public ProfileController(DBContext ctx, RankService rankService) {
+    private AchievementService achievementService;
+    public ProfileController(DBContext ctx, AchievementService achievementService) {
         this.ctx = ctx;
-        this.rankService = rankService;
+        this.achievementService = achievementService;
     }
 
     [HttpPost]
@@ -144,9 +144,9 @@ public class ProfileController : Controller {
             RankID = 0, // placeholder
             AchievementInfo = null, // placeholder
             Achievements = new UserAchievementInfo[] {
-                rankService.userAchievementInfo(viking, AchievementPointTypes.PlayerXP),
-                rankService.userAchievementInfo(viking, AchievementPointTypes.PlayerFarmingXP),
-                rankService.userAchievementInfo(viking, AchievementPointTypes.PlayerFishingXP),
+                achievementService.userAchievementInfo(viking, AchievementPointTypes.PlayerXP),
+                achievementService.userAchievementInfo(viking, AchievementPointTypes.PlayerFarmingXP),
+                achievementService.userAchievementInfo(viking, AchievementPointTypes.PlayerFishingXP),
             }
         };
 

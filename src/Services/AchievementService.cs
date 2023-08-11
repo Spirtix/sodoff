@@ -6,11 +6,11 @@ using System.Xml;
 using System.Xml.Linq;
 
 namespace sodoff.Services {
-    public class RankService {
+    public class AchievementService {
 
         Dictionary<AchievementPointTypes, UserRank[]> ranks = new();
 
-        public RankService() {
+        public AchievementService() {
             ArrayOfUserRank allranks = XmlUtil.DeserializeXml<ArrayOfUserRank>(XmlUtil.ReadResourceXmlString("allranks"));
             
             foreach (var pointType in Enum.GetValues<AchievementPointTypes>()) {

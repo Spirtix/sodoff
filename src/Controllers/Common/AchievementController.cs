@@ -11,10 +11,10 @@ namespace sodoff.Controllers.Common;
 public class AchievementController : Controller {
 
     private readonly DBContext ctx;
-    private RankService rankService;
-    public AchievementController(DBContext ctx, RankService rankService) {
+    private AchievementService achievementService;
+    public AchievementController(DBContext ctx, AchievementService achievementService) {
         this.ctx = ctx;
-        this.rankService = rankService;
+        this.achievementService = achievementService;
     }
 
     [HttpPost]
@@ -31,7 +31,7 @@ public class AchievementController : Controller {
         List<UserAchievementInfo> dragonsAchievement = new List<UserAchievementInfo>();
         foreach (Dragon dragon in viking.Dragons) {
             dragonsAchievement.Add(
-                rankService.userAchievementInfo(dragon.EntityId, dragon.PetXP, AchievementPointTypes.DragonXP)
+                achievementService.userAchievementInfo(dragon.EntityId, dragon.PetXP, AchievementPointTypes.DragonXP)
             );
         }
 
@@ -80,9 +80,9 @@ public class AchievementController : Controller {
 
         ArrayOfUserAchievementInfo arrAchievements = new ArrayOfUserAchievementInfo {
             UserAchievementInfo = new UserAchievementInfo[]{
-                rankService.userAchievementInfo(viking, AchievementPointTypes.PlayerXP),
-                rankService.userAchievementInfo(viking, AchievementPointTypes.PlayerFarmingXP),
-                rankService.userAchievementInfo(viking, AchievementPointTypes.PlayerFishingXP),
+                achievementService.userAchievementInfo(viking, AchievementPointTypes.PlayerXP),
+                achievementService.userAchievementInfo(viking, AchievementPointTypes.PlayerFarmingXP),
+                achievementService.userAchievementInfo(viking, AchievementPointTypes.PlayerFishingXP),
             }
         };
 

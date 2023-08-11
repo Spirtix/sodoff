@@ -61,7 +61,7 @@ public class MissionService {
                         }
                         ii.Quantity += (int)reward.Amount!;
                     } else if (reward.PointTypeID == AchievementPointTypes.DragonXP || reward.PointTypeID == AchievementPointTypes.PlayerXP) {
-                        RankService.setAchievementPoints(viking, reward.PointTypeID, reward.Amount);
+                        AchievementService.setAchievementPoints(viking, reward.PointTypeID, reward.Amount);
                     }
                 }
                 ctx.SaveChanges();
