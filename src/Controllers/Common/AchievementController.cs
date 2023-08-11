@@ -4,14 +4,17 @@ using Microsoft.AspNetCore.Mvc;
 using sodoff.Attributes;
 using sodoff.Model;
 using sodoff.Schema;
+using sodoff.Services;
 using sodoff.Util;
 
 namespace sodoff.Controllers.Common;
 public class AchievementController : Controller {
 
     private readonly DBContext ctx;
-    public AchievementController(DBContext ctx) {
+    private RankService rankService;
+    public AchievementController(DBContext ctx, RankService rankService) {
         this.ctx = ctx;
+        this.rankService = rankService;
     }
 
     [HttpPost]
@@ -29,7 +32,7 @@ public class AchievementController : Controller {
                 PointTypeID = (int) AchievementPointTypes.DragonXP,
                 UserID = Guid.Parse(dragon.EntityId),
                 AchievementPointTotal = dragon.PetXP,
-                RankID = (int)dragon.PetXP/1024 + 1 // TODO: placeholder
+                RankID = rankService.getRankFromXP(dragon.PetXP, AchievementPointTypes.DragonXP)
             });
         }
 
