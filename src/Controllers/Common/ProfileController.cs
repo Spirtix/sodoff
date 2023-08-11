@@ -2,14 +2,17 @@
 using Microsoft.AspNetCore.Mvc;
 using sodoff.Model;
 using sodoff.Schema;
+using sodoff.Services;
 using sodoff.Util;
 
 namespace sodoff.Controllers.Common;
 public class ProfileController : Controller {
 
     private readonly DBContext ctx;
-    public ProfileController(DBContext ctx) {
+    private RankService rankService;
+    public ProfileController(DBContext ctx, RankService rankService) {
         this.ctx = ctx;
+        this.rankService = rankService;
     }
 
     [HttpPost]
@@ -141,24 +144,9 @@ public class ProfileController : Controller {
             RankID = 0, // placeholder
             AchievementInfo = null, // placeholder
             Achievements = new UserAchievementInfo[] {
-                new UserAchievementInfo {
-                    UserID = Guid.Parse(viking.Id),
-                    AchievementPointTotal = 5000,
-                    RankID = 30,
-                    PointTypeID = AchievementPointTypes.PlayerXP
-                },
-                new UserAchievementInfo {
-                    UserID = Guid.Parse(viking.Id),
-                    AchievementPointTotal = 5000,
-                    RankID = 30,
-                    PointTypeID = AchievementPointTypes.PlayerFarmingXP
-                },
-                new UserAchievementInfo {
-                    UserID = Guid.Parse(viking.Id),
-                    AchievementPointTotal = 5000,
-                    RankID = 30,
-                    PointTypeID = AchievementPointTypes.PlayerFishingXP
-                },
+                rankService.userAchievementInfo(viking, AchievementPointTypes.PlayerXP),
+                rankService.userAchievementInfo(viking, AchievementPointTypes.PlayerFarmingXP),
+                rankService.userAchievementInfo(viking, AchievementPointTypes.PlayerFishingXP),
             }
         };
 

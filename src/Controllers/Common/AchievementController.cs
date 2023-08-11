@@ -21,26 +21,24 @@ public class AchievementController : Controller {
     [Produces("application/xml")]
     [Route("AchievementWebService.asmx/GetPetAchievementsByUserID")]
     public IActionResult GetPetAchievementsByUserID([FromForm] string apiToken, [FromForm] string userId) {
-        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
+        // TODO: check session
+
+        Viking? viking = ctx.Vikings.FirstOrDefault(e => e.Id == userId);
         if (viking is null) {
             return null;
         }
 
         List<UserAchievementInfo> dragonsAchievement = new List<UserAchievementInfo>();
-        foreach (Dragon dragon in viking.Dragons) { // TODO (multiplayer) we should use userId
-            dragonsAchievement.Add(new UserAchievementInfo{
-                PointTypeID = AchievementPointTypes.DragonXP,
-                UserID = Guid.Parse(dragon.EntityId),
-                AchievementPointTotal = dragon.PetXP,
-                RankID = rankService.getRankFromXP(dragon.PetXP, AchievementPointTypes.DragonXP)
-            });
+        foreach (Dragon dragon in viking.Dragons) {
+            dragonsAchievement.Add(
+                rankService.userAchievementInfo(dragon.EntityId, dragon.PetXP, AchievementPointTypes.DragonXP)
+            );
         }
 
         ArrayOfUserAchievementInfo arrAchievements = new ArrayOfUserAchievementInfo {
             UserAchievementInfo = dragonsAchievement.ToArray()
         };
 
-        // TODO, this is a placeholder
         return Ok(arrAchievements);
     }
 
@@ -72,27 +70,19 @@ public class AchievementController : Controller {
     [Produces("application/xml")]
     [Route("AchievementWebService.asmx/GetAchievementsByUserID")]
     public IActionResult GetAchievementsByUserID([FromForm] string userId) {
-        // TODO: this is a placeholder
+        // TODO: check session
+        
+        Viking? viking = ctx.Vikings.FirstOrDefault(e => e.Id == userId);
+
+        if (viking is null) {
+            return null;
+        }
+
         ArrayOfUserAchievementInfo arrAchievements = new ArrayOfUserAchievementInfo {
             UserAchievementInfo = new UserAchievementInfo[]{
-                new UserAchievementInfo {
-                    UserID = Guid.Parse(userId),
-                    AchievementPointTotal = 5000,
-                    RankID = 30,
-                    PointTypeID = AchievementPointTypes.PlayerXP
-                },
-                new UserAchievementInfo {
-                    UserID = Guid.Parse(userId),
-                    AchievementPointTotal = 5000,
-                    RankID = 30,
-                    PointTypeID = AchievementPointTypes.PlayerFarmingXP
-                },
-                new UserAchievementInfo {
-                    UserID = Guid.Parse(userId),
-                    AchievementPointTotal = 5000,
-                    RankID = 30,
-                    PointTypeID = AchievementPointTypes.PlayerFishingXP
-                },
+                rankService.userAchievementInfo(viking, AchievementPointTypes.PlayerXP),
+                rankService.userAchievementInfo(viking, AchievementPointTypes.PlayerFarmingXP),
+                rankService.userAchievementInfo(viking, AchievementPointTypes.PlayerFishingXP),
             }
         };
 
@@ -116,7 +106,7 @@ public class AchievementController : Controller {
         });
     }
 
-        [HttpPost]
+    [HttpPost]
     [Produces("application/xml")]
     [Route("V2/AchievementWebService.asmx/SetUserAchievementTask")]
     [DecryptRequest("achievementTaskSetRequest")]
