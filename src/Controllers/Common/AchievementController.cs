@@ -15,11 +15,30 @@ public class AchievementController : Controller {
     }
 
     [HttpPost]
-    //[Produces("application/xml")]
+    [Produces("application/xml")]
     [Route("AchievementWebService.asmx/GetPetAchievementsByUserID")]
-    public IActionResult GetPetAchievementsByUserID() {
+    public IActionResult GetPetAchievementsByUserID([FromForm] string apiToken, [FromForm] string userId) {
+        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
+        if (viking is null) {
+            return null;
+        }
+
+        List<UserAchievementInfo> dragonsAchievement = new List<UserAchievementInfo>();
+        foreach (Dragon dragon in viking.Dragons) { // TODO (multiplayer) we should use userId
+            dragonsAchievement.Add(new UserAchievementInfo{
+                PointTypeID = (int) AchievementPointTypes.DragonXP,
+                UserID = Guid.Parse(dragon.EntityId),
+                AchievementPointTotal = dragon.PetXP,
+                RankID = (int)dragon.PetXP/1024 + 1 // TODO: placeholder
+            });
+        }
+
+        ArrayOfUserAchievementInfo arrAchievements = new ArrayOfUserAchievementInfo {
+            UserAchievementInfo = dragonsAchievement.ToArray()
+        };
+
         // TODO, this is a placeholder
-        return Ok("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<ArrayOfUserAchievementInfo xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://api.jumpstart.com/\" />");
+        return Ok(arrAchievements);
     }
 
     [HttpPost]
@@ -57,19 +76,19 @@ public class AchievementController : Controller {
                     UserID = Guid.Parse(userId),
                     AchievementPointTotal = 5000,
                     RankID = 30,
-                    PointTypeID = 1
+                    PointTypeID = (int) AchievementPointTypes.PlayerXP
                 },
                 new UserAchievementInfo {
                     UserID = Guid.Parse(userId),
                     AchievementPointTotal = 5000,
                     RankID = 30,
-                    PointTypeID = 9
+                    PointTypeID = (int) AchievementPointTypes.PlayerFarmingXP
                 },
                 new UserAchievementInfo {
                     UserID = Guid.Parse(userId),
                     AchievementPointTotal = 5000,
                     RankID = 30,
-                    PointTypeID = 10
+                    PointTypeID = (int) AchievementPointTypes.PlayerFishingXP
                 },
             }
         };
@@ -86,7 +105,7 @@ public class AchievementController : Controller {
         return Ok(new AchievementReward[1] {
             new AchievementReward {
                 Amount = 5,
-                PointTypeID = 5,
+                PointTypeID = (int) AchievementPointTypes.CashCurrency,
                 EntityID = Guid.Parse(viking.Id),
                 EntityTypeID = 1,
                 RewardID = 552
@@ -112,7 +131,7 @@ public class AchievementController : Controller {
             AchievementRewards = new AchievementReward[1] {
                 new AchievementReward {
                     Amount = 25,
-                    PointTypeID = 1,
+                    PointTypeID = (int) AchievementPointTypes.PlayerXP,
                     RewardID = 910,
                     EntityTypeID =1
                 }
@@ -130,7 +149,7 @@ public class AchievementController : Controller {
         return Ok(new AchievementReward[1] {
             new AchievementReward {
                 Amount = 25,
-                PointTypeID = 1,
+                PointTypeID = (int) AchievementPointTypes.PlayerXP,
                 EntityID = Guid.Parse(viking.Id),
                 EntityTypeID = 1,
                 RewardID = 552

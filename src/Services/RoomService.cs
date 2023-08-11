@@ -125,7 +125,7 @@ public class RoomService {
         if (rewards != null) {
             response.Rewards = rewards;
             foreach (var reward in rewards) {
-                if (reward.PointTypeID == 6) {
+                if (reward.PointTypeID == (int) AchievementPointTypes.ItemReward) {
                     // TODO: This is not a pretty solution. Use inventory service in the future
                     InventoryItem? ii = item.Room.Viking.Inventory.InventoryItems.FirstOrDefault(x => x.ItemId == reward.ItemID);
                     if (ii is null) {

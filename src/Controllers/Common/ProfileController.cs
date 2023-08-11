@@ -145,19 +145,19 @@ public class ProfileController : Controller {
                     UserID = Guid.Parse(viking.Id),
                     AchievementPointTotal = 5000,
                     RankID = 30,
-                    PointTypeID = 1
+                    PointTypeID = (int) AchievementPointTypes.PlayerXP
                 },
                 new UserAchievementInfo {
                     UserID = Guid.Parse(viking.Id),
                     AchievementPointTotal = 5000,
                     RankID = 30,
-                    PointTypeID = 9
+                    PointTypeID = (int) AchievementPointTypes.PlayerFarmingXP
                 },
                 new UserAchievementInfo {
                     UserID = Guid.Parse(viking.Id),
                     AchievementPointTotal = 5000,
                     RankID = 30,
-                    PointTypeID = 10
+                    PointTypeID = (int) AchievementPointTypes.PlayerFishingXP
                 },
             }
         };
