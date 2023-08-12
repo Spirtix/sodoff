@@ -37,10 +37,10 @@ namespace sodoff.Services {
             return userAchievementInfo(viking.Id, viking.AchievementPoints.FirstOrDefault(a => a.Type == (int)type)?.Value, type);
         }
 
-        static public void setAchievementPoints(Viking viking, AchievementPointTypes? type, int? value) {
+        static public void addAchievementPoints(Viking viking, AchievementPointTypes? type, int? value) {
             if (type == AchievementPointTypes.DragonXP) {
-                viking.SelectedDragon.PetXP = viking.SelectedDragon.PetXP.GetValueOrDefault() + (int)value;
-            } else {
+                viking.SelectedDragon.PetXP = (viking.SelectedDragon.PetXP ?? 0) + (value ?? 0);
+            } else if (type != null) {
                 AchievementPoints xpPoints = viking.AchievementPoints.FirstOrDefault(a => a.Type == (int)type);
                 if (xpPoints is null) {
                     xpPoints = new AchievementPoints {
@@ -49,7 +49,7 @@ namespace sodoff.Services {
                     };
                     viking.AchievementPoints.Add(xpPoints);
                 }
-                xpPoints.Value += (int)value;
+                xpPoints.Value += value ?? 0;
             }
         }
     }

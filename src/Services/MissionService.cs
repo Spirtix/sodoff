@@ -60,8 +60,8 @@ public class MissionService {
                             viking.Inventory.InventoryItems.Add(ii);
                         }
                         ii.Quantity += (int)reward.Amount!;
-                    } else if (reward.PointTypeID == AchievementPointTypes.DragonXP || reward.PointTypeID == AchievementPointTypes.PlayerXP) {
-                        AchievementService.setAchievementPoints(viking, reward.PointTypeID, reward.Amount);
+                    } else { // currencies, all types of player XP and dragon XP
+                        AchievementService.addAchievementPoints(viking, reward.PointTypeID, reward.Amount);
                     }
                 }
                 ctx.SaveChanges();
