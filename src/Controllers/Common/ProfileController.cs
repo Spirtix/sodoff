@@ -145,8 +145,8 @@ public class ProfileController : Controller {
             AchievementInfo = null, // placeholder
             Achievements = new UserAchievementInfo[] {
                 achievementService.userAchievementInfo(viking, AchievementPointTypes.PlayerXP),
-                achievementService.userAchievementInfo(viking, AchievementPointTypes.PlayerFarmingXP),
-                achievementService.userAchievementInfo(viking, AchievementPointTypes.PlayerFishingXP),
+                achievementService.userAchievementInfo(viking.Id, 60000, AchievementPointTypes.PlayerFarmingXP), // TODO: placeholder until there is no leveling for farm XP
+                achievementService.userAchievementInfo(viking.Id, 20000, AchievementPointTypes.PlayerFishingXP), // TODO: placeholder until there is no leveling for fishing XP
             }
         };
 
