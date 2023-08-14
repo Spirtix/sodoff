@@ -13,6 +13,7 @@ public class MissionService {
     public MissionService(DBContext ctx, MissionStoreSingleton missionStore, AchievementService achievementService) {
         this.ctx = ctx;
         this.missionStore = missionStore;
+        this.achievementService = achievementService;
     }
 
     public Mission GetMissionWithProgress(int missionId, string userId) {
