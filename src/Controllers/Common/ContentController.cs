@@ -191,7 +191,7 @@ public class ContentController : Controller {
         foreach (var req in request) {
             if (req.ItemID == 0) continue; // Do not save a null item
             
-            if (isFarmExpansion((int)req.ItemID)) {
+            if (IsFarmExpansion((int)req.ItemID)) {
                 // if req.Quantity < 0 remove unique items
                 for (int i=req.Quantity; i<0; ++i) {
                      InventoryItem? item = viking.Inventory.InventoryItems.FirstOrDefault(e => e.ItemId == req.ItemID && e.Quantity>0);
@@ -617,7 +617,7 @@ public class ContentController : Controller {
         CommonInventoryResponseItem[] items = new CommonInventoryResponseItem[request.Items.Length];
         for (int i = 0; i < request.Items.Length; i++) {
             InventoryItem? item = null;
-            if (!isFarmExpansion(request.Items[i])) 
+            if (!IsFarmExpansion(request.Items[i])) 
                 item = viking.Inventory.InventoryItems.FirstOrDefault(e => e.ItemId == request.Items[i]);
             if (item is null) {
                 item = new InventoryItem { ItemId = request.Items[i], Quantity = 0 };
@@ -890,7 +890,7 @@ public class ContentController : Controller {
         };
     }
 
-    private bool isFarmExpansion(int itemId) {
+    private bool IsFarmExpansion(int itemId) {
         ItemData? itemData = itemService.GetItem(itemId);
         if (itemData != null && itemData.Category != null) {
             foreach (ItemDataCategory itemCategory in itemData.Category) {
