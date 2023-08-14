@@ -18,6 +18,8 @@ public class Dragon {
 
     public string? RaisedPetData { get; set; }
 
+    public int? PetXP { get; set; }
+    
     public virtual Viking Viking { get; set; } = null!;
     public virtual Viking SelectedViking { get; set; } = null!;
 }

@@ -2,14 +2,17 @@
 using Microsoft.AspNetCore.Mvc;
 using sodoff.Model;
 using sodoff.Schema;
+using sodoff.Services;
 using sodoff.Util;
 
 namespace sodoff.Controllers.Common;
 public class ProfileController : Controller {
 
     private readonly DBContext ctx;
-    public ProfileController(DBContext ctx) {
+    private AchievementService achievementService;
+    public ProfileController(DBContext ctx, AchievementService achievementService) {
         this.ctx = ctx;
+        this.achievementService = achievementService;
     }
 
     [HttpPost]
@@ -141,24 +144,9 @@ public class ProfileController : Controller {
             RankID = 0, // placeholder
             AchievementInfo = null, // placeholder
             Achievements = new UserAchievementInfo[] {
-                new UserAchievementInfo {
-                    UserID = Guid.Parse(viking.Id),
-                    AchievementPointTotal = 5000,
-                    RankID = 30,
-                    PointTypeID = 1
-                },
-                new UserAchievementInfo {
-                    UserID = Guid.Parse(viking.Id),
-                    AchievementPointTotal = 5000,
-                    RankID = 30,
-                    PointTypeID = 9
-                },
-                new UserAchievementInfo {
-                    UserID = Guid.Parse(viking.Id),
-                    AchievementPointTotal = 5000,
-                    RankID = 30,
-                    PointTypeID = 10
-                },
+                achievementService.CreateUserAchievementInfo(viking, AchievementPointTypes.PlayerXP),
+                achievementService.CreateUserAchievementInfo(viking.Id, 60000, AchievementPointTypes.PlayerFarmingXP), // TODO: placeholder until there is no leveling for farm XP
+                achievementService.CreateUserAchievementInfo(viking.Id, 20000, AchievementPointTypes.PlayerFishingXP), // TODO: placeholder until there is no leveling for fishing XP
             }
         };
 

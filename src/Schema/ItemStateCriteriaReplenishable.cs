@@ -10,7 +10,7 @@ public class ItemStateCriteriaReplenishable : ItemStateCriteria
 	public bool ApplyRank;
 
 	[XmlElement(ElementName = "PointTypeID", IsNullable = true)]
-	public int? PointTypeID;
+	public AchievementPointTypes? PointTypeID;
 
 	[XmlElement(ElementName = "ReplenishableRates")]
 	public List<ReplenishableRate> ReplenishableRates;

@@ -4,22 +4,42 @@ using Microsoft.AspNetCore.Mvc;
 using sodoff.Attributes;
 using sodoff.Model;
 using sodoff.Schema;
+using sodoff.Services;
 using sodoff.Util;
 
 namespace sodoff.Controllers.Common;
 public class AchievementController : Controller {
 
     private readonly DBContext ctx;
-    public AchievementController(DBContext ctx) {
+    private AchievementService achievementService;
+    public AchievementController(DBContext ctx, AchievementService achievementService) {
         this.ctx = ctx;
+        this.achievementService = achievementService;
     }
 
     [HttpPost]
-    //[Produces("application/xml")]
+    [Produces("application/xml")]
     [Route("AchievementWebService.asmx/GetPetAchievementsByUserID")]
-    public IActionResult GetPetAchievementsByUserID() {
-        // TODO, this is a placeholder
-        return Ok("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<ArrayOfUserAchievementInfo xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://api.jumpstart.com/\" />");
+    public IActionResult GetPetAchievementsByUserID([FromForm] string apiToken, [FromForm] string userId) {
+        // TODO: check session
+
+        Viking? viking = ctx.Vikings.FirstOrDefault(e => e.Id == userId);
+        if (viking is null) {
+            return null;
+        }
+
+        List<UserAchievementInfo> dragonsAchievement = new List<UserAchievementInfo>();
+        foreach (Dragon dragon in viking.Dragons) {
+            dragonsAchievement.Add(
+                achievementService.CreateUserAchievementInfo(dragon.EntityId, dragon.PetXP, AchievementPointTypes.DragonXP)
+            );
+        }
+
+        ArrayOfUserAchievementInfo arrAchievements = new ArrayOfUserAchievementInfo {
+            UserAchievementInfo = dragonsAchievement.ToArray()
+        };
+
+        return Ok(arrAchievements);
     }
 
     [HttpPost]
@@ -50,27 +70,19 @@ public class AchievementController : Controller {
     [Produces("application/xml")]
     [Route("AchievementWebService.asmx/GetAchievementsByUserID")]
     public IActionResult GetAchievementsByUserID([FromForm] string userId) {
-        // TODO: this is a placeholder
+        // TODO: check session
+        
+        Viking? viking = ctx.Vikings.FirstOrDefault(e => e.Id == userId);
+
+        if (viking is null) {
+            return null;
+        }
+
         ArrayOfUserAchievementInfo arrAchievements = new ArrayOfUserAchievementInfo {
             UserAchievementInfo = new UserAchievementInfo[]{
-                new UserAchievementInfo {
-                    UserID = Guid.Parse(userId),
-                    AchievementPointTotal = 5000,
-                    RankID = 30,
-                    PointTypeID = 1
-                },
-                new UserAchievementInfo {
-                    UserID = Guid.Parse(userId),
-                    AchievementPointTotal = 5000,
-                    RankID = 30,
-                    PointTypeID = 9
-                },
-                new UserAchievementInfo {
-                    UserID = Guid.Parse(userId),
-                    AchievementPointTotal = 5000,
-                    RankID = 30,
-                    PointTypeID = 10
-                },
+                achievementService.CreateUserAchievementInfo(viking, AchievementPointTypes.PlayerXP),
+                achievementService.CreateUserAchievementInfo(viking.Id, 60000, AchievementPointTypes.PlayerFarmingXP), // TODO: placeholder until there is no leveling for farm XP
+                achievementService.CreateUserAchievementInfo(viking.Id, 20000, AchievementPointTypes.PlayerFishingXP), // TODO: placeholder until there is no leveling for fishing XP
             }
         };
 
@@ -86,7 +98,7 @@ public class AchievementController : Controller {
         return Ok(new AchievementReward[1] {
             new AchievementReward {
                 Amount = 5,
-                PointTypeID = 5,
+                PointTypeID = AchievementPointTypes.CashCurrency,
                 EntityID = Guid.Parse(viking.Id),
                 EntityTypeID = 1,
                 RewardID = 552
@@ -94,7 +106,7 @@ public class AchievementController : Controller {
         });
     }
 
-        [HttpPost]
+    [HttpPost]
     [Produces("application/xml")]
     [Route("V2/AchievementWebService.asmx/SetUserAchievementTask")]
     [DecryptRequest("achievementTaskSetRequest")]
@@ -112,7 +124,7 @@ public class AchievementController : Controller {
             AchievementRewards = new AchievementReward[1] {
                 new AchievementReward {
                     Amount = 25,
-                    PointTypeID = 1,
+                    PointTypeID = AchievementPointTypes.PlayerXP,
                     RewardID = 910,
                     EntityTypeID =1
                 }
@@ -130,7 +142,7 @@ public class AchievementController : Controller {
         return Ok(new AchievementReward[1] {
             new AchievementReward {
                 Amount = 25,
-                PointTypeID = 1,
+                PointTypeID = AchievementPointTypes.PlayerXP,
                 EntityID = Guid.Parse(viking.Id),
                 EntityTypeID = 1,
                 RewardID = 552

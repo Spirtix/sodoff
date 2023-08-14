@@ -7,7 +7,7 @@ namespace sodoff.Schema;
 public class RewardMultiplier
 {
 	[XmlElement(ElementName = "PT")]
-	public int PointTypeID;
+	public AchievementPointTypes PointTypeID;
 
 	[XmlElement(ElementName = "MF")]
 	public int MultiplierFactor;

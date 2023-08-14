@@ -8,8 +8,9 @@ public class MissionService {
 
     private readonly DBContext ctx;
     private MissionStoreSingleton missionStore;
+    private AchievementService achievementService;
 
-    public MissionService(DBContext ctx, MissionStoreSingleton missionStore) {
+    public MissionService(DBContext ctx, MissionStoreSingleton missionStore, AchievementService achievementService) {
         this.ctx = ctx;
         this.missionStore = missionStore;
     }
@@ -49,7 +50,7 @@ public class MissionService {
                     missionState.UserAccepted = null;
                 }
                 foreach (var reward in mission.Rewards) {
-                    if (reward.PointTypeID == 6) {
+                    if (reward.PointTypeID == AchievementPointTypes.ItemReward) {
                         // TODO: This is not a pretty solution. Use inventory service in the future
                         InventoryItem? ii = viking.Inventory.InventoryItems.FirstOrDefault(x => x.ItemId == reward.ItemID);
                         if (ii is null) {
@@ -60,6 +61,8 @@ public class MissionService {
                             viking.Inventory.InventoryItems.Add(ii);
                         }
                         ii.Quantity += (int)reward.Amount!;
+                    } else { // currencies, all types of player XP and dragon XP
+                        achievementService.AddAchievementPoints(viking, reward.PointTypeID, reward.Amount);
                     }
                 }
                 ctx.SaveChanges();

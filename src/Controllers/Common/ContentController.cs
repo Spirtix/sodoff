@@ -428,7 +428,7 @@ public class ContentController : Controller {
             return null;
         }
 
-        RaisedPetData[] dragons = viking.Dragons
+        RaisedPetData[] dragons = viking.Dragons // TODO (multiplayer) we should use userId
             .Where(d => d.RaisedPetData is not null)
             .Select(GetRaisedPetDataFromDragon)
             .ToArray();
