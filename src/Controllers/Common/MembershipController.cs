@@ -25,7 +25,7 @@ public class MembershipController : Controller {
 
     [HttpPost]
     [Produces("application/xml")]
-    [Route("MembershipWebService.asmx/GetChildList")]
+    [Route("MembershipWebService.asmx/GetChildList")] // used by old SoD (e.g. 2.9)
     [VikingSession(Mode=VikingSession.Modes.USER, UseLock=false)]
     public IActionResult GetChildList(User user) {
         ChildList profiles = new ChildList();

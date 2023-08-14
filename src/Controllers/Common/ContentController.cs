@@ -234,21 +234,23 @@ public class ContentController : Controller {
     [Produces("application/xml")]
     [Route("V2/ContentWebService.asmx/SetAvatar")]
     [VikingSession]
-    public IActionResult SetAvatar(Viking viking, [FromForm] string contentXML) {
-        AvatarData avatarData = XmlUtil.DeserializeXml<AvatarData>(contentXML);
-        foreach (AvatarDataPart part in avatarData.Part) {
-            if (part.PartType == "Version") {
-                if (part.Offsets[0].X < 6 || part.Offsets[0].X == 6 && part.Offsets[0].Y < 1) {
-                    // do not allow to save avatar data from old clients (avatar data version < 6.1) ... it's broke profile on 3.31
-                    // but return as true to trick the client to avoid re-show change viking name dialog
-                    // TODO: maybe better set pair AvatarNameCustomizationDone -> 1 (in "2017" pairs) and return error here?
-                    return Ok(new SetAvatarResult {
-                        Success = true,
-                        DisplayName = viking.Name,
-                        StatusCode = AvatarValidationResult.Valid
-                    });
+    public IActionResult SetAvatar(Viking viking, [FromForm] string contentXML, [FromForm] string apiKey) {
+        if (apiKey != "e20150cc-ff70-435c-90fd-341dc9161cc3") { // allow write old avatar from Magic & Mythies
+            AvatarData avatarData = XmlUtil.DeserializeXml<AvatarData>(contentXML);
+            foreach (AvatarDataPart part in avatarData.Part) {
+                if (part.PartType == "Version") {
+                    if (part.Offsets[0].X < 6 || part.Offsets[0].X == 6 && part.Offsets[0].Y < 1) {
+                        // do not allow to save avatar data from old clients (avatar data version < 6.1) ... it's broke profile on 3.31
+                        // but return as true to trick the client to avoid re-show change viking name dialog
+                        // TODO: maybe better set pair AvatarNameCustomizationDone -> 1 (in "2017" pairs) and return error here?
+                        return Ok(new SetAvatarResult {
+                            Success = true,
+                            DisplayName = viking.Name,
+                            StatusCode = AvatarValidationResult.Valid
+                        });
+                    }
+                    break;
                 }
-                break;
             }
         }
 
@@ -325,6 +327,30 @@ public class ContentController : Controller {
 
     [HttpPost]
     [Produces("application/xml")]
+    [Route("V2/ContentWebService.asmx/SetRaisedPet")] // used by Magic & Mythies
+    [VikingSession]
+    public IActionResult SetRaisedPetv2(Viking viking, [FromForm] string raisedPetData) {
+        RaisedPetData petData = XmlUtil.DeserializeXml<RaisedPetData>(raisedPetData);
+
+        // Find the dragon
+        Dragon? dragon = viking.Dragons.FirstOrDefault(e => e.Id == petData.RaisedPetID);
+        if (dragon is null) {
+            return Ok(new SetRaisedPetResponse {
+                RaisedPetSetResult = RaisedPetSetResult.Invalid
+            });
+        }
+
+        dragon.RaisedPetData = XmlUtil.SerializeXml(UpdateDragon(dragon, petData));
+        ctx.Update(dragon);
+        ctx.SaveChanges();
+
+        return Ok(new SetRaisedPetResponse {
+            RaisedPetSetResult = RaisedPetSetResult.Success
+        });
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
     [Route("v3/ContentWebService.asmx/SetRaisedPet")]
     [VikingSession]
     public IActionResult SetRaisedPet(Viking viking, [FromForm] string request, [FromForm] bool? import) {
@@ -392,7 +418,7 @@ public class ContentController : Controller {
 
     [HttpPost]
     [Produces("application/xml")]
-    [Route("ContentWebService.asmx/GetUnselectedPetByTypes")]
+    [Route("ContentWebService.asmx/GetUnselectedPetByTypes")] // used by old SoD (e.g. 1.13)
     [VikingSession(UseLock=false)]
     public RaisedPetData[]? GetUnselectedPetByTypes(Viking viking, [FromForm] string petTypeIDs, [FromForm] bool active) {
         RaisedPetData[] dragons = viking.Dragons
@@ -556,6 +582,14 @@ public class ContentController : Controller {
         missionState.UserAccepted = true;
         ctx.SaveChanges();
         return Ok(true);
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("ContentWebService.asmx/GetUserMissionState")] // used by Magic & Mythies
+    public IActionResult GetUserMissionStatev1([FromForm] string userId, [FromForm] string filter) {
+        // TODO: This is a placeholder
+        return Ok(new UserMissionStateResult { Missions = new List<Mission>()  });
     }
 
     [HttpPost]

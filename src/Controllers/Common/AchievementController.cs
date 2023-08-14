@@ -121,6 +121,22 @@ public class AchievementController : Controller {
 
     [HttpPost]
     [Produces("application/xml")]
+    [Route("AchievementWebService.asmx/GetUserAchievements")] // used by Magic & Mythies
+    [VikingSession]
+    public IActionResult GetUserAchievements(Viking viking) {
+        ArrayOfUserAchievementInfo arrAchievements = new ArrayOfUserAchievementInfo {
+            UserAchievementInfo = new UserAchievementInfo[]{
+                achievementService.CreateUserAchievementInfo(viking, AchievementPointTypes.PlayerXP),
+                achievementService.CreateUserAchievementInfo(viking.Id, 60000, AchievementPointTypes.PlayerFarmingXP), // TODO: placeholder until there is no leveling for farm XP
+                achievementService.CreateUserAchievementInfo(viking.Id, 20000, AchievementPointTypes.PlayerFishingXP), // TODO: placeholder until there is no leveling for fishing XP
+            }
+        };
+
+        return Ok(arrAchievements);
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
     [Route("AchievementWebService.asmx/SetAchievementAndGetReward")]
     [Route("AchievementWebService.asmx/SetUserAchievementAndGetReward")]
     [VikingSession(UseLock=true)]

@@ -96,7 +96,15 @@ public class ProfileController : Controller {
             }
         });
     }
-
+    
+    [HttpPost]
+    //[Produces("application/xml")]
+    [Route("ProfileWebService.asmx/GetProfileTagAll")] // used by Magic & Mythies
+    public IActionResult GetProfileTagAll() {
+        // TODO: This is a placeholder
+        return Ok("<?xml version='1.0' encoding='UTF-8'?><ArrayOfProfileTag xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:nil=\"true\"/>");
+    }
+    
     private UserProfileData GetProfileDataFromViking(Viking viking) {
         // Get the avatar data
         AvatarData avatarData = null;

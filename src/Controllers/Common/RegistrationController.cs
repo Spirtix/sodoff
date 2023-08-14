@@ -88,6 +88,7 @@ public class RegistrationController : Controller {
 
     [HttpPost]
     [Produces("application/xml")]
+    [Route("V3/RegistrationWebService.asmx/RegisterChild")] // used by Magic & Mythies
     [Route("V4/RegistrationWebService.asmx/RegisterChild")]
     [DecryptRequest("childRegistrationData")]
     [EncryptResponse]
