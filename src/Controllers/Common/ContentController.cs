@@ -15,12 +15,14 @@ public class ContentController : Controller {
     private ItemService itemService;
     private MissionService missionService;
     private RoomService roomService;
-    public ContentController(DBContext ctx, KeyValueService keyValueService, ItemService itemService, MissionService missionService, RoomService roomService) {
+    private AchievementService achievementService;
+    public ContentController(DBContext ctx, KeyValueService keyValueService, ItemService itemService, MissionService missionService, RoomService roomService, AchievementService achievementService) {
         this.ctx = ctx;
         this.keyValueService = keyValueService;
         this.itemService = itemService;
         this.missionService = missionService;
         this.roomService = roomService;
+        this.achievementService = achievementService;
     }
 
     [HttpPost]
@@ -916,7 +918,10 @@ public class ContentController : Controller {
         if (newDragonData.EntityID is not null) dragonData.EntityID = newDragonData.EntityID;
         if (newDragonData.Name is not null) dragonData.Name = newDragonData.Name;
         dragonData.PetTypeID = newDragonData.PetTypeID;
-        if (newDragonData.GrowthState is not null) dragonData.GrowthState = newDragonData.GrowthState;
+        if (newDragonData.GrowthState is not null) {
+            achievementService.DragonLevelUpOnAgeUp(dragon, dragonData.GrowthState, newDragonData.GrowthState);
+            dragonData.GrowthState = newDragonData.GrowthState;
+        }
         if (newDragonData.ImagePosition is not null) dragonData.ImagePosition = newDragonData.ImagePosition;
         if (newDragonData.Geometry is not null) dragonData.Geometry = newDragonData.Geometry;
         if (newDragonData.Texture is not null) dragonData.Texture = newDragonData.Texture;

@@ -10,12 +10,18 @@ namespace sodoff.Services {
 
         Dictionary<AchievementPointTypes, UserRank[]> ranks = new();
 
+        int dragonAdultMinXP;
+        int dragonTitanMinXP;
+
         public AchievementService() {
             ArrayOfUserRank allranks = XmlUtil.DeserializeXml<ArrayOfUserRank>(XmlUtil.ReadResourceXmlString("allranks"));
             
             foreach (var pointType in Enum.GetValues<AchievementPointTypes>()) {
                 ranks[pointType] = allranks.UserRank.Where(r => r.PointTypeID == pointType).ToArray();
             }
+
+            dragonAdultMinXP = ranks[AchievementPointTypes.DragonXP][10].Value;
+            dragonTitanMinXP = ranks[AchievementPointTypes.DragonXP][20].Value;
         }
 
         public int GetRankFromXP(int? xpPoints, AchievementPointTypes type) {
@@ -35,6 +41,21 @@ namespace sodoff.Services {
 
         public UserAchievementInfo CreateUserAchievementInfo(Viking viking, AchievementPointTypes type) {
             return CreateUserAchievementInfo(viking.Id, viking.AchievementPoints.FirstOrDefault(a => a.Type == (int)type)?.Value, type);
+        }
+
+        public void DragonLevelUpOnAgeUp(Dragon dragon, RaisedPetGrowthState oldGrowthState, RaisedPetGrowthState newGrowthState) {
+            if (newGrowthState.Order > oldGrowthState.Order) {
+                // age up
+                int dragonXP = dragon.PetXP ?? 0;
+                if (newGrowthState.Order == 4 && dragonXP < dragonAdultMinXP) {
+                    // to adult via ticket -> add XP
+                    dragonXP += dragonAdultMinXP;
+                } else if  (newGrowthState.Order == 5 && dragonXP < dragonTitanMinXP) {
+                    // adult to titan via ticket -> add XP
+                    dragonXP += dragonTitanMinXP - dragonAdultMinXP;
+                }
+                dragon.PetXP = dragonXP;
+            }
         }
 
         public void AddAchievementPoints(Viking viking, AchievementPointTypes? type, int? value) {

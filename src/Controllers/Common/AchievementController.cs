@@ -73,20 +73,26 @@ public class AchievementController : Controller {
         // TODO: check session
         
         Viking? viking = ctx.Vikings.FirstOrDefault(e => e.Id == userId);
-
-        if (viking is null) {
-            return null;
+        if (viking != null) {
+            return Ok(new ArrayOfUserAchievementInfo {
+                UserAchievementInfo = new UserAchievementInfo[]{
+                    achievementService.CreateUserAchievementInfo(viking, AchievementPointTypes.PlayerXP),
+                    achievementService.CreateUserAchievementInfo(viking.Id, 60000, AchievementPointTypes.PlayerFarmingXP), // TODO: placeholder until there is no leveling for farm XP
+                    achievementService.CreateUserAchievementInfo(viking.Id, 20000, AchievementPointTypes.PlayerFishingXP), // TODO: placeholder until there is no leveling for fishing XP
+                }
+            });
         }
 
-        ArrayOfUserAchievementInfo arrAchievements = new ArrayOfUserAchievementInfo {
-            UserAchievementInfo = new UserAchievementInfo[]{
-                achievementService.CreateUserAchievementInfo(viking, AchievementPointTypes.PlayerXP),
-                achievementService.CreateUserAchievementInfo(viking.Id, 60000, AchievementPointTypes.PlayerFarmingXP), // TODO: placeholder until there is no leveling for farm XP
-                achievementService.CreateUserAchievementInfo(viking.Id, 20000, AchievementPointTypes.PlayerFishingXP), // TODO: placeholder until there is no leveling for fishing XP
-            }
-        };
+        Dragon? dragon = ctx.Dragons.FirstOrDefault(e => e.EntityId == userId);
+        if (dragon != null) {
+            return Ok(new ArrayOfUserAchievementInfo {
+                UserAchievementInfo = new UserAchievementInfo[]{
+                    achievementService.CreateUserAchievementInfo(dragon.EntityId, dragon.PetXP, AchievementPointTypes.DragonXP),
+                }
+            });
+        }
 
-        return Ok(arrAchievements);
+        return null;
     }
 
     [HttpPost]
