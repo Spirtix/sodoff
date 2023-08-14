@@ -31,7 +31,7 @@ public class AchievementController : Controller {
         List<UserAchievementInfo> dragonsAchievement = new List<UserAchievementInfo>();
         foreach (Dragon dragon in viking.Dragons) {
             dragonsAchievement.Add(
-                achievementService.userAchievementInfo(dragon.EntityId, dragon.PetXP, AchievementPointTypes.DragonXP)
+                achievementService.CreateUserAchievementInfo(dragon.EntityId, dragon.PetXP, AchievementPointTypes.DragonXP)
             );
         }
 
@@ -80,9 +80,9 @@ public class AchievementController : Controller {
 
         ArrayOfUserAchievementInfo arrAchievements = new ArrayOfUserAchievementInfo {
             UserAchievementInfo = new UserAchievementInfo[]{
-                achievementService.userAchievementInfo(viking, AchievementPointTypes.PlayerXP),
-                achievementService.userAchievementInfo(viking.Id, 60000, AchievementPointTypes.PlayerFarmingXP), // TODO: placeholder until there is no leveling for farm XP
-                achievementService.userAchievementInfo(viking.Id, 20000, AchievementPointTypes.PlayerFishingXP), // TODO: placeholder until there is no leveling for fishing XP
+                achievementService.CreateUserAchievementInfo(viking, AchievementPointTypes.PlayerXP),
+                achievementService.CreateUserAchievementInfo(viking.Id, 60000, AchievementPointTypes.PlayerFarmingXP), // TODO: placeholder until there is no leveling for farm XP
+                achievementService.CreateUserAchievementInfo(viking.Id, 20000, AchievementPointTypes.PlayerFishingXP), // TODO: placeholder until there is no leveling for fishing XP
             }
         };
 

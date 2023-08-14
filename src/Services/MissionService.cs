@@ -8,8 +8,9 @@ public class MissionService {
 
     private readonly DBContext ctx;
     private MissionStoreSingleton missionStore;
+    private AchievementService achievementService;
 
-    public MissionService(DBContext ctx, MissionStoreSingleton missionStore) {
+    public MissionService(DBContext ctx, MissionStoreSingleton missionStore, AchievementService achievementService) {
         this.ctx = ctx;
         this.missionStore = missionStore;
     }
@@ -61,7 +62,7 @@ public class MissionService {
                         }
                         ii.Quantity += (int)reward.Amount!;
                     } else { // currencies, all types of player XP and dragon XP
-                        AchievementService.addAchievementPoints(viking, reward.PointTypeID, reward.Amount);
+                        achievementService.AddAchievementPoints(viking, reward.PointTypeID, reward.Amount);
                     }
                 }
                 ctx.SaveChanges();

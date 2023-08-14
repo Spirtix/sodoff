@@ -18,26 +18,26 @@ namespace sodoff.Services {
             }
         }
 
-        public int getRankFromXP(int? xpPoints, AchievementPointTypes type) {
+        public int GetRankFromXP(int? xpPoints, AchievementPointTypes type) {
             return ranks[type].Count(r => r.Value <= xpPoints);
         }
 
-        public UserAchievementInfo userAchievementInfo(string userId, int? value, AchievementPointTypes type) {
+        public UserAchievementInfo CreateUserAchievementInfo(string userId, int? value, AchievementPointTypes type) {
             if (value is null)
                 value = 0;
             return new UserAchievementInfo {
                 UserID = Guid.Parse(userId),
                 AchievementPointTotal = value,
-                RankID = getRankFromXP(value, type),
+                RankID = GetRankFromXP(value, type),
                 PointTypeID = type
             };
         }
 
-        public UserAchievementInfo userAchievementInfo(Viking viking, AchievementPointTypes type) {
-            return userAchievementInfo(viking.Id, viking.AchievementPoints.FirstOrDefault(a => a.Type == (int)type)?.Value, type);
+        public UserAchievementInfo CreateUserAchievementInfo(Viking viking, AchievementPointTypes type) {
+            return CreateUserAchievementInfo(viking.Id, viking.AchievementPoints.FirstOrDefault(a => a.Type == (int)type)?.Value, type);
         }
 
-        static public void addAchievementPoints(Viking viking, AchievementPointTypes? type, int? value) {
+        public void AddAchievementPoints(Viking viking, AchievementPointTypes? type, int? value) {
             if (type == AchievementPointTypes.DragonXP) {
                 viking.SelectedDragon.PetXP = (viking.SelectedDragon.PetXP ?? 0) + (value ?? 0);
             } else if (type != null) {
