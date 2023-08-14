@@ -217,6 +217,22 @@ public class ContentController : Controller {
         return Ok(response);
     }
 
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("ContentWebService.asmx/UseInventory")]
+    public IActionResult UseInventory([FromForm] string apiToken, [FromForm] int userInventoryId, [FromForm] int numberOfUses) {
+        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
+        InventoryItem? item = viking.Inventory.InventoryItems.FirstOrDefault(e => e.Id == userInventoryId);
+        if (item is null)
+            return Ok(false);
+        if (item.Quantity < numberOfUses)
+            return Ok(false);
+        
+        item.Quantity -= numberOfUses;
+        ctx.SaveChanges();
+        return Ok(true);
+    }
+    
 
     [HttpPost]
     [Produces("application/xml")]
@@ -666,8 +682,8 @@ public class ContentController : Controller {
             UserGameCurrency = new UserGameCurrency {
                 UserID = Guid.Parse(viking.Id),
                 UserGameCurrencyID = 1, // TODO: user's wallet ID?
-                CashCurrency = 1000,
-                GameCurrency = 1000,
+                CashCurrency = 65536,
+                GameCurrency = 65536,
             }
         };
         return Ok(response);
@@ -704,8 +720,8 @@ public class ContentController : Controller {
             UserGameCurrency = new UserGameCurrency {
                 UserID = Guid.Parse(viking.Id),
                 UserGameCurrencyID = 1, // TODO: user's wallet ID?
-                CashCurrency = 1000,
-                GameCurrency = 1000,
+                CashCurrency = 65536,
+                GameCurrency = 65536,
             }
         };
         return Ok(response);
@@ -822,12 +838,20 @@ public class ContentController : Controller {
 
     [HttpPost]
     [Produces("application/xml")]
+    [Route("V2/ContentWebService.asmx/GetGameData")]
+    public IActionResult GetGameData() {
+        // TODO: This is a placeholder
+        return Ok(new GetGameDataResponse());
+    }
+    
+    [HttpPost]
+    [Produces("application/xml")]
     [Route("ContentWebService.asmx/GetUserGameCurrency")]
     public IActionResult GetUserGameCurrency([FromForm] string userId) {
         // TODO: This is a placeholder
         return Ok(new UserGameCurrency {
-            CashCurrency = 1000,
-            GameCurrency = 1000,
+            CashCurrency = 65536,
+            GameCurrency = 65536,
             UserGameCurrencyID = 0,
             UserID = Guid.Parse(userId)
         });

@@ -68,7 +68,8 @@ methods = [
   'GetChildList',
   'GetUnselectedPetByTypes',
   'GetUserGameCurrency',
-  'SetAchievementByEntityIDs'
+  'SetAchievementByEntityIDs',
+  'UseInventory'
 ]
 
 def routable(path):

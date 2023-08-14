@@ -168,8 +168,8 @@ public class ProfileController : Controller {
             AchievementCount = 0,
             MythieCount = 0,
             AnswerData = new UserAnswerData { UserID = viking.Id },
-            GameCurrency = 1000,
-            CashCurrency = 1000,
+            GameCurrency = 65536,
+            CashCurrency = 65536,
             ActivityCount = 0,
             BuddyCount = 0,
             UserGradeData = new UserGrade { UserGradeID = 0 }
