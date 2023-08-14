@@ -262,6 +262,23 @@ public class ContentController : Controller {
             });
         }
 
+        AvatarData avatarData = XmlUtil.DeserializeXml<AvatarData>(contentXML);
+        foreach (AvatarDataPart part in avatarData.Part) {
+            if (part.PartType == "Version") {
+                if (part.Offsets[0].X < 6 || part.Offsets[0].X == 6 && part.Offsets[0].Y < 1) {
+                    // do not allow to save avatar data from old clients (avatar data version < 6.1) ... it's broke profile on 3.31
+                    // but return as true to trick the client to avoid re-show change viking name dialog
+                    // TODO: maybe better set pair AvatarNameCustomizationDone -> 1 (in "2017" pairs) and return error here?
+                    return Ok(new SetAvatarResult {
+                        Success = true,
+                        DisplayName = viking.Name,
+                        StatusCode = AvatarValidationResult.Valid
+                    });
+                }
+                break;
+            }
+        }
+
         viking.AvatarSerialized = contentXML;
         ctx.SaveChanges();
 
@@ -400,6 +417,39 @@ public class ContentController : Controller {
             return null;
         }
         return dragons;
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("ContentWebService.asmx/GetUnselectedPetByTypes")]
+    public RaisedPetData[]? GetUnselectedPetByTypes([FromForm] string apiToken, [FromForm] string petTypeIDs, [FromForm] bool active) {
+        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
+        if (viking is null) {
+            return null;
+        }
+
+        RaisedPetData[] dragons = viking.Dragons
+            .Where(d => d.RaisedPetData is not null)
+            .Select(GetRaisedPetDataFromDragon)
+            .ToArray();
+
+        if (dragons.Length == 0) {
+            return null;
+        }
+
+        List<RaisedPetData> filteredDragons = new List<RaisedPetData>();
+        int[] petTypeIDsInt = Array.ConvertAll(petTypeIDs.Split(','), s => int.Parse(s));
+        foreach (RaisedPetData dragon in dragons) {
+            if (petTypeIDsInt.Contains(dragon.PetTypeID)) {
+                filteredDragons.Add(dragon);
+            }
+        }
+
+        if (filteredDragons.Count == 0) {
+            return null;
+        }
+
+        return filteredDragons.ToArray();
     }
 
     [HttpPost]

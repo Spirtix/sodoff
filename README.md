@@ -72,6 +72,7 @@ Then run School of Dragons.
 - GetUserUpcomingMissionState
 - GetUserCompletedMissionState
 - GetChildList
+- GetUnselectedPetByTypes
 - UseInventory
 
 #### Implemented enough (probably)
