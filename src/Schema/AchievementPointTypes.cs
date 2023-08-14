@@ -32,4 +32,7 @@ public enum AchievementPointTypes {
     
     [XmlEnum("13")]
     Unknown13 = 13,
+    
+    [XmlEnum("21")]
+    Unknown21 = 21,
 }

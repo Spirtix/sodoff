@@ -9,9 +9,11 @@ namespace sodoff.Services;
 public class RoomService {
 
     private readonly DBContext ctx;
+    private AchievementService achievementService;
 
-    public RoomService(DBContext ctx) {
+    public RoomService(DBContext ctx, AchievementService achievementService) {
         this.ctx = ctx;
+        this.achievementService = achievementService;
     }
 
     public void CreateRoom(Viking viking, string roomId) {
@@ -123,21 +125,7 @@ public class RoomService {
         }
 
         if (rewards != null) {
-            response.Rewards = rewards;
-            foreach (var reward in rewards) {
-                if (reward.PointTypeID == AchievementPointTypes.ItemReward) {
-                    // TODO: This is not a pretty solution. Use inventory service in the future
-                    InventoryItem? ii = item.Room.Viking.Inventory.InventoryItems.FirstOrDefault(x => x.ItemId == reward.ItemID);
-                    if (ii is null) {
-                        ii = new InventoryItem {
-                            ItemId = reward.ItemID,
-                            Quantity = 0
-                        };
-                        item.Room.Viking.Inventory.InventoryItems.Add(ii);
-                    }
-                    ii.Quantity += (int)reward.Amount!;
-                }
-            }
+            response.Rewards = achievementService.ApplyAchievementRewards(item.Room.Viking, rewards);
         }
 
         DateTime stateChange = new DateTime(DateTime.Now.Ticks);

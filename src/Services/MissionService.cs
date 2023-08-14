@@ -38,11 +38,6 @@ public class MissionService {
         if (completed) {
             Mission mission = GetMissionWithProgress(missionId, userId);
             if (MissionCompleted(mission)) {
-                // Get mission rewards
-                result.Add(new MissionCompletedResult {
-                    MissionID = missionId,
-                    Rewards = mission.Rewards.ToArray()
-                });
                 // Update mission from active to completed
                 Viking viking = ctx.Vikings.FirstOrDefault(x => x.Id == userId)!;
                 MissionState? missionState = viking.MissionStates.FirstOrDefault(x => x.MissionId == missionId);
@@ -50,23 +45,14 @@ public class MissionService {
                     missionState.MissionStatus = MissionStatus.Completed;
                     missionState.UserAccepted = null;
                 }
-                foreach (var reward in mission.Rewards) {
-                    if (reward.PointTypeID == AchievementPointTypes.ItemReward) {
-                        // TODO: This is not a pretty solution. Use inventory service in the future
-                        InventoryItem? ii = viking.Inventory.InventoryItems.FirstOrDefault(x => x.ItemId == reward.ItemID);
-                        if (ii is null) {
-                            ii = new InventoryItem {
-                                ItemId = reward.ItemID,
-                                Quantity = 0
-                            };
-                            viking.Inventory.InventoryItems.Add(ii);
-                        }
-                        ii.Quantity += (int)reward.Amount!;
-                    } else { // currencies, all types of player XP and dragon XP
-                        achievementService.AddAchievementPoints(viking, reward.PointTypeID, reward.Amount);
-                    }
-                }
+                var rewards = achievementService.ApplyAchievementRewards(viking, mission.Rewards.ToArray());
                 ctx.SaveChanges();
+                
+                // Get mission rewards
+                result.Add(new MissionCompletedResult {
+                    MissionID = missionId,
+                    Rewards = rewards
+                });
             }
         }
         return result;

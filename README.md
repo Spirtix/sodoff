@@ -76,6 +76,9 @@ Then run School of Dragons.
 - UseInventory
 - DeleteProfile
 - DeleteAccountNotification
+- SetAchievementAndGetReward
+- GetAchievementsByUserID
+- GetPetAchievementsByUserID
 
 #### Implemented enough (probably)
 - GetRules (doesn't return any rules, probably doesn't need to)
@@ -85,6 +88,7 @@ Then run School of Dragons.
 - GetCommonInventory
 - GetUserRoomItemPositions
 - SetUserRoomItemPositions
+- SetUserAchievementAndGetReward (works like SetAchievementAndGetReward)
 
 #### Partially implemented
 - GetUserProfileByUserID (a lot is still placeholder)
@@ -96,10 +100,10 @@ Then run School of Dragons.
 - GetUserRoomList (room categories are not implemented)
 - SetNextItemState (may require more work, we don't know yet)
 - SetUserRoom
+- SetUserAchievementTask (returns a real reward but still use task placeholder)
 
 #### Currently static or stubbed
 - GetAllRanks (needs to be populated with what ranks the user has)
-- GetPetAchievementsByUserId (always returns null)
 - GetAchievementTaskInfo (returns a static XML)
 - GetAllRewardTypeMultiplier (returns a static XML)
 - GetBuddyList (returns an emtpy array)
@@ -109,9 +113,6 @@ Then run School of Dragons.
 - SaveMessage (doesn't do anything and returns false)
 - GetMMOServerInfoWithZone (returns an empty array)
 - GetActiveChallenges (returns an empty array)
-- GetAchievementsByUserID (returns an achievement with the provided user ID)
-- SetAchievementAndGetReward (returns 5 gems)
-- SetUserAchievementTask (returns a placeholder achievement)
 - GetAnnouncementsByUser (returns no announcements, but that might be sufficient)
 - GetAverageRatingForRoom (return max rating)
 - GetUserActivityByUserID (returns an empty array)
