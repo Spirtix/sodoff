@@ -67,7 +67,8 @@ methods = [
   'SetUserRoom',
   'GetChildList',
   'GetUserGameCurrency',
-  'SetAchievementByEntityIDs'
+  'SetAchievementByEntityIDs',
+  'UseInventory'
 ]
 
 def routable(path):
