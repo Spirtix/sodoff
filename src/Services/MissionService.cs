@@ -16,13 +16,19 @@ public class MissionService {
         this.achievementService = achievementService;
     }
 
-    public Mission GetMissionWithProgress(int missionId, string userId) {
-        Mission mission = missionStore.GetMission(missionId);
+    public Mission GetMissionWithProgress(int missionId, string userId, string apiKey) {
+        Mission mission;
+        if (missionId == 999 && apiKey == "a3a00a0a-7c6e-4e9b-b0f7-22034d799013") { // TODO This is not a pretty solution with hard-coded values.
+            mission = missionStore.GetMission(10999);
+            mission.MissionID = 999;
+        } else {
+            mission = missionStore.GetMission(missionId);
+        }
         UpdateMissionRecursive(mission, userId);
         return mission;
     }
 
-    public List<MissionCompletedResult> UpdateTaskProgress(int missionId, int taskId, string userId, bool completed, string xmlPayload) {
+    public List<MissionCompletedResult> UpdateTaskProgress(int missionId, int taskId, string userId, bool completed, string xmlPayload, string apiKey) {
         SetTaskProgressDB(missionId, taskId, userId, completed, xmlPayload);
 
         // NOTE: This won't work if a mission can be completed by completing an inner mission
@@ -36,7 +42,7 @@ public class MissionService {
         // I do know that outer missions have inner missions as RuleItems, and if the RuleItem is supposed to be "complete" and it isn't, the quest breaks when the player quits the game and loads the quest again
         List<MissionCompletedResult> result = new();
         if (completed) {
-            Mission mission = GetMissionWithProgress(missionId, userId);
+            Mission mission = GetMissionWithProgress(missionId, userId, apiKey);
             if (MissionCompleted(mission)) {
                 // Update mission from active to completed
                 Viking viking = ctx.Vikings.FirstOrDefault(x => x.Id == userId)!;
