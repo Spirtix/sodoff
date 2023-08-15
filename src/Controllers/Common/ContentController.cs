@@ -128,15 +128,46 @@ public class ContentController : Controller {
     [Produces("application/xml")]
     [Route("ContentWebService.asmx/GetCommonInventory")]
     public IActionResult GetCommonInventory([FromForm] string apiToken) {
-        // TODO, this is a placeholder
+        // TODO: what is the difference between this and v2? this can be called with user apiToken and v2 not? maybe it should be unified?
         User? user = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.User;
         Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
         if (user is null && viking is null) {
             return Ok();
         }
 
+
+        List<UserItemData> userItemData = new();
+        if (viking != null) {
+            List<InventoryItem> items = viking.Inventory.InventoryItems.ToList();
+            foreach (InventoryItem item in items) {
+                if (item.Quantity == 0) continue; // Don't include an item that the viking doesn't have
+                ItemData itemData = itemService.GetItem(item.ItemId);
+                UserItemData uid = new UserItemData {
+                    UserInventoryID = item.Id,
+                    ItemID = itemData.ItemID,
+                    Quantity = item.Quantity,
+                    Uses = itemData.Uses,
+                    ModifiedDate = new DateTime(DateTime.Now.Ticks),
+                    Item = itemData
+                };
+                userItemData.Add(uid);
+            }
+        } else {
+            // TODO: placeholder - return 8 viking slot items
+            UserItemData uid = new UserItemData {
+                UserInventoryID = 0,
+                ItemID = 7971,
+                Quantity = 8,
+                Uses = -1,
+                ModifiedDate = new DateTime(DateTime.Now.Ticks),
+                Item = itemService.GetItem(7971)
+            };
+            userItemData.Add(uid);
+        }
+
         return Ok(new CommonInventoryData {
-            UserID = Guid.Parse(user is not null ? user.Id : viking.Id)
+            UserID = Guid.Parse(user is not null ? user.Id : viking.Id),
+            Item = userItemData.ToArray()
         });
     }
 
