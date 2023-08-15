@@ -44,7 +44,7 @@ namespace sodoff.Services {
         }
 
         public void DragonLevelUpOnAgeUp(Dragon dragon, RaisedPetGrowthState oldGrowthState, RaisedPetGrowthState newGrowthState) {
-            if (newGrowthState.Order > oldGrowthState.Order) {
+            if (oldGrowthState is null || newGrowthState.Order > oldGrowthState.Order) {
                 // age up
                 int dragonXP = dragon.PetXP ?? 0;
                 if (newGrowthState.Order == 4 && dragonXP < dragonAdultMinXP) {
