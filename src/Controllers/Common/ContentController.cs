@@ -900,11 +900,15 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("ContentWebService.asmx/SetNextItemState")]
-    public IActionResult SetNextItemState([FromForm] string setNextItemStateRequest) {
+    public IActionResult SetNextItemState([FromForm] string apiToken, [FromForm] string setNextItemStateRequest) {
         SetNextItemStateRequest request = XmlUtil.DeserializeXml<SetNextItemStateRequest>(setNextItemStateRequest);
         RoomItem? item = ctx.RoomItems.FirstOrDefault(x => x.Id == request.UserItemPositionID);
         if (item is null)
             return Ok();
+
+        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
+        if (item.Room.Viking != viking)
+            return Unauthorized();
 
         // NOTE: The game sets OverrideStateCriteria only if a speedup is used
         return Ok(roomService.NextItemState(item, request.OverrideStateCriteria));

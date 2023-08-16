@@ -24,6 +24,30 @@ public class RegistrationController : Controller {
 
     [HttpPost]
     [Produces("application/xml")]
+    [Route("v3/RegistrationWebService.asmx/DeleteProfile")]
+    public IActionResult DeleteProfile([FromForm] string apiToken, [FromForm] string userID) {
+        User? user = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.User;
+        if (user is null) {
+            return Ok(DeleteProfileStatus.OWNER_ID_NOT_FOUND);
+        }
+
+        Viking? viking = ctx.Vikings.FirstOrDefault(e => e.Id == userID);
+        if (viking is null) {
+            return Ok(DeleteProfileStatus.PROFILE_NOT_FOUND);
+        }
+
+        if (user != viking.User) {
+            return Ok(DeleteProfileStatus.PROFILE_NOT_OWNED_BY_THIS_OWNER);
+        }
+
+        ctx.Vikings.Remove(viking);
+        ctx.SaveChanges();
+
+        return Ok(DeleteProfileStatus.SUCCESS);
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
     [Route("v3/RegistrationWebService.asmx/RegisterParent")]
     [DecryptRequest("parentRegistrationData")]
     [EncryptResponse]

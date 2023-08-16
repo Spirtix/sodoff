@@ -28,11 +28,13 @@ public class DBContext : DbContext {
     protected override void OnModelCreating(ModelBuilder builder) {
         builder.Entity<Session>().HasOne(s => s.User)
             .WithMany(e => e.Sessions)
-            .HasForeignKey(e => e.UserId);
+            .HasForeignKey(e => e.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.Entity<Session>().HasOne(s => s.Viking)
             .WithMany(e => e.Sessions)
-            .HasForeignKey(e => e.VikingId);
+            .HasForeignKey(e => e.VikingId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.Entity<User>().HasMany(u => u.Sessions)
             .WithOne(e => e.User);

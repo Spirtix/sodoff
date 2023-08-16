@@ -136,14 +136,19 @@ public class AuthenticationController : Controller {
     public IActionResult LoginChild([FromForm] string parentApiToken) {
         User? user = ctx.Sessions.FirstOrDefault(e => e.ApiToken == parentApiToken)?.User;
         if (user is null) {
-            return Ok();
+            return Unauthorized();
         }
 
         // Find the viking
         string? childUserID = Request.Form["childUserID"];
         Viking? viking = ctx.Vikings.FirstOrDefault(e => e.Id == childUserID);
         if (viking is null) {
-            return Ok();
+            return Unauthorized();
+        }
+
+        // Check if user is viking parent
+        if (user != viking.User) {
+            return Unauthorized();
         }
 
         // Create session
@@ -157,5 +162,19 @@ public class AuthenticationController : Controller {
 
         // Return back the api token
         return Ok(session.ApiToken);
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("AuthenticationWebService.asmx/DeleteAccountNotification")]
+    public IActionResult DeleteAccountNotification([FromForm] string apiToken) {
+        User? user = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.User;
+        if (user is null)
+            return Ok(MembershipUserStatus.ValidationError);
+
+        ctx.Users.Remove(user);
+        ctx.SaveChanges();
+
+        return Ok(MembershipUserStatus.Success);
     }
 }
