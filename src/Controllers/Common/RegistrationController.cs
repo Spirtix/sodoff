@@ -117,6 +117,7 @@ public class RegistrationController : Controller {
             Name = data.ChildName,
             User = user,
             Inventory = inv,
+            AchievementPoints = new List<AchievementPoints>(),
             Rooms = new List<Room>()
         };
         
