@@ -388,24 +388,19 @@ public class ContentController : Controller {
         ctx.Images.Add(image);
         ctx.SaveChanges();
 
-        // TODO: handle CommonInventoryRequests here too ///////////////////////////////////////////
-        
-        foreach (var req in raisedPetRequest.CommonInventoryRequests) {
-            InventoryItem? item = viking.Inventory.InventoryItems.FirstOrDefault(e => e.ItemId == req.ItemID);
-            
-            //Does the item exist in the user's inventory?
-            if (item is null) {  //If not...
-                continue; //...Skip it.
+        if (raisedPetRequest.CommonInventoryRequests is not null) {
+            foreach (var req in raisedPetRequest.CommonInventoryRequests) {
+                InventoryItem? item = viking.Inventory.InventoryItems.FirstOrDefault(e => e.ItemId == req.ItemID);
+                
+                //Does the item exist in the user's inventory?
+                if (item is null) continue; //If not, skip it.
+                
+                if (item.Quantity + req.Quantity >= 0 ) { //If so, can we update it appropriately?
+                    //We can.  Do so.
+                    item.Quantity += req.Quantity; //Note that we use += here because req.Quantity is negative.
+                    ctx.SaveChanges();
+                }
             }
-            else if (item.Quantity + req.Quantity >= 0 ) { //If so, can we update it appropriately?
-                //We can.  Do so.
-                item.Quantity += req.Quantity; //Note that we use += here because req.Quantity is negative.
-                ctx.SaveChanges();
-            }
-            else { //We can't.  So...
-               //TODO:  What SHOULD happen when item.Quantity <= 0??
-            }
-            
         }
 
         return Ok(new CreatePetResponse {
