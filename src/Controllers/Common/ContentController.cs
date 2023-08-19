@@ -411,7 +411,7 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("v3/ContentWebService.asmx/SetRaisedPet")]
-    public IActionResult SetRaisedPet([FromForm] string apiToken, [FromForm] string request) {
+    public IActionResult SetRaisedPet([FromForm] string apiToken, [FromForm] string request, [FromForm] bool? import) {
         Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
         if (viking is null) {
             // TODO: result for invalid session
@@ -428,7 +428,7 @@ public class ContentController : Controller {
             });
         }
 
-        dragon.RaisedPetData = XmlUtil.SerializeXml(UpdateDragon(dragon, raisedPetRequest.RaisedPetData));
+        dragon.RaisedPetData = XmlUtil.SerializeXml(UpdateDragon(dragon, raisedPetRequest.RaisedPetData, import ?? false));
         ctx.Update(dragon);
         ctx.SaveChanges();
 
@@ -957,7 +957,7 @@ public class ContentController : Controller {
     }
 
     // Needs to merge newDragonData into dragonData
-    private RaisedPetData UpdateDragon (Dragon dragon, RaisedPetData newDragonData) {
+    private RaisedPetData UpdateDragon (Dragon dragon, RaisedPetData newDragonData, bool import = false) {
         RaisedPetData dragonData = XmlUtil.DeserializeXml<RaisedPetData>(dragon.RaisedPetData);
 
         // The simple attributes
@@ -978,10 +978,12 @@ public class ContentController : Controller {
         if (newDragonData.Colors is not null) dragonData.Colors = newDragonData.Colors;
         if (newDragonData.Skills is not null) dragonData.Skills = newDragonData.Skills;
         if (newDragonData.States is not null) dragonData.States = newDragonData.States;
-
+        
         dragonData.IsSelected = newDragonData.IsSelected;
         dragonData.IsReleased = newDragonData.IsReleased;
         dragonData.UpdateDate = newDragonData.UpdateDate;
+
+        if (import) dragonData.CreateDate = newDragonData.CreateDate;
 
         // Attributes is special - the entire list isn't re-sent, so we need to manually update each
         if (dragonData.Attributes is null) dragonData.Attributes = new RaisedPetAttribute[] { };
