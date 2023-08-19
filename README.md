@@ -74,6 +74,8 @@ Then run School of Dragons.
 - GetChildList
 - GetUnselectedPetByTypes
 - UseInventory
+- DeleteProfile
+- DeleteAccountNotification
 
 #### Implemented enough (probably)
 - GetRules (doesn't return any rules, probably doesn't need to)
