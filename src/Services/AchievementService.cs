@@ -58,6 +58,21 @@ namespace sodoff.Services {
             }
         }
 
+        public void SetAchievementPoints(Viking viking, AchievementPointTypes type, int value) {
+            if (type == AchievementPointTypes.DragonXP) {
+                viking.SelectedDragon.PetXP = value;
+            } else if (type != null) {
+                AchievementPoints xpPoints = viking.AchievementPoints.FirstOrDefault(a => a.Type == (int)type);
+                if (xpPoints is null) {
+                    xpPoints = new AchievementPoints {
+                        Type = (int)type
+                    };
+                    viking.AchievementPoints.Add(xpPoints);
+                }
+                xpPoints.Value = value;
+            }
+        }
+
         public void AddAchievementPoints(Viking viking, AchievementPointTypes? type, int? value) {
             if (type == AchievementPointTypes.DragonXP) {
                 viking.SelectedDragon.PetXP = (viking.SelectedDragon.PetXP ?? 0) + (value ?? 0);
