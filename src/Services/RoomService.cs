@@ -9,9 +9,11 @@ namespace sodoff.Services;
 public class RoomService {
 
     private readonly DBContext ctx;
+    private ItemService itemService;
 
-    public RoomService(DBContext ctx) {
+    public RoomService(DBContext ctx, ItemService itemService) {
         this.ctx = ctx;
+        this.itemService = itemService;
     }
 
     public void CreateRoom(Viking viking, string roomId) {
@@ -25,7 +27,13 @@ public class RoomService {
         foreach (var itemRequest in roomItemRequest) {
             // TODO: Remove item from inventory (using CommonInventoryID)
             InventoryItem? i = room.Viking?.Inventory.InventoryItems.FirstOrDefault(x => x.Id == itemRequest.UserInventoryCommonID);
-            if (i != null) i.Quantity--;
+            if (i != null) {
+                i.Quantity--;
+                if (itemRequest.Item is null) {
+                    itemRequest.Item = itemService.GetItem(i.ItemId);
+                }
+            }
+
             RoomItem roomItem = new RoomItem {
                 RoomItemData = XmlUtil.SerializeXml<UserItemPosition>(itemRequest).Replace(" xsi:type=\"UserItemPositionSetRequest\"", "") // NOTE: No way to avoid this hack when we're serializing a child class into a base class
             };
