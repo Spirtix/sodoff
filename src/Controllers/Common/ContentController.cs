@@ -61,7 +61,6 @@ public class ContentController : Controller {
         User? user = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.User;
         string uname = user.Username;
 
-        //string[] suggestions = new string[4]; //Array for suggestions
         string name = uname; //Variable for name processing
         List<string> tnames = ctx.Vikings.Select(e => e.Name).ToList(); //Get a list of names from the table
         Random choice = new Random(); //Randomizer for selecting random adjectives
@@ -71,9 +70,6 @@ public class ContentController : Controller {
 
         for (int i = 0; i < 5; i++)
             AddSuggestion(choice, GetNameSuggestion(choice, uname, adjs), suggestions);
-
-        foreach (string suggestion in suggestions)
-            Console.WriteLine(suggestion); //`return` here //
 
         void AddSuggestion(Random rand, string name, List<string> suggestions) {
             if (ctx.Vikings.Any(x => x.Name == name) || suggestions.Contains(name)) {
