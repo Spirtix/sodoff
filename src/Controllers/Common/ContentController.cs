@@ -28,12 +28,73 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("ContentWebService.asmx/GetDefaultNameSuggestion")]
-    public IActionResult GetDefaultNameSuggestion() {
-        // TODO:  generate random names, and ensure they aren't already taken
-        string[] suggestions = new string[] { "dragon1", "dragon2", "dragon3" };
+    public IActionResult GetDefaultNameSuggestion([FromForm] string apiToken) {
+        string[] adjs = { //Adjectives used to generate suggested names
+            "Adventurous", "Active", "Alert", "Attentive",
+            "Beautiful", "Berkian", "Berserker", "Bold", "Brave",
+            "Caring", "Cautious", "Creative", "Curious",
+            "Dangerous", "Daring", "Defender",
+            "Elder", "Exceptional", "Exquisite", 
+            "Fearless", "Fighter", "Friendly",
+            "Gentle", "Grateful", "Great",
+            "Happy", "Honorable", "Hunter",
+            "Insightful", "Intelligent",
+            "Jolly", "Joyful", "Joyous",
+            "Kind", "Kindly",
+            "Legendary", "Lovable", "Lovely",
+            "Marvelous", "Magnificent",
+            "Noble", "Nifty", "Neat",
+            "Outcast", "Outgoing", "Organized",
+            "Planner", "Playful", "Pretty",
+            "Quick", "Quiet",
+            "Racer", "Random", "Resilient",
+            "Scientist", "Seafarer", "Smart", "Sweet",
+            "Thinker", "Thoughtful",
+            "Unafraid", "Unique",
+            "Valiant", "Valorous", "Victor", "Victorious", "Viking",
+            "Winner", "Warrior", "Wise",
+            "Young", "Youthful",
+            "Zealous", "Zealot"
+        };
+       
+        //Get Username
+        User? user = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.User;
+        string uname = user.Username;
+
+        //string[] suggestions = new string[4]; //Array for suggestions
+        string name = uname; //Variable for name processing
+        List<string> tnames = ctx.Vikings.Select(e => e.Name).ToList(); //Get a list of names from the table
+        Random choice = new Random(); //Randomizer for selecting random adjectives
+        
+        List<string> suggestions = new();
+        AddSuggestion(choice, uname, suggestions);
+
+        for (int i = 0; i < 5; i++)
+            AddSuggestion(choice, GetNameSuggestion(choice, uname, adjs), suggestions);
+
+        foreach (string suggestion in suggestions)
+            Console.WriteLine(suggestion); //`return` here //
+
+        void AddSuggestion(Random rand, string name, List<string> suggestions) {
+            if (ctx.Vikings.Any(x => x.Name == name) || suggestions.Contains(name)) {
+                name += rand.Next(1, 5000);
+                if (ctx.Vikings.Any(x => x.Name == name) || suggestions.Contains(name)) return;
+            }
+            suggestions.Add(name);
+        }
+
+        static string GetNameSuggestion(Random rand, string username, string[] adjectives) {
+            string name = username;
+            if (rand.NextDouble() >= 0.5)
+                name = username + "The" + adjectives[rand.Next(adjectives.Length)];
+            if (name == username || rand.NextDouble() >= 0.5)
+                return adjectives[rand.Next(adjectives.Length)] + name;
+            return name;
+        }
+
         return Ok(new DisplayNameUniqueResponse {
             Suggestions = new SuggestionResult {
-                Suggestion = suggestions
+                Suggestion = suggestions.ToArray()
             }
         });
     }
