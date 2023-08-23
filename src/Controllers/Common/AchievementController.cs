@@ -67,6 +67,44 @@ public class AchievementController : Controller {
     }
 
     [HttpPost]
+    [Route("AchievementWebService.asmx/SetDragonXP")]  // used by dragonrescue-import
+    public IActionResult SetDragonXP([FromForm] string apiToken, [FromForm] string dragonId, [FromForm] int value) {
+        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
+        if (viking is null) {
+            return Unauthorized();
+        }
+
+        Dragon? dragon = viking.Dragons.FirstOrDefault(e => e.EntityId == dragonId);
+        if (dragon is null) {
+            return Conflict("Dragon not found");
+        }
+
+        dragon.PetXP = value;
+        ctx.SaveChanges();
+
+        return Ok("OK");
+    }
+
+    [HttpPost]
+    [Route("AchievementWebService.asmx/SetPlayerXP")]  // used by dragonrescue-import
+    public IActionResult SetDragonXP([FromForm] string apiToken, [FromForm] int type, [FromForm] int value) {
+        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
+        if (viking is null) {
+            return Unauthorized();
+        }
+
+        if (!Enum.IsDefined(typeof(AchievementPointTypes), type)) {
+            return Conflict("Invalid XP type");
+        }
+
+        AchievementPointTypes xpType = (AchievementPointTypes)type;
+        // TODO: we allow set currencies here, do we want this?
+        achievementService.SetAchievementPoints(viking, xpType, value);
+        ctx.SaveChanges();
+        return Ok("OK");
+    }
+
+    [HttpPost]
     [Produces("application/xml")]
     [Route("AchievementWebService.asmx/GetAchievementsByUserID")]
     public IActionResult GetAchievementsByUserID([FromForm] string userId) {

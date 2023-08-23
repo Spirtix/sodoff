@@ -28,12 +28,52 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("ContentWebService.asmx/GetDefaultNameSuggestion")]
-    public IActionResult GetDefaultNameSuggestion() {
-        // TODO:  generate random names, and ensure they aren't already taken
-        string[] suggestions = new string[] { "dragon1", "dragon2", "dragon3" };
+    public IActionResult GetDefaultNameSuggestion([FromForm] string apiToken) {
+        string[] adjs = { //Adjectives used to generate suggested names
+            "Adventurous", "Active", "Alert", "Attentive",
+            "Beautiful", "Berkian", "Berserker", "Bold", "Brave",
+            "Caring", "Cautious", "Creative", "Curious",
+            "Dangerous", "Daring", "Defender",
+            "Elder", "Exceptional", "Exquisite", 
+            "Fearless", "Fighter", "Friendly",
+            "Gentle", "Grateful", "Great",
+            "Happy", "Honorable", "Hunter",
+            "Insightful", "Intelligent",
+            "Jolly", "Joyful", "Joyous",
+            "Kind", "Kindly",
+            "Legendary", "Lovable", "Lovely",
+            "Marvelous", "Magnificent",
+            "Noble", "Nifty", "Neat",
+            "Outcast", "Outgoing", "Organized",
+            "Planner", "Playful", "Pretty",
+            "Quick", "Quiet",
+            "Racer", "Random", "Resilient",
+            "Scientist", "Seafarer", "Smart", "Sweet",
+            "Thinker", "Thoughtful",
+            "Unafraid", "Unique",
+            "Valiant", "Valorous", "Victor", "Victorious", "Viking",
+            "Winner", "Warrior", "Wise",
+            "Young", "Youthful",
+            "Zealous", "Zealot"
+        };
+       
+        //Get Username
+        User? user = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.User;
+        string uname = user.Username;
+
+        string name = uname; //Variable for name processing
+        List<string> tnames = ctx.Vikings.Select(e => e.Name).ToList(); //Get a list of names from the table
+        Random choice = new Random(); //Randomizer for selecting random adjectives
+        
+        List<string> suggestions = new();
+        AddSuggestion(choice, uname, suggestions);
+
+        for (int i = 0; i < 5; i++)
+            AddSuggestion(choice, GetNameSuggestion(choice, uname, adjs), suggestions);
+
         return Ok(new DisplayNameUniqueResponse {
             Suggestions = new SuggestionResult {
-                Suggestion = suggestions
+                Suggestion = suggestions.ToArray()
             }
         });
     }
@@ -411,7 +451,7 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("v3/ContentWebService.asmx/SetRaisedPet")]
-    public IActionResult SetRaisedPet([FromForm] string apiToken, [FromForm] string request) {
+    public IActionResult SetRaisedPet([FromForm] string apiToken, [FromForm] string request, [FromForm] bool? import) {
         Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
         if (viking is null) {
             // TODO: result for invalid session
@@ -428,7 +468,7 @@ public class ContentController : Controller {
             });
         }
 
-        dragon.RaisedPetData = XmlUtil.SerializeXml(UpdateDragon(dragon, raisedPetRequest.RaisedPetData));
+        dragon.RaisedPetData = XmlUtil.SerializeXml(UpdateDragon(dragon, raisedPetRequest.RaisedPetData, import ?? false));
         ctx.Update(dragon);
         ctx.SaveChanges();
 
@@ -957,7 +997,7 @@ public class ContentController : Controller {
     }
 
     // Needs to merge newDragonData into dragonData
-    private RaisedPetData UpdateDragon (Dragon dragon, RaisedPetData newDragonData) {
+    private RaisedPetData UpdateDragon (Dragon dragon, RaisedPetData newDragonData, bool import = false) {
         RaisedPetData dragonData = XmlUtil.DeserializeXml<RaisedPetData>(dragon.RaisedPetData);
 
         // The simple attributes
@@ -978,10 +1018,12 @@ public class ContentController : Controller {
         if (newDragonData.Colors is not null) dragonData.Colors = newDragonData.Colors;
         if (newDragonData.Skills is not null) dragonData.Skills = newDragonData.Skills;
         if (newDragonData.States is not null) dragonData.States = newDragonData.States;
-
+        
         dragonData.IsSelected = newDragonData.IsSelected;
         dragonData.IsReleased = newDragonData.IsReleased;
         dragonData.UpdateDate = newDragonData.UpdateDate;
+
+        if (import) dragonData.CreateDate = newDragonData.CreateDate;
 
         // Attributes is special - the entire list isn't re-sent, so we need to manually update each
         if (dragonData.Attributes is null) dragonData.Attributes = new RaisedPetAttribute[] { };
@@ -1027,5 +1069,22 @@ public class ContentController : Controller {
             }
         }
         return false;
+    }
+
+    private void AddSuggestion(Random rand, string name, List<string> suggestions) {
+        if (ctx.Vikings.Any(x => x.Name == name) || suggestions.Contains(name)) {
+            name += rand.Next(1, 5000);
+            if (ctx.Vikings.Any(x => x.Name == name) || suggestions.Contains(name)) return;
+        }
+        suggestions.Add(name);
+    }
+
+    private string GetNameSuggestion(Random rand, string username, string[] adjectives) {
+        string name = username;
+        if (rand.NextDouble() >= 0.5)
+            name = username + "The" + adjectives[rand.Next(adjectives.Length)];
+        if (name == username || rand.NextDouble() >= 0.5)
+            return adjectives[rand.Next(adjectives.Length)] + name;
+        return name;
     }
 }

@@ -135,11 +135,11 @@ public class ProfileController : Controller {
             UserSubscriptionInfo = new UserSubscriptionInfo {
                 UserID = viking.UserId,
                 MembershipID = 130687131, // placeholder
-                SubscriptionTypeID = 2, // placeholder
-                SubscriptionDisplayName = "NonMember", // placeholder
+                SubscriptionTypeID = 1, // placeholder
+                SubscriptionDisplayName = "Member", // placeholder
                 SubscriptionPlanID = 41, // placeholder
                 SubscriptionID = -3, // placeholder
-                IsActive = false, // placeholder
+                IsActive = true, // placeholder
             },
             RankID = 0, // placeholder
             AchievementInfo = null, // placeholder
