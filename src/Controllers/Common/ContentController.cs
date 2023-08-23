@@ -71,23 +71,6 @@ public class ContentController : Controller {
         for (int i = 0; i < 5; i++)
             AddSuggestion(choice, GetNameSuggestion(choice, uname, adjs), suggestions);
 
-        void AddSuggestion(Random rand, string name, List<string> suggestions) {
-            if (ctx.Vikings.Any(x => x.Name == name) || suggestions.Contains(name)) {
-                name += rand.Next(1, 5000);
-                if (ctx.Vikings.Any(x => x.Name == name) || suggestions.Contains(name)) return;
-            }
-            suggestions.Add(name);
-        }
-
-        static string GetNameSuggestion(Random rand, string username, string[] adjectives) {
-            string name = username;
-            if (rand.NextDouble() >= 0.5)
-                name = username + "The" + adjectives[rand.Next(adjectives.Length)];
-            if (name == username || rand.NextDouble() >= 0.5)
-                return adjectives[rand.Next(adjectives.Length)] + name;
-            return name;
-        }
-
         return Ok(new DisplayNameUniqueResponse {
             Suggestions = new SuggestionResult {
                 Suggestion = suggestions.ToArray()
@@ -1084,5 +1067,22 @@ public class ContentController : Controller {
             }
         }
         return false;
+    }
+
+    private void AddSuggestion(Random rand, string name, List<string> suggestions) {
+        if (ctx.Vikings.Any(x => x.Name == name) || suggestions.Contains(name)) {
+            name += rand.Next(1, 5000);
+            if (ctx.Vikings.Any(x => x.Name == name) || suggestions.Contains(name)) return;
+        }
+        suggestions.Add(name);
+    }
+
+    private string GetNameSuggestion(Random rand, string username, string[] adjectives) {
+        string name = username;
+        if (rand.NextDouble() >= 0.5)
+            name = username + "The" + adjectives[rand.Next(adjectives.Length)];
+        if (name == username || rand.NextDouble() >= 0.5)
+            return adjectives[rand.Next(adjectives.Length)] + name;
+        return name;
     }
 }
