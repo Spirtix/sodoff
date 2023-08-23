@@ -9,15 +9,26 @@ namespace sodoff.Services {
     public class AchievementService {
 
         Dictionary<AchievementPointTypes, UserRank[]> ranks = new();
+        Dictionary<int, AchievementReward[]> achivmentsRewardByID = new();
+        Dictionary<int, AchievementReward[]> achivmentsRewardByTask = new();
 
         int dragonAdultMinXP;
         int dragonTitanMinXP;
 
         public AchievementService() {
             ArrayOfUserRank allranks = XmlUtil.DeserializeXml<ArrayOfUserRank>(XmlUtil.ReadResourceXmlString("allranks"));
-            
             foreach (var pointType in Enum.GetValues<AchievementPointTypes>()) {
                 ranks[pointType] = allranks.UserRank.Where(r => r.PointTypeID == pointType).ToArray();
+            }
+
+            AchievementsIdInfo[] allAchievementsIdInfo = XmlUtil.DeserializeXml<AchievementsIdInfo[]>(XmlUtil.ReadResourceXmlString("achievementsids"));
+            foreach (var achievementsIdInfo in allAchievementsIdInfo) {
+                achivmentsRewardByID[achievementsIdInfo.AchievementID] = achievementsIdInfo.AchievementReward;
+            }
+            
+            AchievementsTaskInfo[] allAchievementsTaskInfo = XmlUtil.DeserializeXml<AchievementsTaskInfo[]>(XmlUtil.ReadResourceXmlString("achievementstasks"));
+            foreach (var achievementsTaskInfo in allAchievementsTaskInfo) {
+                achivmentsRewardByTask[achievementsTaskInfo.TaskID] = achievementsTaskInfo.AchievementReward;
             }
 
             dragonAdultMinXP = ranks[AchievementPointTypes.DragonXP][10].Value;
@@ -86,6 +97,57 @@ namespace sodoff.Services {
                     viking.AchievementPoints.Add(xpPoints);
                 }
                 xpPoints.Value += value ?? 0;
+            }
+        }
+
+        public void ApplyAchievementReward(Viking viking, AchievementReward reward) {
+            if (reward.PointTypeID == AchievementPointTypes.ItemReward) {
+                // TODO: This is not a pretty solution. Use inventory service in the future
+                InventoryItem? ii = viking.Inventory.InventoryItems.FirstOrDefault(x => x.ItemId == reward.ItemID);
+                if (ii is null) {
+                    ii = new InventoryItem {
+                        ItemId = reward.ItemID,
+                        Quantity = 0
+                    };
+                    viking.Inventory.InventoryItems.Add(ii);
+                }
+                ii.Quantity += (int)reward.Amount!;
+            } else { // currencies, all types of player XP and dragon XP
+                AddAchievementPoints(viking, reward.PointTypeID, reward.Amount);
+            }
+        }
+
+        public AchievementReward[] ApplyAchievementRewards(Viking viking, AchievementReward[] rewards) {
+            foreach (var reward in rewards) {
+                ApplyAchievementReward(viking, reward);
+                /* TODO we don't need this?
+                if (reward.PointTypeID == AchievementPointTypes.DragonXP) {
+                    reward.EntityID = Guid.Parse(viking.SelectedDragon.EntityId)
+                } else {
+                    reward.EntityID = Guid.Parse(viking.Id)
+                } */
+            }
+            // TODO: check trophies, etc criteria and id need apply and add to results extra reward here
+            return rewards;
+        }
+
+        public AchievementReward[] ApplyAchievementRewardsByID(Viking viking, int achievementID) {
+            if (achivmentsRewardByID.ContainsKey(achievementID)) {
+                var rewards = achivmentsRewardByID[achievementID];
+                return ApplyAchievementRewards(viking, rewards);
+            } else {
+                Console.WriteLine(string.Format("Unknown rewards for achievementID={0}", achievementID));
+                return new AchievementReward[0];
+            }
+        }
+
+        public AchievementReward[] ApplyAchievementRewardsByTask(Viking viking, AchievementTask task) {
+            if (achivmentsRewardByTask.ContainsKey(task.TaskID)) {
+                var rewards = achivmentsRewardByTask[task.TaskID];
+                return ApplyAchievementRewards(viking, rewards);
+            } else {
+                Console.WriteLine(string.Format("Unknown rewards for taskID={0}", task.TaskID));
+                return new AchievementReward[0];
             }
         }
     }

@@ -145,8 +145,9 @@ public class ProfileController : Controller {
             AchievementInfo = null, // placeholder
             Achievements = new UserAchievementInfo[] {
                 achievementService.CreateUserAchievementInfo(viking, AchievementPointTypes.PlayerXP),
-                achievementService.CreateUserAchievementInfo(viking.Id, 60000, AchievementPointTypes.PlayerFarmingXP), // TODO: placeholder until there is no leveling for farm XP
-                achievementService.CreateUserAchievementInfo(viking.Id, 20000, AchievementPointTypes.PlayerFishingXP), // TODO: placeholder until there is no leveling for fishing XP
+                achievementService.CreateUserAchievementInfo(viking, AchievementPointTypes.PlayerFarmingXP),
+                achievementService.CreateUserAchievementInfo(viking, AchievementPointTypes.PlayerFishingXP),
+                achievementService.CreateUserAchievementInfo(viking, AchievementPointTypes.UDTPoints),
             }
         };
 

@@ -115,8 +115,9 @@ public class AchievementController : Controller {
             return Ok(new ArrayOfUserAchievementInfo {
                 UserAchievementInfo = new UserAchievementInfo[]{
                     achievementService.CreateUserAchievementInfo(viking, AchievementPointTypes.PlayerXP),
-                    achievementService.CreateUserAchievementInfo(viking.Id, 60000, AchievementPointTypes.PlayerFarmingXP), // TODO: placeholder until there is no leveling for farm XP
-                    achievementService.CreateUserAchievementInfo(viking.Id, 20000, AchievementPointTypes.PlayerFishingXP), // TODO: placeholder until there is no leveling for fishing XP
+                    achievementService.CreateUserAchievementInfo(viking, AchievementPointTypes.PlayerFarmingXP),
+                    achievementService.CreateUserAchievementInfo(viking, AchievementPointTypes.PlayerFishingXP),
+                    achievementService.CreateUserAchievementInfo(viking, AchievementPointTypes.UDTPoints),
                 }
             });
         }
@@ -136,45 +137,51 @@ public class AchievementController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("AchievementWebService.asmx/SetAchievementAndGetReward")]
+    [Route("AchievementWebService.asmx/SetUserAchievementAndGetReward")]
     public IActionResult SetAchievementAndGetReward([FromForm] string apiToken, [FromForm] int achievementID) {
-        // TODO: This is a placeholder; returns 5 gems
         Viking? viking = ctx.Sessions.FirstOrDefault(x => x.ApiToken == apiToken).Viking;
-        return Ok(new AchievementReward[1] {
-            new AchievementReward {
-                Amount = 5,
-                PointTypeID = AchievementPointTypes.CashCurrency,
-                EntityID = Guid.Parse(viking.Id),
-                EntityTypeID = 1,
-                RewardID = 552
-            }
-        });
+
+        if (viking is null) {
+            return Unauthorized();
+        }
+
+        var rewards = achievementService.ApplyAchievementRewardsByID(viking, achievementID);
+        ctx.SaveChanges();
+
+        return Ok(rewards);
     }
 
     [HttpPost]
     [Produces("application/xml")]
     [Route("V2/AchievementWebService.asmx/SetUserAchievementTask")]
     [DecryptRequest("achievementTaskSetRequest")]
-    public IActionResult SetUserAchievementTask([FromForm] string apiToken, [FromForm] int achievementID) {
-        // TODO: This is a placeholder
-        string xml = Request.Form["achievementTaskSetRequest"];
-        AchievementTaskSetResponse response = new AchievementTaskSetResponse {
-            Success = true,
-            UserMessage = true,
-            AchievementName = "Placeholder Achievement",
-            Level = 1,
-            AchievementTaskGroupID = 1279,
-            LastLevelCompleted = true,
-            AchievementInfoID = 1279,
-            AchievementRewards = new AchievementReward[1] {
-                new AchievementReward {
-                    Amount = 25,
-                    PointTypeID = AchievementPointTypes.PlayerXP,
-                    RewardID = 910,
-                    EntityTypeID =1
+    public IActionResult SetUserAchievementTask([FromForm] string apiToken) {
+        Viking? viking = ctx.Sessions.FirstOrDefault(x => x.ApiToken == apiToken).Viking;
+
+        if (viking is null) {
+            return Unauthorized();
+        }
+        
+        AchievementTaskSetRequest request = XmlUtil.DeserializeXml<AchievementTaskSetRequest>(Request.Form["achievementTaskSetRequest"]);
+
+        var response = new List<AchievementTaskSetResponse>();
+        foreach (var task in request.AchievementTaskSet) {
+            response.Add(
+                new AchievementTaskSetResponse {
+                    Success = true,
+                    UserMessage = true, // TODO: placeholder
+                    AchievementName = "Placeholder Achievement", // TODO: placeholder
+                    Level = 1, // TODO: placeholder
+                    AchievementTaskGroupID = 1279, // TODO: placeholder
+                    LastLevelCompleted = true, // TODO: placeholder
+                    AchievementInfoID = 1279, // TODO: placeholder
+                    AchievementRewards = achievementService.ApplyAchievementRewardsByTask(viking, task)
                 }
-            }
-        };
-        return Ok(new ArrayOfAchievementTaskSetResponse { AchievementTaskSetResponse = new AchievementTaskSetResponse[1] { response } });
+            );
+        }
+        ctx.SaveChanges();
+
+        return Ok(new ArrayOfAchievementTaskSetResponse { AchievementTaskSetResponse = response.ToArray() });
     }
 
     [HttpPost]
