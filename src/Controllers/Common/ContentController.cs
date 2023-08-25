@@ -190,6 +190,11 @@ public class ContentController : Controller {
                     ModifiedDate = new DateTime(DateTime.Now.Ticks),
                     Item = itemData
                 };
+                if (itemData.ItemStatsMap != null) {
+                    // TODO: placeholder, get for db for this viking item (item.Id)
+                    uid.ItemStats = itemData.ItemStatsMap.ItemStats;
+                    uid.ItemTier = itemData.ItemStatsMap.ItemTier;
+                }
                 userItemData.Add(uid);
             }
         } else {
@@ -231,6 +236,11 @@ public class ContentController : Controller {
                 ModifiedDate = new DateTime(DateTime.Now.Ticks),
                 Item = itemData
             };
+            if (itemData.ItemStatsMap != null) {
+                // TODO: placeholder, get for db for this viking item (item.Id)
+                uid.ItemStats = itemData.ItemStatsMap.ItemStats;
+                uid.ItemTier = itemData.ItemStatsMap.ItemTier;
+            }
             userItemData.Add(uid);
         }
 
