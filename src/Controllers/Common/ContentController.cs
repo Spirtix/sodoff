@@ -16,6 +16,7 @@ public class ContentController : Controller {
     private MissionService missionService;
     private RoomService roomService;
     private AchievementService achievementService;
+    private Random random = new Random();
     public ContentController(DBContext ctx, KeyValueService keyValueService, ItemService itemService, MissionService missionService, RoomService roomService, AchievementService achievementService) {
         this.ctx = ctx;
         this.keyValueService = keyValueService;
@@ -175,39 +176,21 @@ public class ContentController : Controller {
             return Ok();
         }
 
-
-        List<UserItemData> userItemData = new();
+        List<UserItemData> userItemData;
         if (viking != null) {
-            List<InventoryItem> items = viking.Inventory.InventoryItems.ToList();
-            foreach (InventoryItem item in items) {
-                if (item.Quantity == 0) continue; // Don't include an item that the viking doesn't have
-                ItemData itemData = itemService.GetItem(item.ItemId);
-                UserItemData uid = new UserItemData {
-                    UserInventoryID = item.Id,
-                    ItemID = itemData.ItemID,
-                    Quantity = item.Quantity,
-                    Uses = itemData.Uses,
-                    ModifiedDate = new DateTime(DateTime.Now.Ticks),
-                    Item = itemData
-                };
-                if (itemData.ItemStatsMap != null) {
-                    // TODO: placeholder, get for db for this viking item (item.Id)
-                    uid.ItemStats = itemData.ItemStatsMap.ItemStats;
-                    uid.ItemTier = itemData.ItemStatsMap.ItemTier;
-                }
-                userItemData.Add(uid);
-            }
+            userItemData = GetUserItemDataList(viking.Inventory.InventoryItems.ToList());
         } else {
             // TODO: placeholder - return 8 viking slot items
-            UserItemData uid = new UserItemData {
-                UserInventoryID = 0,
-                ItemID = 7971,
-                Quantity = 8,
-                Uses = -1,
-                ModifiedDate = new DateTime(DateTime.Now.Ticks),
-                Item = itemService.GetItem(7971)
+            userItemData = new List<UserItemData> {
+                new UserItemData {
+                    UserInventoryID = 0,
+                    ItemID = 7971,
+                    Quantity = 8,
+                    Uses = -1,
+                    ModifiedDate = new DateTime(DateTime.Now.Ticks),
+                    Item = itemService.GetItem(7971)
+                }
             };
-            userItemData.Add(uid);
         }
 
         return Ok(new CommonInventoryData {
@@ -223,30 +206,9 @@ public class ContentController : Controller {
         Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
         if (viking is null || viking.Inventory is null) return Ok();
 
-        List<InventoryItem> items = viking.Inventory.InventoryItems.ToList();
-        List<UserItemData> userItemData = new();
-        foreach (InventoryItem item in items) {
-            if (item.Quantity == 0) continue; // Don't include an item that the viking doesn't have
-            ItemData itemData = itemService.GetItem(item.ItemId);
-            UserItemData uid = new UserItemData {
-                UserInventoryID = item.Id,
-                ItemID = itemData.ItemID,
-                Quantity = item.Quantity,
-                Uses = itemData.Uses,
-                ModifiedDate = new DateTime(DateTime.Now.Ticks),
-                Item = itemData
-            };
-            if (itemData.ItemStatsMap != null) {
-                // TODO: placeholder, get for db for this viking item (item.Id)
-                uid.ItemStats = itemData.ItemStatsMap.ItemStats;
-                uid.ItemTier = itemData.ItemStatsMap.ItemTier;
-            }
-            userItemData.Add(uid);
-        }
-
         CommonInventoryData invData = new CommonInventoryData {
             UserID = Guid.Parse(viking.UserId),
-            Item = userItemData.ToArray()
+            Item = GetUserItemDataList(viking.Inventory.InventoryItems.ToList()).ToArray()
         };
         return Ok(invData);
     }
@@ -274,7 +236,7 @@ public class ContentController : Controller {
         foreach (var req in request) {
             if (req.ItemID == 0) continue; // Do not save a null item
             
-            if (IsFarmExpansion((int)req.ItemID)) {
+            if (NeedUniqueInventoryItemId((int)req.ItemID)) {
                 // if req.Quantity < 0 remove unique items
                 for (int i=req.Quantity; i<0; ++i) {
                      InventoryItem? item = viking.Inventory.InventoryItems.FirstOrDefault(e => e.ItemId == req.ItemID && e.Quantity>0);
@@ -779,7 +741,7 @@ public class ContentController : Controller {
         CommonInventoryResponseItem[] items = new CommonInventoryResponseItem[request.Items.Length];
         for (int i = 0; i < request.Items.Length; i++) {
             InventoryItem? item = null;
-            if (!IsFarmExpansion(request.Items[i])) 
+            if (!NeedUniqueInventoryItemId(request.Items[i])) 
                 item = viking.Inventory.InventoryItems.FirstOrDefault(e => e.ItemId == request.Items[i]);
             if (item is null) {
                 item = new InventoryItem { ItemId = request.Items[i], Quantity = 0 };
@@ -998,6 +960,219 @@ public class ContentController : Controller {
         });
     }
 
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("/V2/ContentWebService.asmx/RerollUserItem")]
+    public IActionResult RerollUserItem([FromForm] string apiToken, [FromForm] string request) {
+        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
+        if (viking is null || viking.Inventory is null) return Unauthorized();
+
+        RollUserItemRequest req = XmlUtil.DeserializeXml<RollUserItemRequest>(request);
+
+        // get item
+        InventoryItem? invItem = viking.Inventory.InventoryItems.FirstOrDefault(e => e.Id == req.UserInventoryID);
+        if (invItem is null)
+            return Ok(new RollUserItemResponse { Status = Status.ItemNotFound });
+        
+        // get item data and stats
+        ItemData itemData = itemService.GetItem(invItem.ItemId);
+        ItemStatsMap itemStatsMap;
+        if (invItem.StatsSerialized != null) {
+            itemStatsMap = XmlUtil.DeserializeXml<ItemStatsMap>(invItem.StatsSerialized);
+        } else {
+            itemStatsMap = itemData.ItemStatsMap;
+        }
+
+        List<ItemStat> newStats;
+        Status status = Status.Failure;
+        
+        // update stats
+        if (req.ItemStatNames != null) {
+            // reroll only one stat (from req.ItemStatNames)
+            newStats = new List<ItemStat>();
+            foreach (string name in req.ItemStatNames) {
+                ItemStat itemStat = itemStatsMap.ItemStats.FirstOrDefault(e => e.Name == name);
+
+                // draw new stats
+                StatRangeMap rangeMap = itemData.PossibleStatsMap.Stats.FirstOrDefault(e => e.ItemStatsID == itemStat.ItemStatID).ItemStatsRangeMaps.FirstOrDefault(e => e.ItemTierID == (int)(itemStatsMap.ItemTier));
+                int newVal = random.Next(rangeMap.StartRange, rangeMap.EndRange+1);
+
+                // check draw results
+                Int32.TryParse(itemStat.Value, out int oldVal);
+                if (newVal > oldVal) {
+                    itemStat.Value = newVal.ToString();
+                    newStats.Add(itemStat);
+                    status = Status.Success;
+                }
+            }
+            // get shards
+            UpdateShards(viking, -((int)(itemData.ItemRarity) + (int)(itemStatsMap.ItemTier) - 1));
+        } else {
+            // reroll full item
+            newStats = CreateItemStats(itemData.PossibleStatsMap, itemData.ItemRarity, itemStatsMap.ItemTier);
+            itemStatsMap.ItemStats = newStats.ToArray();
+            status = Status.Success;
+            // get shards
+            int price = 0;
+            switch (itemData.ItemRarity) {
+                case ItemRarity.Common:
+                    price = 5;
+                    break;
+                case ItemRarity.Rare:
+                    price = 7;
+                    break;
+                case ItemRarity.Epic:
+                    price = 10;
+                    break;
+                case ItemRarity.Legendary:
+                    price = 20;
+                    break;
+            }
+            switch (itemStatsMap.ItemTier) {
+                case ItemTier.Tier2:
+                    price = (int)Math.Floor(price * 1.5);
+                    break;
+                case ItemTier.Tier3:
+                case ItemTier.Tier4:
+                    price = price * 2;
+                    break;
+            }
+            UpdateShards(viking, -price);
+        }
+ 
+        // save
+        invItem.StatsSerialized = XmlUtil.SerializeXml(itemStatsMap);
+        ctx.SaveChanges();
+
+        // return results
+        return Ok(new RollUserItemResponse {
+            Status = status,
+            ItemStats = newStats.ToArray() // we need return only updated stats, so can't `= itemStatsMap.ItemStats`
+        });
+    }
+    
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("/V2/ContentWebService.asmx/FuseItems")]
+    public IActionResult FuseItems([FromForm] string apiToken, [FromForm] string fuseItemsRequest) {
+        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
+        if (viking is null || viking.Inventory is null) return Unauthorized();
+
+        FuseItemsRequest req = XmlUtil.DeserializeXml<FuseItemsRequest>(fuseItemsRequest);
+
+        ItemData blueprintItem;
+        try {
+            blueprintItem = itemService.GetItem(req.BluePrintItemID ?? -1);
+        } catch(System.Collections.Generic.KeyNotFoundException) {
+            return Ok(new FuseItemsResponse { Status = Status.BluePrintItemNotFound });
+        }
+
+        // TODO: check for blueprintItem.BluePrint.Deductibles and blueprintItem.BluePrint.Ingredients
+        
+        // remove items from DeductibleItemInventoryMaps and BluePrintFuseItemMaps
+        foreach (var item in req.DeductibleItemInventoryMaps) {
+            InventoryItem? invItem = viking.Inventory.InventoryItems.FirstOrDefault(e => e.Id == item.UserInventoryID);
+            invItem.Quantity -= item.Quantity;
+        }
+        foreach (var item in req.BluePrintFuseItemMaps) {
+            InventoryItem? invItem = viking.Inventory.InventoryItems.FirstOrDefault(e => e.Id == item.UserInventoryID);
+            viking.Inventory.InventoryItems.Remove(invItem);
+        }
+        
+        var resItemList = new List<InventoryItemStatsMap>();
+        foreach (BluePrintSpecification output in blueprintItem.BluePrint.Outputs) {
+            if (output.ItemID is null)
+                continue;
+            
+            // get new item info
+            int fuseItemId = (int)(output.ItemID);
+            ItemData fuseItemData = itemService.GetItem(fuseItemId);
+            
+            // check for "box tickets"
+            
+            // TODO check for <cid>462</cid><cn>Dragons Mystery Box Tickets</cn>
+            
+            // create new item
+            InventoryItem fuseInvItem = new InventoryItem { ItemId = fuseItemId, Quantity = 1 };
+            ItemStatsMap itemStatsMap = new ItemStatsMap {
+                ItemID = fuseInvItem.ItemId,
+                ItemTier = (ItemTier)(output.Tier),
+                ItemStats = CreateItemStats(fuseItemData.PossibleStatsMap, fuseItemData.ItemRarity, output.Tier).ToArray()
+            };
+            fuseInvItem.StatsSerialized = XmlUtil.SerializeXml(itemStatsMap);
+            
+            // add to viking and results
+            viking.Inventory.InventoryItems.Add(fuseInvItem);
+            resItemList.Add(new InventoryItemStatsMap {
+                CommonInventoryID = fuseInvItem.Id,
+                Item = fuseItemData,
+                ItemStatsMap = itemStatsMap
+            });
+        }
+        
+        // saving
+        ctx.SaveChanges();
+        
+        // return response with new item info
+        return Ok(new FuseItemsResponse {
+            Status = Status.Success,
+            InventoryItemStatsMaps = resItemList
+        });
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("/V2/ContentWebService.asmx/SellItems")]
+    public IActionResult SellItems([FromForm] string apiToken, [FromForm] string sellItemsRequest) {
+        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
+        if (viking is null || viking.Inventory is null) return Unauthorized();
+
+        int price = 0;
+        SellItemsRequest req = XmlUtil.DeserializeXml<SellItemsRequest>(sellItemsRequest);
+        foreach (var invItemID in req.UserInventoryCommonIDs) {
+            // get item from inventory
+            InventoryItem? item = viking.Inventory.InventoryItems.FirstOrDefault(e => e.Id == invItemID);
+
+            // get item data
+            ItemData? itemData = itemService.GetItem(item.ItemId);
+
+            // calculate price
+            switch (itemData.ItemRarity) {
+                case ItemRarity.Common:
+                    price += 1;
+                    break;
+                case ItemRarity.Rare:
+                    price += 3;
+                    break;
+                case ItemRarity.Epic:
+                    price += 5;
+                    break;
+                case ItemRarity.Legendary:
+                    price += 10;
+                    break;
+            }
+            
+            // TODO: cash rewards
+
+            // remove item
+            viking.Inventory.InventoryItems.Remove(item);
+        }
+        
+        // apply shards reward
+        CommonInventoryResponseItem? resShardsItem = UpdateShards(viking, price);
+
+        // save
+        ctx.SaveChanges();
+
+        // return success with shards reward
+        return Ok(new CommonInventoryResponse {
+            Success = true,
+            CommonInventoryIDs = new CommonInventoryResponseItem[] {
+                resShardsItem
+            }
+        });
+    }
+
     private RaisedPetData GetRaisedPetDataFromDragon (Dragon dragon) {
         RaisedPetData data = XmlUtil.DeserializeXml<RaisedPetData>(dragon.RaisedPetData);
         data.RaisedPetID = dragon.Id;
@@ -1069,16 +1244,97 @@ public class ContentController : Controller {
         };
     }
 
-    private bool IsFarmExpansion(int itemId) {
+    private bool NeedUniqueInventoryItemId(int itemId) {
         ItemData? itemData = itemService.GetItem(itemId);
         if (itemData != null && itemData.Category != null) {
             foreach (ItemDataCategory itemCategory in itemData.Category) {
                 if (itemCategory.CategoryId == 541) { // if item is farm expansion
                     return true;
                 }
+                if (itemCategory.CategoryId == 511) { // if item is dragons tactics (battle) items
+                    return true;
+                }
             }
         }
         return false;
+    }
+    
+    private CommonInventoryResponseItem? UpdateShards(Viking viking, int val) {
+        InventoryItem? shards = viking.Inventory.InventoryItems.FirstOrDefault(e => e.ItemId == 13711);
+        if (shards is null) {
+            shards = new InventoryItem { ItemId = 13711, Quantity = 0 };
+            viking.Inventory.InventoryItems.Add(shards);
+            ctx.SaveChanges(); // We need to get the ID of the newly created item
+        }
+        if (shards.Quantity + val < 0) {
+            return null;
+        }
+        shards.Quantity += val;
+        
+        return new CommonInventoryResponseItem {
+            CommonInventoryID = shards.Id,
+            ItemID = shards.ItemId,
+            Quantity = val
+        };
+    }
+    
+    private List<ItemStat> CreateItemStats(ItemPossibleStatsMap? possibleStats, ItemRarity? rarity, ItemTier? itemTier) {
+        List<ItemStat> newStat = new List<ItemStat>();
+        int rMax = possibleStats.Stats.Sum(e => e.Probability);
+        for (int i=0; i<(int)rarity && rMax > 0; ++i) {
+            int val = random.Next(0, rMax);
+            int cnt = 0;
+            foreach (var stat in possibleStats.Stats) {
+                if (newStat.FirstOrDefault(e => e.ItemStatID == stat.ItemStatsID) != null) {
+                    // this type of stat already is in newStat ... is excluded from this draw
+                    continue;
+                }
+                
+                cnt += stat.Probability;
+                if (cnt > val) {
+                    rMax -= stat.Probability; // do not include in the next draw
+                    
+                    StatRangeMap rangeMap = stat.ItemStatsRangeMaps.FirstOrDefault(e => e.ItemTierID == (int)itemTier);
+                    newStat.Add(
+                        new ItemStat {
+                            ItemStatID = rangeMap.ItemStatsID,
+                            Name = rangeMap.ItemStatsName,
+                            Value = random.Next(rangeMap.StartRange, rangeMap.EndRange+1).ToString(),
+                            DataType = DataTypeInfo.Int
+                        }
+                    );
+                    
+                    break; // we found new stat for slot "i" ... goto i+1
+                }
+            }
+        }
+        return newStat;
+    }
+    
+    private List<UserItemData> GetUserItemDataList(List<InventoryItem> items) {
+        List<UserItemData> userItemData = new();
+        foreach (InventoryItem item in items) {
+            if (item.Quantity == 0) continue; // Don't include an item that the viking doesn't have
+            ItemData itemData = itemService.GetItem(item.ItemId);
+            UserItemData uid = new UserItemData {
+                UserInventoryID = item.Id,
+                ItemID = itemData.ItemID,
+                Quantity = item.Quantity,
+                Uses = itemData.Uses,
+                ModifiedDate = new DateTime(DateTime.Now.Ticks),
+                Item = itemData
+            };
+            if (item.StatsSerialized != null) {
+                ItemStatsMap itemStats = XmlUtil.DeserializeXml<ItemStatsMap>(item.StatsSerialized);
+                uid.ItemStats = itemStats.ItemStats;
+                uid.ItemTier = itemStats.ItemTier;
+            } else if (itemData.ItemStatsMap != null) {
+                uid.ItemStats = itemData.ItemStatsMap?.ItemStats;
+                uid.ItemTier = itemData.ItemStatsMap?.ItemTier;
+            }
+            userItemData.Add(uid);
+        }
+        return userItemData;
     }
 
     private void AddSuggestion(Random rand, string name, List<string> suggestions) {
