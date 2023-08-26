@@ -962,7 +962,7 @@ public class ContentController : Controller {
 
     [HttpPost]
     [Produces("application/xml")]
-    [Route("/V2/ContentWebService.asmx/RerollUserItem")]
+    [Route("V2/ContentWebService.asmx/RerollUserItem")]
     public IActionResult RerollUserItem([FromForm] string apiToken, [FromForm] string request) {
         Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
         if (viking is null || viking.Inventory is null) return Unauthorized();
@@ -1053,7 +1053,7 @@ public class ContentController : Controller {
     
     [HttpPost]
     [Produces("application/xml")]
-    [Route("/V2/ContentWebService.asmx/FuseItems")]
+    [Route("V2/ContentWebService.asmx/FuseItems")]
     public IActionResult FuseItems([FromForm] string apiToken, [FromForm] string fuseItemsRequest) {
         Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
         if (viking is null || viking.Inventory is null) return Unauthorized();
@@ -1103,15 +1103,14 @@ public class ContentController : Controller {
             
             // add to viking and results
             viking.Inventory.InventoryItems.Add(fuseInvItem);
+            ctx.SaveChanges(); // We need to get the ID of the newly created item
+            
             resItemList.Add(new InventoryItemStatsMap {
                 CommonInventoryID = fuseInvItem.Id,
                 Item = fuseItemData,
                 ItemStatsMap = itemStatsMap
             });
         }
-        
-        // saving
-        ctx.SaveChanges();
         
         // return response with new item info
         return Ok(new FuseItemsResponse {
@@ -1122,7 +1121,7 @@ public class ContentController : Controller {
 
     [HttpPost]
     [Produces("application/xml")]
-    [Route("/V2/ContentWebService.asmx/SellItems")]
+    [Route("V2/ContentWebService.asmx/SellItems")]
     public IActionResult SellItems([FromForm] string apiToken, [FromForm] string sellItemsRequest) {
         Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
         if (viking is null || viking.Inventory is null) return Unauthorized();
@@ -1170,6 +1169,103 @@ public class ContentController : Controller {
             CommonInventoryIDs = new CommonInventoryResponseItem[] {
                 resShardsItem
             }
+        });
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("V2/ContentWebService.asmx/AddBattleItems")]
+    public IActionResult AddBattleItems([FromForm] string apiToken, [FromForm] string request) {
+        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
+        if (viking is null || viking.Inventory is null) return Unauthorized();
+
+        AddBattleItemsRequest req = XmlUtil.DeserializeXml<AddBattleItemsRequest>(request);
+        
+        var resItemList = new List<InventoryItemStatsMap>();
+        foreach (BattleItemTierMap battleItemTierMap in req.BattleItemTierMaps) {
+            InventoryItem newInvItem = new InventoryItem { ItemId = battleItemTierMap.ItemID, Quantity = 1 };
+            ItemData newItemData = itemService.GetItem(newInvItem.ItemId);
+            for (int i=0; i<battleItemTierMap.Quantity; ++i) {
+                ItemStatsMap itemStatsMap = new ItemStatsMap {
+                    ItemID = newInvItem.ItemId,
+                    ItemTier = (ItemTier)(battleItemTierMap.Tier),
+                    ItemStats = battleItemTierMap.ItemStats ?? CreateItemStats(newItemData.PossibleStatsMap, newItemData.ItemRarity, battleItemTierMap.Tier).ToArray()
+                       // NOTE: battleItemTierMap.ItemStats is extension for importer
+                };
+                newInvItem.StatsSerialized = XmlUtil.SerializeXml(itemStatsMap);
+                
+                // add to viking and results
+                viking.Inventory.InventoryItems.Add(newInvItem);
+                ctx.SaveChanges(); // We need to get the ID of the newly created item
+                
+                resItemList.Add(new InventoryItemStatsMap {
+                    CommonInventoryID = newInvItem.Id,
+                    Item = newItemData,
+                    ItemStatsMap = itemStatsMap
+                });
+            }
+        }
+        
+        return Ok(new AddBattleItemsResponse{
+            Status = Status.Success,
+            InventoryItemStatsMaps = resItemList
+        });
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("V2/ContentWebService.asmx/ApplyRewards")]
+    public IActionResult ApplyRewards([FromForm] string apiToken, [FromForm] string request) {
+        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
+        if (viking is null || viking.Inventory is null) return Unauthorized();
+        
+        ApplyRewardsRequest req = XmlUtil.DeserializeXml<ApplyRewardsRequest>(request);
+        
+        List<AchievementReward> achievementRewards = new List<AchievementReward>();
+        UserItemStatsMap rewardedItem = null;
+        CommonInventoryResponse rewardedBlueprint = null;
+        
+        // calculate and apply rewards
+        int dragonXp = 40; // TODO: this values and method of calculation for dragon XP is not grounded in anything ... 
+        if (req.LevelRewardType == LevelRewardType.LevelCompletion) {
+            dragonXp *= 2 * req.LevelDifficultyID;
+        } else if (req.LevelRewardType == LevelRewardType.LevelFailure) {
+            
+        } else if (req.LevelRewardType == LevelRewardType.ExtraChest) {
+            dragonXp = 0;
+        }
+        
+        //  - dragons XP
+        if (dragonXp > 0) {
+            foreach (RaisedPetEntityMap petInfo in req.RaisedPetEntityMaps) {
+                Dragon? dragon = viking.Dragons.FirstOrDefault(e => e.Id == petInfo.RaisedPetID);
+                dragon.PetXP = (dragon.PetXP ?? 0) + dragonXp;
+                achievementRewards.Add(new AchievementReward{
+                    EntityID = petInfo.EntityID,
+                    PointTypeID = AchievementPointTypes.DragonXP,
+                    EntityTypeID = 3, // dragon ?
+                    RewardID = 1265, // TODO: placeholder
+                    Amount = dragonXp
+                });
+            }
+        }
+        
+        //  - player XP and gold
+        
+        // TODO: calculate, apply and put into achievementRewards
+        
+        //  - battle backpack items and blueprints
+        
+        // TODO: calculate, apply and put into rewardedBlueprint
+        
+        // save
+        ctx.SaveChanges();
+        
+        return Ok(new ApplyRewardsResponse {
+            Status = Status.Success,
+            AchievementRewards = achievementRewards.ToArray(),
+            RewardedItemStatsMap = rewardedItem,
+            CommonInventoryResponse = rewardedBlueprint,
         });
     }
 

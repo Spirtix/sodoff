@@ -79,6 +79,8 @@ Then run School of Dragons.
 - SetAchievementAndGetReward
 - GetAchievementsByUserID
 - GetPetAchievementsByUserID
+- RerollUserItem
+- AddBattleItems
 
 #### Implemented enough (probably)
 - GetRules (doesn't return any rules, probably doesn't need to)
@@ -101,6 +103,9 @@ Then run School of Dragons.
 - SetNextItemState (may require more work, we don't know yet)
 - SetUserRoom
 - SetUserAchievementTask (returns a real reward but still use task placeholder)
+- FuseItems (need add support for "box tickets" blueprint output)
+- SellItems (need add cash reward)
+- ApplyRewards
 
 #### Currently static or stubbed
 - GetAllRanks (needs to be populated with what ranks the user has)

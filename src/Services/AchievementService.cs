@@ -118,6 +118,8 @@ namespace sodoff.Services {
         }
 
         public AchievementReward[] ApplyAchievementRewards(Viking viking, AchievementReward[] rewards) {
+            if (rewards is null)
+                return null;
             foreach (var reward in rewards) {
                 ApplyAchievementReward(viking, reward);
                 /* TODO we don't need this?
