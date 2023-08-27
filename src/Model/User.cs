@@ -16,5 +16,7 @@ public class User {
 
     public virtual ICollection<Session> Sessions { get; set; } = null!;
 
+    public virtual ICollection<PairData> PairData { get; set; } = null!;
+
     public virtual ICollection<Viking> Vikings { get; set; } = null!;
 }

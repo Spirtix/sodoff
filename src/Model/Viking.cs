@@ -23,6 +23,7 @@ public class Viking {
     public virtual ICollection<Room> Rooms { get; set; } = null!;
     public virtual ICollection<AchievementPoints> AchievementPoints { get; set; } = null!;
     public virtual Dragon? SelectedDragon { get; set; }
+    public virtual ICollection<PairData> PairData { get; set; } = null!;
 
     public int InventoryId { get; set; }
 

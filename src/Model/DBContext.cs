@@ -39,6 +39,9 @@ public class DBContext : DbContext {
         builder.Entity<User>().HasMany(u => u.Sessions)
             .WithOne(e => e.User);
 
+        builder.Entity<User>().HasMany(u => u.PairData)
+            .WithOne(e => e.User);
+
         builder.Entity<Viking>().HasMany(u => u.Sessions)
             .WithOne(e => e.Viking);
 
@@ -49,6 +52,9 @@ public class DBContext : DbContext {
             .WithOne(e => e.Viking);
 
         builder.Entity<Viking>().HasMany(v => v.AchievementPoints)
+            .WithOne(e => e.Viking);
+
+        builder.Entity<Viking>().HasMany(v => v.PairData)
             .WithOne(e => e.Viking);
 
         builder.Entity<Viking>().HasOne(s => s.User)
@@ -92,7 +98,17 @@ public class DBContext : DbContext {
 
         builder.Entity<PairData>().HasMany(p => p.Pairs)
             .WithOne(e => e.PairData);
-
+        
+        builder.Entity<PairData>().HasOne(p => p.Viking)
+            .WithMany(e => e.PairData)
+            .HasForeignKey(e => e.VikingId)
+            .OnDelete(DeleteBehavior.Cascade);
+        
+        builder.Entity<PairData>().HasOne(p => p.User)
+            .WithMany(e => e.PairData)
+            .HasForeignKey(e => e.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+        
         builder.Entity<Pair>()
             .HasOne(p => p.PairData)
             .WithMany(pd => pd.Pairs)
