@@ -56,13 +56,16 @@ public class ContentController : Controller {
             "Young", "Youthful",
             "Zealous", "Zealot"
         };
-       
-        //Get Username
-        User? user = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.User;
+
+        Session? session = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken);
+        if (session is null)
+            return Unauthorized();
+
+        User? user = session.User;
+        if (user is null)
+            user = session.Viking?.User;
         string uname = user.Username;
 
-        string name = uname; //Variable for name processing
-        List<string> tnames = ctx.Vikings.Select(e => e.Name).ToList(); //Get a list of names from the table
         Random choice = new Random(); //Randomizer for selecting random adjectives
         
         List<string> suggestions = new();
