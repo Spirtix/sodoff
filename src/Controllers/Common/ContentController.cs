@@ -1089,8 +1089,10 @@ public class ContentController : Controller {
             ItemData fuseItemData = itemService.GetItem(fuseItemId);
             
             // check for "box tickets"
-            
-            // TODO check for <cid>462</cid><cn>Dragons Mystery Box Tickets</cn>
+            if (itemService.ItemHasCategory(fuseItemData, 462)) {
+                fuseItemId = itemService.OpenBox(fuseItemData).ItemId;
+                fuseItemData =  itemService.GetItem(fuseItemId);
+            }
             
             // create new item
             InventoryItem fuseInvItem = new InventoryItem { ItemId = fuseItemId, Quantity = 1 };
@@ -1341,20 +1343,14 @@ public class ContentController : Controller {
     }
 
     private bool NeedUniqueInventoryItemId(int itemId) {
-        ItemData? itemData = itemService.GetItem(itemId);
-        if (itemData != null && itemData.Category != null) {
-            foreach (ItemDataCategory itemCategory in itemData.Category) {
-                if (itemCategory.CategoryId == 541) { // if item is farm expansion
-                    return true;
-                }
-                if (itemCategory.CategoryId == 511) { // if item is dragons tactics (battle) items
-                    return true;
-                }
+        return itemService.ItemHasCategory(
+            itemService.GetItem(itemId), new int[] {
+                541, // farm expansion
+                511, // dragons tactics (battle) items
             }
-        }
-        return false;
+        );
     }
-    
+
     private CommonInventoryResponseItem? UpdateShards(Viking viking, int val) {
         InventoryItem? shards = viking.Inventory.InventoryItems.FirstOrDefault(e => e.ItemId == 13711);
         if (shards is null) {

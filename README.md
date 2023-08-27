@@ -80,6 +80,7 @@ Then run School of Dragons.
 - GetAchievementsByUserID
 - GetPetAchievementsByUserID
 - RerollUserItem
+- FuseItems
 - AddBattleItems
 
 #### Implemented enough (probably)
@@ -103,7 +104,6 @@ Then run School of Dragons.
 - SetNextItemState (may require more work, we don't know yet)
 - SetUserRoom
 - SetUserAchievementTask (returns a real reward but still use task placeholder)
-- FuseItems (need add support for "box tickets" blueprint output)
 - SellItems (need add cash reward)
 - ApplyRewards
 
