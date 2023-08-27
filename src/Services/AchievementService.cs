@@ -136,7 +136,6 @@ namespace sodoff.Services {
                 var rewards = achivmentsRewardByID[achievementID];
                 return ApplyAchievementRewards(viking, rewards);
             } else {
-                Console.WriteLine(string.Format("Unknown rewards for achievementID={0}", achievementID));
                 return new AchievementReward[0];
             }
         }
@@ -146,7 +145,6 @@ namespace sodoff.Services {
                 var rewards = achivmentsRewardByTask[task.TaskID];
                 return ApplyAchievementRewards(viking, rewards);
             } else {
-                Console.WriteLine(string.Format("Unknown rewards for taskID={0}", task.TaskID));
                 return new AchievementReward[0];
             }
         }

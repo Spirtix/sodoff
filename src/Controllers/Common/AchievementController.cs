@@ -139,16 +139,25 @@ public class AchievementController : Controller {
     [Route("AchievementWebService.asmx/SetAchievementAndGetReward")]
     [Route("AchievementWebService.asmx/SetUserAchievementAndGetReward")]
     public IActionResult SetAchievementAndGetReward([FromForm] string apiToken, [FromForm] int achievementID) {
-        Viking? viking = ctx.Sessions.FirstOrDefault(x => x.ApiToken == apiToken).Viking;
-
-        if (viking is null) {
+        Session? session = ctx.Sessions.FirstOrDefault(x => x.ApiToken == apiToken);
+        if (session?.VikingId is null) {
             return Unauthorized();
         }
+        // NOTE: we can't refer to session.Viking here, because it may cause to ignore modifications from the threads we are waiting for
+        //       we can use session.Viking only after vikingMutex.WaitOne()
+        Mutex vikingMutex = new Mutex(false, "SoDOffViking:" + session.VikingId);
+        try {
+            vikingMutex.WaitOne();
+            Viking? viking = session.Viking;
 
-        var rewards = achievementService.ApplyAchievementRewardsByID(viking, achievementID);
-        ctx.SaveChanges();
+            var rewards = achievementService.ApplyAchievementRewardsByID(viking, achievementID);
 
-        return Ok(rewards);
+            ctx.SaveChanges();
+
+            return Ok(rewards);
+        } finally {
+            vikingMutex.ReleaseMutex();
+        }
     }
 
     [HttpPost]
@@ -156,32 +165,38 @@ public class AchievementController : Controller {
     [Route("V2/AchievementWebService.asmx/SetUserAchievementTask")]
     [DecryptRequest("achievementTaskSetRequest")]
     public IActionResult SetUserAchievementTask([FromForm] string apiToken) {
-        Viking? viking = ctx.Sessions.FirstOrDefault(x => x.ApiToken == apiToken).Viking;
-
-        if (viking is null) {
+        Session? session = ctx.Sessions.FirstOrDefault(x => x.ApiToken == apiToken);
+        if (session?.VikingId is null) {
             return Unauthorized();
         }
-        
-        AchievementTaskSetRequest request = XmlUtil.DeserializeXml<AchievementTaskSetRequest>(Request.Form["achievementTaskSetRequest"]);
+        Mutex vikingMutex = new Mutex(false, "SoDOffViking:" + session.VikingId);
+        try {
+            vikingMutex.WaitOne();
+            Viking? viking = session.Viking;
+            
+            AchievementTaskSetRequest request = XmlUtil.DeserializeXml<AchievementTaskSetRequest>(Request.Form["achievementTaskSetRequest"]);
 
-        var response = new List<AchievementTaskSetResponse>();
-        foreach (var task in request.AchievementTaskSet) {
-            response.Add(
-                new AchievementTaskSetResponse {
-                    Success = true,
-                    UserMessage = true, // TODO: placeholder
-                    AchievementName = "Placeholder Achievement", // TODO: placeholder
-                    Level = 1, // TODO: placeholder
-                    AchievementTaskGroupID = 1279, // TODO: placeholder
-                    LastLevelCompleted = true, // TODO: placeholder
-                    AchievementInfoID = 1279, // TODO: placeholder
-                    AchievementRewards = achievementService.ApplyAchievementRewardsByTask(viking, task)
-                }
-            );
+            var response = new List<AchievementTaskSetResponse>();
+            foreach (var task in request.AchievementTaskSet) {
+                response.Add(
+                    new AchievementTaskSetResponse {
+                        Success = true,
+                        UserMessage = true, // TODO: placeholder
+                        AchievementName = "Placeholder Achievement", // TODO: placeholder
+                        Level = 1, // TODO: placeholder
+                        AchievementTaskGroupID = 1279, // TODO: placeholder
+                        LastLevelCompleted = true, // TODO: placeholder
+                        AchievementInfoID = 1279, // TODO: placeholder
+                        AchievementRewards = achievementService.ApplyAchievementRewardsByTask(viking, task)
+                    }
+                );
+            }
+            ctx.SaveChanges();
+
+            return Ok(new ArrayOfAchievementTaskSetResponse { AchievementTaskSetResponse = response.ToArray() });
+        } finally {
+            vikingMutex.ReleaseMutex();
         }
-        ctx.SaveChanges();
-
-        return Ok(new ArrayOfAchievementTaskSetResponse { AchievementTaskSetResponse = response.ToArray() });
     }
 
     [HttpPost]
