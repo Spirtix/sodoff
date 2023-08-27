@@ -16,14 +16,16 @@ public class ContentController : Controller {
     private MissionService missionService;
     private RoomService roomService;
     private AchievementService achievementService;
+    private InventoryService inventoryService;
     private Random random = new Random();
-    public ContentController(DBContext ctx, KeyValueService keyValueService, ItemService itemService, MissionService missionService, RoomService roomService, AchievementService achievementService) {
+    public ContentController(DBContext ctx, KeyValueService keyValueService, ItemService itemService, MissionService missionService, RoomService roomService, AchievementService achievementService, InventoryService inventoryService) {
         this.ctx = ctx;
         this.keyValueService = keyValueService;
         this.itemService = itemService;
         this.missionService = missionService;
         this.roomService = roomService;
         this.achievementService = achievementService;
+        this.inventoryService = inventoryService;
     }
 
     [HttpPost]
@@ -178,25 +180,23 @@ public class ContentController : Controller {
 
         List<UserItemData> userItemData;
         if (viking != null) {
-            userItemData = GetUserItemDataList(viking.Inventory.InventoryItems.ToList());
+            return Ok( inventoryService.GetCommonInventoryData(viking) );
         } else {
             // TODO: placeholder - return 8 viking slot items
-            userItemData = new List<UserItemData> {
-                new UserItemData {
-                    UserInventoryID = 0,
-                    ItemID = 7971,
-                    Quantity = 8,
-                    Uses = -1,
-                    ModifiedDate = new DateTime(DateTime.Now.Ticks),
-                    Item = itemService.GetItem(7971)
+            return Ok(new CommonInventoryData {
+                UserID = Guid.Parse(user.Id),
+                Item = new UserItemData[] {
+                    new UserItemData {
+                        UserInventoryID = 0,
+                        ItemID = 7971,
+                        Quantity = 8,
+                        Uses = -1,
+                        ModifiedDate = new DateTime(DateTime.Now.Ticks),
+                        Item = itemService.GetItem(7971)
+                    }
                 }
-            };
+            });
         }
-
-        return Ok(new CommonInventoryData {
-            UserID = Guid.Parse(user is not null ? user.Id : viking.Id),
-            Item = userItemData.ToArray()
-        });
     }
 
     [HttpPost]
@@ -206,11 +206,7 @@ public class ContentController : Controller {
         Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
         if (viking is null || viking.Inventory is null) return Ok();
 
-        CommonInventoryData invData = new CommonInventoryData {
-            UserID = Guid.Parse(viking.UserId),
-            Item = GetUserItemDataList(viking.Inventory.InventoryItems.ToList()).ToArray()
-        };
-        return Ok(invData);
+        return Ok(inventoryService.GetCommonInventoryData(viking));
     }
 
     [HttpPost]
@@ -236,7 +232,7 @@ public class ContentController : Controller {
         foreach (var req in request) {
             if (req.ItemID == 0) continue; // Do not save a null item
             
-            if (NeedUniqueInventoryItemId((int)req.ItemID)) {
+            if (inventoryService.ItemNeedUniqueInventorySlot((int)req.ItemID)) {
                 // if req.Quantity < 0 remove unique items
                 for (int i=req.Quantity; i<0; ++i) {
                      InventoryItem? item = viking.Inventory.InventoryItems.FirstOrDefault(e => e.ItemId == req.ItemID && e.Quantity>0);
@@ -244,32 +240,16 @@ public class ContentController : Controller {
                 }
                 // if req.Quantity > 0 add unique items
                 for (int i=0; i<req.Quantity; ++i) {
-                    InventoryItem item = new InventoryItem { ItemId = (int)req.ItemID, Quantity = 1 };
-                    viking.Inventory.InventoryItems.Add(item);
-                    ctx.SaveChanges(); // We need to get the ID of the newly created item
-                    responseItems.Add(new CommonInventoryResponseItem {
-                        CommonInventoryID = item.Id,
-                        ItemID = item.ItemId,
-                        Quantity = 0
-                    });
+                    responseItems.Add(
+                        inventoryService.AddItemToInventoryAndGetResponse(viking, (int)req.ItemID!, 1)
+                    );
                 }
             } else {
-                InventoryItem? item = viking.Inventory.InventoryItems.FirstOrDefault(e => e.ItemId == req.ItemID);
-                if (item is null) {
-                    item = new InventoryItem { ItemId = (int)req.ItemID, Quantity = 0 };
-                    viking.Inventory.InventoryItems.Add(item);
+                if (req.Quantity > 0) {
+                    responseItems.Add(
+                        inventoryService.AddItemToInventoryAndGetResponse(viking, (int)req.ItemID!, req.Quantity)
+                    );
                 }
-                int updateQuantity = 0; // The game expects 0 if quantity got updated by just 1
-                if (req.Quantity > 1)
-                    updateQuantity = req.Quantity; // Otherwise it expects the quantity from the request
-                item.Quantity += req.Quantity;
-                ctx.SaveChanges(); // We need to get the ID of the newly created item
-                if (req.Quantity > 0)
-                    responseItems.Add(new CommonInventoryResponseItem {
-                        CommonInventoryID = item.Id,
-                        ItemID = item.ItemId,
-                        Quantity = updateQuantity
-                    });
             }
         }
 
@@ -740,20 +720,9 @@ public class ContentController : Controller {
         PurchaseStoreItemRequest request = XmlUtil.DeserializeXml<PurchaseStoreItemRequest>(purchaseItemRequest);
         CommonInventoryResponseItem[] items = new CommonInventoryResponseItem[request.Items.Length];
         for (int i = 0; i < request.Items.Length; i++) {
-            InventoryItem? item = null;
-            if (!NeedUniqueInventoryItemId(request.Items[i])) 
-                item = viking.Inventory.InventoryItems.FirstOrDefault(e => e.ItemId == request.Items[i]);
-            if (item is null) {
-                item = new InventoryItem { ItemId = request.Items[i], Quantity = 0 };
-                viking.Inventory.InventoryItems.Add(item);
-            }
-            item.Quantity++;
-            ctx.SaveChanges();
-            items[i] = new CommonInventoryResponseItem {
-                CommonInventoryID = item.Id,
-                ItemID = request.Items[i],
-                Quantity = 0 // The quantity of purchased items is always 0 and the items are instead duplicated in both the request and the response
-            };
+            items[i] = inventoryService.AddItemToInventoryAndGetResponse(viking, request.Items[i], 1);
+            // NOTE: The quantity of purchased items is always 0 and the items are instead duplicated in both the request and the response.
+            //       Call AddItemToInventoryAndGetResponse with Quantity == 1 we get response with quantity == 0.
         }
 
         CommonInventoryResponse response = new CommonInventoryResponse {
@@ -780,18 +749,9 @@ public class ContentController : Controller {
         int[] itemIdArr = XmlUtil.DeserializeXml<int[]>(itemIDArrayXml);
         CommonInventoryResponseItem[] items = new CommonInventoryResponseItem[itemIdArr.Length];
         for (int i = 0; i < itemIdArr.Length; i++) {
-            InventoryItem? item = viking.Inventory.InventoryItems.FirstOrDefault(e => e.ItemId == itemIdArr[i]);
-            if (item is null) {
-                item = new InventoryItem { ItemId = itemIdArr[i], Quantity = 0 };
-                viking.Inventory.InventoryItems.Add(item);
-            }
-            item.Quantity++;
-            ctx.SaveChanges();
-            items[i] = new CommonInventoryResponseItem {
-                CommonInventoryID = item.Id,
-                ItemID = itemIdArr[i],
-                Quantity = 0 // The quantity of purchased items is always 0 and the items are instead duplicated in both the request and the response
-            };
+            items[i] = inventoryService.AddItemToInventoryAndGetResponse(viking, itemIdArr[i], 1);
+            // NOTE: The quantity of purchased items is always 0 and the items are instead duplicated in both the request and the response.
+            //       Call AddItemToInventoryAndGetResponse with Quantity == 1 we get response with quantity == 0.
         }
 
         CommonInventoryResponse response = new CommonInventoryResponse {
@@ -1006,10 +966,10 @@ public class ContentController : Controller {
                 }
             }
             // get shards
-            UpdateShards(viking, -((int)(itemData.ItemRarity) + (int)(itemStatsMap.ItemTier) - 1));
+            inventoryService.AddItemToInventory(viking, InventoryService.Shards, -((int)(itemData.ItemRarity) + (int)(itemStatsMap.ItemTier) - 1));
         } else {
             // reroll full item
-            newStats = CreateItemStats(itemData.PossibleStatsMap, itemData.ItemRarity, itemStatsMap.ItemTier);
+            newStats = itemService.CreateItemStats(itemData.PossibleStatsMap, (int)itemData.ItemRarity, (int)itemStatsMap.ItemTier);
             itemStatsMap.ItemStats = newStats.ToArray();
             status = Status.Success;
             // get shards
@@ -1037,7 +997,7 @@ public class ContentController : Controller {
                     price = price * 2;
                     break;
             }
-            UpdateShards(viking, -price);
+            inventoryService.AddItemToInventory(viking, InventoryService.Shards, -price);
         }
  
         // save
@@ -1085,33 +1045,17 @@ public class ContentController : Controller {
                 continue;
             
             // get new item info
-            int fuseItemId = (int)(output.ItemID);
-            ItemData fuseItemData = itemService.GetItem(fuseItemId);
+            int newItemId = (int)(output.ItemID);
+            ItemData newItemData = itemService.GetItem(newItemId);
             
             // check for "box tickets"
-            if (itemService.ItemHasCategory(fuseItemData, 462)) {
-                fuseItemId = itemService.OpenBox(fuseItemData).ItemId;
-                fuseItemData =  itemService.GetItem(fuseItemId);
+            if (itemService.ItemHasCategory(newItemData, 462)) {
+                newItemId = itemService.OpenBox(newItemData).ItemId;
             }
             
-            // create new item
-            InventoryItem fuseInvItem = new InventoryItem { ItemId = fuseItemId, Quantity = 1 };
-            ItemStatsMap itemStatsMap = new ItemStatsMap {
-                ItemID = fuseInvItem.ItemId,
-                ItemTier = (ItemTier)(output.Tier),
-                ItemStats = CreateItemStats(fuseItemData.PossibleStatsMap, fuseItemData.ItemRarity, output.Tier).ToArray()
-            };
-            fuseInvItem.StatsSerialized = XmlUtil.SerializeXml(itemStatsMap);
-            
-            // add to viking and results
-            viking.Inventory.InventoryItems.Add(fuseInvItem);
-            ctx.SaveChanges(); // We need to get the ID of the newly created item
-            
-            resItemList.Add(new InventoryItemStatsMap {
-                CommonInventoryID = fuseInvItem.Id,
-                Item = fuseItemData,
-                ItemStatsMap = itemStatsMap
-            });
+            resItemList.Add(
+                inventoryService.AddBattleItemToInventory(viking, newItemId, (int)output.Tier)
+            );
         }
         
         // return response with new item info
@@ -1160,7 +1104,7 @@ public class ContentController : Controller {
         }
         
         // apply shards reward
-        CommonInventoryResponseItem? resShardsItem = UpdateShards(viking, price);
+        CommonInventoryResponseItem? resShardsItem = inventoryService.AddItemToInventoryAndGetResponse(viking, InventoryService.Shards, price);
 
         // save
         ctx.SaveChanges();
@@ -1185,26 +1129,11 @@ public class ContentController : Controller {
         
         var resItemList = new List<InventoryItemStatsMap>();
         foreach (BattleItemTierMap battleItemTierMap in req.BattleItemTierMaps) {
-            InventoryItem newInvItem = new InventoryItem { ItemId = battleItemTierMap.ItemID, Quantity = 1 };
-            ItemData newItemData = itemService.GetItem(newInvItem.ItemId);
             for (int i=0; i<battleItemTierMap.Quantity; ++i) {
-                ItemStatsMap itemStatsMap = new ItemStatsMap {
-                    ItemID = newInvItem.ItemId,
-                    ItemTier = (ItemTier)(battleItemTierMap.Tier),
-                    ItemStats = battleItemTierMap.ItemStats ?? CreateItemStats(newItemData.PossibleStatsMap, newItemData.ItemRarity, battleItemTierMap.Tier).ToArray()
-                       // NOTE: battleItemTierMap.ItemStats is extension for importer
-                };
-                newInvItem.StatsSerialized = XmlUtil.SerializeXml(itemStatsMap);
-                
-                // add to viking and results
-                viking.Inventory.InventoryItems.Add(newInvItem);
-                ctx.SaveChanges(); // We need to get the ID of the newly created item
-                
-                resItemList.Add(new InventoryItemStatsMap {
-                    CommonInventoryID = newInvItem.Id,
-                    Item = newItemData,
-                    ItemStatsMap = itemStatsMap
-                });
+                resItemList.Add(
+                    inventoryService.AddBattleItemToInventory(viking, battleItemTierMap.ItemID, (int)battleItemTierMap.Tier, battleItemTierMap.ItemStats)
+                    // NOTE: battleItemTierMap.ItemStats is extension for importer
+                );
             }
         }
         
@@ -1227,18 +1156,18 @@ public class ContentController : Controller {
         UserItemStatsMap rewardedItem = null;
         CommonInventoryResponse rewardedBlueprint = null;
         
-        // calculate and apply rewards
-        int dragonXp = 40; // TODO: this values and method of calculation for dragon XP is not grounded in anything ... 
-        if (req.LevelRewardType == LevelRewardType.LevelCompletion) {
-            dragonXp *= 2 * req.LevelDifficultyID;
-        } else if (req.LevelRewardType == LevelRewardType.LevelFailure) {
-            
-        } else if (req.LevelRewardType == LevelRewardType.ExtraChest) {
-            dragonXp = 0;
+        int rewardMultipler = 0;
+        if (req.LevelRewardType == LevelRewardType.LevelFailure) {
+            rewardMultipler = 1;
+        } else if (req.LevelRewardType == LevelRewardType.LevelCompletion) {
+            rewardMultipler = 2 * req.LevelDifficultyID;
         }
         
-        //  - dragons XP
-        if (dragonXp > 0) {
+        if (rewardMultipler > 0) {
+            // TODO: XP values and method of calculation is not grounded in anything ...
+
+            // dragons XP
+            int dragonXp = 40 * rewardMultipler;
             foreach (RaisedPetEntityMap petInfo in req.RaisedPetEntityMaps) {
                 Dragon? dragon = viking.Dragons.FirstOrDefault(e => e.Id == petInfo.RaisedPetID);
                 dragon.PetXP = (dragon.PetXP ?? 0) + dragonXp;
@@ -1250,16 +1179,40 @@ public class ContentController : Controller {
                     Amount = dragonXp
                 });
             }
+
+            // player XP and gems
+            achievementRewards.Add(
+                achievementService.AddAchievementPointsAndGetReward(viking, AchievementPointTypes.PlayerXP, 60 * rewardMultipler)
+            );
+            achievementRewards.Add(
+                achievementService.AddAchievementPointsAndGetReward(viking, AchievementPointTypes.CashCurrency, 2 * rewardMultipler)
+            );
         }
-        
-        //  - player XP and gold
-        
-        // TODO: calculate, apply and put into achievementRewards
-        
+
         //  - battle backpack items and blueprints
-        
-        // TODO: calculate, apply and put into rewardedBlueprint
-        
+        if (req.LevelRewardType != LevelRewardType.LevelFailure) {
+            ItemData rewardItem = itemService.GetDTReward();
+            if (itemService.ItemHasCategory(rewardItem, 651)) {
+                // blueprint
+                CommonInventoryResponseItem blueprintItem = inventoryService.AddItemToInventoryAndGetResponse(viking, rewardItem.ItemID, 1);
+                rewardedBlueprint = new CommonInventoryResponse {
+                    Success = true,
+                    CommonInventoryIDs = new CommonInventoryResponseItem[] {
+                        blueprintItem
+                    }
+                };
+            } else {
+                // DT item
+                InventoryItemStatsMap item = inventoryService.AddBattleItemToInventory(viking, rewardItem.ItemID, random.Next(1, 4));
+                rewardedItem = new UserItemStatsMap {
+                    Item = item.Item,
+                    ItemStats = item.ItemStatsMap.ItemStats,
+                    ItemTier = item.ItemStatsMap.ItemTier,
+                    CreatedDate = new DateTime(DateTime.Now.Ticks)
+                };
+            }
+        }
+
         // save
         ctx.SaveChanges();
         
@@ -1340,93 +1293,6 @@ public class ContentController : Controller {
             ImageURL = imageUrl,
             TemplateName = image.TemplateName,
         };
-    }
-
-    private bool NeedUniqueInventoryItemId(int itemId) {
-        return itemService.ItemHasCategory(
-            itemService.GetItem(itemId), new int[] {
-                541, // farm expansion
-                511, // dragons tactics (battle) items
-            }
-        );
-    }
-
-    private CommonInventoryResponseItem? UpdateShards(Viking viking, int val) {
-        InventoryItem? shards = viking.Inventory.InventoryItems.FirstOrDefault(e => e.ItemId == 13711);
-        if (shards is null) {
-            shards = new InventoryItem { ItemId = 13711, Quantity = 0 };
-            viking.Inventory.InventoryItems.Add(shards);
-            ctx.SaveChanges(); // We need to get the ID of the newly created item
-        }
-        if (shards.Quantity + val < 0) {
-            return null;
-        }
-        shards.Quantity += val;
-        
-        return new CommonInventoryResponseItem {
-            CommonInventoryID = shards.Id,
-            ItemID = shards.ItemId,
-            Quantity = val
-        };
-    }
-    
-    private List<ItemStat> CreateItemStats(ItemPossibleStatsMap? possibleStats, ItemRarity? rarity, ItemTier? itemTier) {
-        List<ItemStat> newStat = new List<ItemStat>();
-        int rMax = possibleStats.Stats.Sum(e => e.Probability);
-        for (int i=0; i<(int)rarity && rMax > 0; ++i) {
-            int val = random.Next(0, rMax);
-            int cnt = 0;
-            foreach (var stat in possibleStats.Stats) {
-                if (newStat.FirstOrDefault(e => e.ItemStatID == stat.ItemStatsID) != null) {
-                    // this type of stat already is in newStat ... is excluded from this draw
-                    continue;
-                }
-                
-                cnt += stat.Probability;
-                if (cnt > val) {
-                    rMax -= stat.Probability; // do not include in the next draw
-                    
-                    StatRangeMap rangeMap = stat.ItemStatsRangeMaps.FirstOrDefault(e => e.ItemTierID == (int)itemTier);
-                    newStat.Add(
-                        new ItemStat {
-                            ItemStatID = rangeMap.ItemStatsID,
-                            Name = rangeMap.ItemStatsName,
-                            Value = random.Next(rangeMap.StartRange, rangeMap.EndRange+1).ToString(),
-                            DataType = DataTypeInfo.Int
-                        }
-                    );
-                    
-                    break; // we found new stat for slot "i" ... goto i+1
-                }
-            }
-        }
-        return newStat;
-    }
-    
-    private List<UserItemData> GetUserItemDataList(List<InventoryItem> items) {
-        List<UserItemData> userItemData = new();
-        foreach (InventoryItem item in items) {
-            if (item.Quantity == 0) continue; // Don't include an item that the viking doesn't have
-            ItemData itemData = itemService.GetItem(item.ItemId);
-            UserItemData uid = new UserItemData {
-                UserInventoryID = item.Id,
-                ItemID = itemData.ItemID,
-                Quantity = item.Quantity,
-                Uses = itemData.Uses,
-                ModifiedDate = new DateTime(DateTime.Now.Ticks),
-                Item = itemData
-            };
-            if (item.StatsSerialized != null) {
-                ItemStatsMap itemStats = XmlUtil.DeserializeXml<ItemStatsMap>(item.StatsSerialized);
-                uid.ItemStats = itemStats.ItemStats;
-                uid.ItemTier = itemStats.ItemTier;
-            } else if (itemData.ItemStatsMap != null) {
-                uid.ItemStats = itemData.ItemStatsMap?.ItemStats;
-                uid.ItemTier = itemData.ItemStatsMap?.ItemTier;
-            }
-            userItemData.Add(uid);
-        }
-        return userItemData;
     }
 
     private void AddSuggestion(Random rand, string name, List<string> suggestions) {

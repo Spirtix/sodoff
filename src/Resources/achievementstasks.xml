@@ -518,7 +518,7 @@
    <AchievementsTaskInfo>
       <TID>2261</TID>
       <!-- defeated enemy in dt -->
-      <!-- temporary disabled - this probably should not be repeated for every event
+      <!-- TODO: temporary disabled - this probably should not be repeated for every event
       <AR>
          <a>300</a>
          <p>1</p>
