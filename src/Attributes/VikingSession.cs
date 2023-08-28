@@ -11,10 +11,6 @@ public class VikingSession : Attribute, IAsyncActionFilter {
     public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next) {
         DBContext ctx = ((AchievementController)context.Controller).ctx;
 
-        foreach (var a in context.ActionArguments.Keys) {
-            Console.WriteLine(a);
-        }
-
         if (!context.HttpContext.Request.Form.ContainsKey("apiToken")) {
             context.Result = new UnauthorizedObjectResult("Unauthorized") { StatusCode = 403 };
             return;

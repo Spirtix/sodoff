@@ -71,7 +71,8 @@ methods = [
   'SetAchievementByEntityIDs',
   'UseInventory',
   'DeleteProfile',
-  'DeleteAccountNotification'
+  'DeleteAccountNotification',
+  'SetUserAchievementAndGetReward',
 ]
 
 def routable(path):
