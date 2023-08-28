@@ -10,7 +10,7 @@ using sodoff.Util;
 namespace sodoff.Controllers.Common;
 public class AchievementController : Controller {
 
-    private readonly DBContext ctx;
+    public readonly DBContext ctx;
     private AchievementService achievementService;
     public AchievementController(DBContext ctx, AchievementService achievementService) {
         this.ctx = ctx;
@@ -138,14 +138,10 @@ public class AchievementController : Controller {
     [Produces("application/xml")]
     [Route("AchievementWebService.asmx/SetAchievementAndGetReward")]
     [Route("AchievementWebService.asmx/SetUserAchievementAndGetReward")]
-    public IActionResult SetAchievementAndGetReward([FromForm] string apiToken, [FromForm] int achievementID) {
-        Viking? viking = ctx.Sessions.FirstOrDefault(x => x.ApiToken == apiToken).Viking;
-
-        if (viking is null) {
-            return Unauthorized();
-        }
-
+    [VikingSession()]
+    public IActionResult SetAchievementAndGetReward(Viking viking, [FromForm] int achievementID) {
         var rewards = achievementService.ApplyAchievementRewardsByID(viking, achievementID);
+
         ctx.SaveChanges();
 
         return Ok(rewards);
@@ -155,13 +151,8 @@ public class AchievementController : Controller {
     [Produces("application/xml")]
     [Route("V2/AchievementWebService.asmx/SetUserAchievementTask")]
     [DecryptRequest("achievementTaskSetRequest")]
-    public IActionResult SetUserAchievementTask([FromForm] string apiToken) {
-        Viking? viking = ctx.Sessions.FirstOrDefault(x => x.ApiToken == apiToken).Viking;
-
-        if (viking is null) {
-            return Unauthorized();
-        }
-        
+    [VikingSession()]
+    public IActionResult SetUserAchievementTask(Viking viking) {
         AchievementTaskSetRequest request = XmlUtil.DeserializeXml<AchievementTaskSetRequest>(Request.Form["achievementTaskSetRequest"]);
 
         var response = new List<AchievementTaskSetResponse>();
