@@ -10,7 +10,7 @@ using sodoff.Util;
 namespace sodoff.Controllers.Common;
 public class AchievementController : Controller {
 
-    private readonly DBContext ctx;
+    public readonly DBContext ctx;
     private AchievementService achievementService;
     public AchievementController(DBContext ctx, AchievementService achievementService) {
         this.ctx = ctx;
@@ -138,65 +138,41 @@ public class AchievementController : Controller {
     [Produces("application/xml")]
     [Route("AchievementWebService.asmx/SetAchievementAndGetReward")]
     [Route("AchievementWebService.asmx/SetUserAchievementAndGetReward")]
-    public IActionResult SetAchievementAndGetReward([FromForm] string apiToken, [FromForm] int achievementID) {
-        Session? session = ctx.Sessions.FirstOrDefault(x => x.ApiToken == apiToken);
-        if (session?.VikingId is null) {
-            return Unauthorized();
-        }
-        // NOTE: we can't refer to session.Viking here, because it may cause to ignore modifications from the threads we are waiting for
-        //       we can use session.Viking only after vikingMutex.WaitOne()
-        Mutex vikingMutex = new Mutex(false, "SoDOffViking:" + session.VikingId);
-        try {
-            vikingMutex.WaitOne();
-            Viking? viking = session.Viking;
+    [VikingSession()]
+    public IActionResult SetAchievementAndGetReward(Viking viking, [FromForm] int achievementID) {
+        var rewards = achievementService.ApplyAchievementRewardsByID(viking, achievementID);
 
-            var rewards = achievementService.ApplyAchievementRewardsByID(viking, achievementID);
+        ctx.SaveChanges();
 
-            ctx.SaveChanges();
-
-            return Ok(rewards);
-        } finally {
-            vikingMutex.ReleaseMutex();
-        }
+        return Ok(rewards);
     }
 
     [HttpPost]
     [Produces("application/xml")]
     [Route("V2/AchievementWebService.asmx/SetUserAchievementTask")]
     [DecryptRequest("achievementTaskSetRequest")]
-    public IActionResult SetUserAchievementTask([FromForm] string apiToken) {
-        Session? session = ctx.Sessions.FirstOrDefault(x => x.ApiToken == apiToken);
-        if (session?.VikingId is null) {
-            return Unauthorized();
-        }
-        Mutex vikingMutex = new Mutex(false, "SoDOffViking:" + session.VikingId);
-        try {
-            vikingMutex.WaitOne();
-            Viking? viking = session.Viking;
-            
-            AchievementTaskSetRequest request = XmlUtil.DeserializeXml<AchievementTaskSetRequest>(Request.Form["achievementTaskSetRequest"]);
+    [VikingSession()]
+    public IActionResult SetUserAchievementTask(Viking viking) {
+        AchievementTaskSetRequest request = XmlUtil.DeserializeXml<AchievementTaskSetRequest>(Request.Form["achievementTaskSetRequest"]);
 
-            var response = new List<AchievementTaskSetResponse>();
-            foreach (var task in request.AchievementTaskSet) {
-                response.Add(
-                    new AchievementTaskSetResponse {
-                        Success = true,
-                        UserMessage = true, // TODO: placeholder
-                        AchievementName = "Placeholder Achievement", // TODO: placeholder
-                        Level = 1, // TODO: placeholder
-                        AchievementTaskGroupID = 1279, // TODO: placeholder
-                        LastLevelCompleted = true, // TODO: placeholder
-                        AchievementInfoID = 1279, // TODO: placeholder
-                        AchievementRewards = achievementService.ApplyAchievementRewardsByTask(viking, task)
-                    }
-                );
-            }
-            ctx.SaveChanges();
-
-            return Ok(new ArrayOfAchievementTaskSetResponse { AchievementTaskSetResponse = response.ToArray() });
-        } finally {
-            vikingMutex.ReleaseMutex();
+        var response = new List<AchievementTaskSetResponse>();
+        foreach (var task in request.AchievementTaskSet) {
+            response.Add(
+                new AchievementTaskSetResponse {
+                    Success = true,
+                    UserMessage = true, // TODO: placeholder
+                    AchievementName = "Placeholder Achievement", // TODO: placeholder
+                    Level = 1, // TODO: placeholder
+                    AchievementTaskGroupID = 1279, // TODO: placeholder
+                    LastLevelCompleted = true, // TODO: placeholder
+                    AchievementInfoID = 1279, // TODO: placeholder
+                    AchievementRewards = achievementService.ApplyAchievementRewardsByTask(viking, task)
+                }
+            );
         }
+        ctx.SaveChanges();
+
+        return Ok(new ArrayOfAchievementTaskSetResponse { AchievementTaskSetResponse = response.ToArray() });
     }
 
     [HttpPost]
