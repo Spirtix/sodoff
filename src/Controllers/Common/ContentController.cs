@@ -995,7 +995,7 @@ public class ContentController : Controller {
         RaisedPetData data = XmlUtil.DeserializeXml<RaisedPetData>(dragon.RaisedPetData);
         data.RaisedPetID = dragon.Id;
         data.EntityID = Guid.Parse(dragon.EntityId);
-        data.IsSelected = dragon.SelectedViking is not null;
+        data.IsSelected = (dragon.Viking.SelectedDragonId == dragon.Id);
         return data;
     }
 
