@@ -12,7 +12,8 @@ public class RatingController : Controller
     [HttpPost]
     [Produces("application/xml")]
     [Route("V2/Ratingwebservice.asmx/GetAverageRatingForRoom")]
-    public IActionResult GetAverageRatingForRoom([FromForm] string apiToken, [FromForm] string request)
+    //[VikingSession(UseLock=false)]
+    public IActionResult GetAverageRatingForRoom(/*Viking viking,*/ [FromForm] string request)
     {
         // TODO: This is a placeholder
         return Ok(5);
