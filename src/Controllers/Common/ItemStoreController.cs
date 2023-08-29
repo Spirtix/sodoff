@@ -11,9 +11,12 @@ public class ItemStoreController : Controller {
 
     private readonly DBContext ctx;
     private StoreService storeService;
-    public ItemStoreController(DBContext ctx, StoreService storeService) {
+    private ItemService itemService;
+
+    public ItemStoreController(DBContext ctx, StoreService storeService, ItemService itemService) {
         this.ctx = ctx;
         this.storeService = storeService;
+        this.itemService = itemService;
     }
 
     [HttpPost]
@@ -32,6 +35,15 @@ public class ItemStoreController : Controller {
         };
 
         return Ok(response);
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("ItemStoreWebService.asmx/GetItem")]
+    public IActionResult GetItem([FromForm] int itemId) {
+        if (itemId == 0) // For a null item, return an empty item
+            return Ok(new ItemData());
+        return Ok(itemService.GetItem(itemId));
     }
 
     [HttpPost]
