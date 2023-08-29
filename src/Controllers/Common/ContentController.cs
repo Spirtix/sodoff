@@ -117,7 +117,7 @@ public class ContentController : Controller {
             return null;
 
         // Get the pair
-        Model.PairData? pair = keyValueService.GetPairData(session.UserId, session.VikingId, pairId);
+        Model.PairData? pair = keyValueService.GetPairData(session.User, session.Viking, null, pairId);
 
         return keyValueService.ModelToSchema(pair);
     }
@@ -133,7 +133,7 @@ public class ContentController : Controller {
         if (session is null)
             return Ok(false);
 
-        bool result = keyValueService.SetPairData(session.UserId, session.VikingId, pairId, schemaData);
+        bool result = keyValueService.SetPairData(session.User, session.Viking, null, pairId, schemaData);
 
         return Ok(result);
     }
@@ -146,7 +146,7 @@ public class ContentController : Controller {
         if (session is null)
             return null;
 
-        Model.PairData? pair = keyValueService.GetPairData(userId, null, pairId);
+        Model.PairData? pair = keyValueService.GetPairData(session.User, session.Viking, userId, pairId);
 
         return keyValueService.ModelToSchema(pair);
     }
@@ -162,7 +162,7 @@ public class ContentController : Controller {
         if (session is null || string.IsNullOrEmpty(userId))
             return Ok(false);
 
-        bool result = keyValueService.SetPairData(userId, null, pairId, schemaData);
+        bool result = keyValueService.SetPairData(session.User, session.Viking, userId, pairId, schemaData);
 
         return Ok(result);
     }
