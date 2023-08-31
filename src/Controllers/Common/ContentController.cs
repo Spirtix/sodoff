@@ -103,14 +103,10 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("ContentWebService.asmx/GetKeyValuePair")]
-    public Schema.PairData? GetKeyValuePair([FromForm] string apiToken, [FromForm] int pairId) {
-        // Find session by apiToken
-        Session? session = ctx.Sessions.FirstOrDefault(s => s.ApiToken == apiToken);
-        if (session is null)
-            return null;
-
-        // Get the pair
-        Model.PairData? pair = keyValueService.GetPairData(session.User, session.Viking, null, pairId);
+    [Route("ContentWebService.asmx/GetKeyValuePairByUserID")]
+    [VikingSession(Mode=VikingSession.Modes.VIKING_OR_USER, UseLock=false)]
+    public Schema.PairData? GetKeyValuePairByUserID(User? user, Viking? viking, [FromForm] int pairId, [FromForm] string? userId) {
+        Model.PairData? pair = keyValueService.GetPairData(user, viking, userId, pairId);
 
         return keyValueService.ModelToSchema(pair);
     }
@@ -118,44 +114,12 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("ContentWebService.asmx/SetKeyValuePair")]
-    public IActionResult SetKeyValuePair([FromForm] string apiToken, [FromForm] int pairId, [FromForm] string contentXML) {
-        Schema.PairData schemaData = XmlUtil.DeserializeXml<Schema.PairData>(contentXML);
-
-        // Get the session
-        Session? session = ctx.Sessions.FirstOrDefault(s => s.ApiToken == apiToken);
-        if (session is null)
-            return Ok(false);
-
-        bool result = keyValueService.SetPairData(session.User, session.Viking, null, pairId, schemaData);
-
-        return Ok(result);
-    }
-
-    [HttpPost]
-    [Produces("application/xml")]
-    [Route("ContentWebService.asmx/GetKeyValuePairByUserID")]
-    public Schema.PairData? GetKeyValuePairByUserID([FromForm] string apiToken, [FromForm] int pairId, [FromForm] string userId) {
-        Session? session = ctx.Sessions.FirstOrDefault(s => s.ApiToken == apiToken);
-        if (session is null)
-            return null;
-
-        Model.PairData? pair = keyValueService.GetPairData(session.User, session.Viking, userId, pairId);
-
-        return keyValueService.ModelToSchema(pair);
-    }
-
-    [HttpPost]
-    [Produces("application/xml")]
     [Route("ContentWebService.asmx/SetKeyValuePairByUserID")]
-    public IActionResult SetKeyValuePairByUserID([FromForm] string apiToken, [FromForm] int pairId, [FromForm] string userId, [FromForm] string contentXML) {
+    [VikingSession(Mode=VikingSession.Modes.VIKING_OR_USER)]
+    public IActionResult SetKeyValuePairByUserID(User? user, Viking? viking, [FromForm] int pairId, [FromForm] string contentXML, [FromForm] string? userId) {
         Schema.PairData schemaData = XmlUtil.DeserializeXml<Schema.PairData>(contentXML);
 
-        // Get the session
-        Session? session = ctx.Sessions.FirstOrDefault(s => s.ApiToken == apiToken);
-        if (session is null || string.IsNullOrEmpty(userId))
-            return Ok(false);
-
-        bool result = keyValueService.SetPairData(session.User, session.Viking, userId, pairId, schemaData);
+        bool result = keyValueService.SetPairData(user, viking, userId, pairId, schemaData);
 
         return Ok(result);
     }
