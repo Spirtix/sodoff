@@ -816,10 +816,8 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("V2/ContentWebService.asmx/RerollUserItem")]
-    public IActionResult RerollUserItem([FromForm] string apiToken, [FromForm] string request) {
-        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
-        if (viking is null || viking.Inventory is null) return Unauthorized();
-
+    [VikingSession]
+    public IActionResult RerollUserItem(Viking viking, [FromForm] string request) {
         RollUserItemRequest req = XmlUtil.DeserializeXml<RollUserItemRequest>(request);
 
         // get item
@@ -907,10 +905,8 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("V2/ContentWebService.asmx/FuseItems")]
-    public IActionResult FuseItems([FromForm] string apiToken, [FromForm] string fuseItemsRequest) {
-        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
-        if (viking is null || viking.Inventory is null) return Unauthorized();
-
+    [VikingSession]
+    public IActionResult FuseItems(Viking viking, [FromForm] string fuseItemsRequest) {
         FuseItemsRequest req = XmlUtil.DeserializeXml<FuseItemsRequest>(fuseItemsRequest);
 
         ItemData blueprintItem;
@@ -961,10 +957,8 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("V2/ContentWebService.asmx/SellItems")]
-    public IActionResult SellItems([FromForm] string apiToken, [FromForm] string sellItemsRequest) {
-        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
-        if (viking is null || viking.Inventory is null) return Unauthorized();
-
+    [VikingSession]
+    public IActionResult SellItems(Viking viking, [FromForm] string sellItemsRequest) {
         int price = 0;
         SellItemsRequest req = XmlUtil.DeserializeXml<SellItemsRequest>(sellItemsRequest);
         foreach (var invItemID in req.UserInventoryCommonIDs) {
@@ -1014,10 +1008,8 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("V2/ContentWebService.asmx/AddBattleItems")]
-    public IActionResult AddBattleItems([FromForm] string apiToken, [FromForm] string request) {
-        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
-        if (viking is null || viking.Inventory is null) return Unauthorized();
-
+    [VikingSession]
+    public IActionResult AddBattleItems(Viking viking, [FromForm] string request) {
         AddBattleItemsRequest req = XmlUtil.DeserializeXml<AddBattleItemsRequest>(request);
         
         var resItemList = new List<InventoryItemStatsMap>();
@@ -1039,10 +1031,8 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("V2/ContentWebService.asmx/ApplyRewards")]
-    public IActionResult ApplyRewards([FromForm] string apiToken, [FromForm] string request) {
-        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
-        if (viking is null || viking.Inventory is null) return Unauthorized();
-        
+    [VikingSession]
+    public IActionResult ApplyRewards(Viking viking, [FromForm] string request) {
         ApplyRewardsRequest req = XmlUtil.DeserializeXml<ApplyRewardsRequest>(request);
         
         List<AchievementReward> achievementRewards = new List<AchievementReward>();
