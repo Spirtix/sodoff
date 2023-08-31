@@ -31,7 +31,8 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("ContentWebService.asmx/GetDefaultNameSuggestion")]
-    public IActionResult GetDefaultNameSuggestion([FromForm] string apiToken) {
+    [VikingSession(Mode=VikingSession.Modes.VIKING_OR_USER, UseLock=false)]
+    public IActionResult GetDefaultNameSuggestion(User? user, Viking? viking) {
         string[] adjs = { //Adjectives used to generate suggested names
             "Adventurous", "Active", "Alert", "Attentive",
             "Beautiful", "Berkian", "Berserker", "Bold", "Brave",
@@ -60,13 +61,8 @@ public class ContentController : Controller {
             "Zealous", "Zealot"
         };
 
-        Session? session = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken);
-        if (session is null)
-            return Unauthorized();
-
-        User? user = session.User;
         if (user is null)
-            user = session.Viking?.User;
+            user = viking.User;
         string uname = user.Username;
 
         Random choice = new Random(); //Randomizer for selecting random adjectives
@@ -87,13 +83,7 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("V2/ContentWebService.asmx/ValidateName")]
-    public IActionResult ValidateName([FromForm] string apiToken,[FromForm] string nameValidationRequest) {
-        User? user = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.User;
-        if (user is null) {
-            // TODO: better error handling than just replying not unique
-            return Ok(new NameValidationResponse { Result = NameValidationResult.NotUnique });
-        }
-
+    public IActionResult ValidateName([FromForm] string nameValidationRequest) {
         // Check if name populated
         NameValidationRequest request = XmlUtil.DeserializeXml<NameValidationRequest>(nameValidationRequest);
 
@@ -173,15 +163,8 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("ContentWebService.asmx/GetCommonInventory")]
-    public IActionResult GetCommonInventory([FromForm] string apiToken) {
-        // TODO: what is the difference between this and v2? this can be called with user apiToken and v2 not? maybe it should be unified?
-        User? user = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.User;
-        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
-        if (user is null && viking is null) {
-            return Ok();
-        }
-
-        List<UserItemData> userItemData;
+    [VikingSession(Mode=VikingSession.Modes.VIKING_OR_USER, UseLock=false)]
+    public IActionResult GetCommonInventory(User? user, Viking? viking) {
         if (viking != null) {
             return Ok( inventoryService.GetCommonInventoryData(viking) );
         } else {
@@ -205,22 +188,17 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("V2/ContentWebService.asmx/GetCommonInventory")]
-    public IActionResult GetCommonInventoryV2([FromForm] string apiToken) {
-        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
-        if (viking is null || viking.Inventory is null) return Ok();
-
+    [VikingSession(UseLock=false)]
+    public IActionResult GetCommonInventoryV2(Viking viking) {
         return Ok(inventoryService.GetCommonInventoryData(viking));
     }
 
     [HttpPost]
     [Produces("application/xml")]
     [Route("ContentWebService.asmx/SetCommonInventory")]
-    public IActionResult SetCommonInventory([FromForm] string apiToken, [FromForm] string commonInventoryRequestXml) {
+    [VikingSession]
+    public IActionResult SetCommonInventory(Viking viking, [FromForm] string commonInventoryRequestXml) {
         CommonInventoryRequest[] request = XmlUtil.DeserializeXml<CommonInventoryRequest[]>(commonInventoryRequestXml);
-        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
-        if (viking is null || viking.Inventory is null) return Ok();
-
-        // Set inventory items
         List<CommonInventoryResponseItem> responseItems = new();
 
         // SetCommonInventory can remove any number of items from the inventory, this checks if it's possible
@@ -268,8 +246,8 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("ContentWebService.asmx/UseInventory")]
-    public IActionResult UseInventory([FromForm] string apiToken, [FromForm] int userInventoryId, [FromForm] int numberOfUses) {
-        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
+    [VikingSession]
+    public IActionResult UseInventory(Viking viking, [FromForm] int userInventoryId, [FromForm] int numberOfUses) {
         InventoryItem? item = viking.Inventory.InventoryItems.FirstOrDefault(e => e.Id == userInventoryId);
         if (item is null)
             return Ok(false);
@@ -291,25 +269,9 @@ public class ContentController : Controller {
 
     [HttpPost]
     [Produces("application/xml")]
-    [Route("ItemStoreWebService.asmx/GetItem")] // NOTE: Should be in a separate controler, but it's inventory related, so I'll leave it here for now
-    public IActionResult GetItem([FromForm] int itemId) {
-        if (itemId == 0) // For a null item, return an empty item
-            return Ok(new ItemData());
-        return Ok(itemService.GetItem(itemId));
-    }
-
-    [HttpPost]
-    [Produces("application/xml")]
     [Route("V2/ContentWebService.asmx/SetAvatar")]
-    public IActionResult SetAvatar([FromForm] string apiToken, [FromForm] string contentXML) {
-        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
-        if (viking is null) {
-            return Ok(new SetAvatarResult {
-                Success = false,
-                StatusCode = AvatarValidationResult.Error
-            });
-        }
-
+    [VikingSession]
+    public IActionResult SetAvatar(Viking viking, [FromForm] string contentXML) {
         AvatarData avatarData = XmlUtil.DeserializeXml<AvatarData>(contentXML);
         foreach (AvatarDataPart part in avatarData.Part) {
             if (part.PartType == "Version") {
@@ -331,22 +293,17 @@ public class ContentController : Controller {
         ctx.SaveChanges();
 
         return Ok(new SetAvatarResult {
-			Success = true,
-			DisplayName = viking.Name,
-			StatusCode = AvatarValidationResult.Valid
-		});
+            Success = true,
+            DisplayName = viking.Name,
+            StatusCode = AvatarValidationResult.Valid
+        });
     }
 
     [HttpPost]
     [Produces("application/xml")]
     [Route("V2/ContentWebService.asmx/CreatePet")]
-    public IActionResult CreatePet([FromForm] string apiToken, [FromForm] string request) {
-        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
-        if (viking is null) {
-            // TODO: result for invalid session
-            return Ok();
-        }
-
+    [VikingSession]
+    public IActionResult CreatePet(Viking viking, [FromForm] string request) {
         RaisedPetRequest raisedPetRequest = XmlUtil.DeserializeXml<RaisedPetRequest>(request);
         // TODO: Investigate SetAsSelectedPet and UnSelectOtherPets - they don't seem to do anything
 
@@ -406,14 +363,9 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("v3/ContentWebService.asmx/SetRaisedPet")]
-    public IActionResult SetRaisedPet([FromForm] string apiToken, [FromForm] string request, [FromForm] bool? import) {
-        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
-        if (viking is null) {
-            // TODO: result for invalid session
-            return Ok();
-        }
-
-        RaisedPetRequest raisedPetRequest = XmlUtil.DeserializeXml<RaisedPetRequest>(request);
+    [VikingSession]
+    public IActionResult SetRaisedPet(Viking viking, [FromForm] string request, [FromForm] bool? import) {
+         RaisedPetRequest raisedPetRequest = XmlUtil.DeserializeXml<RaisedPetRequest>(request);
 
         // Find the dragon
         Dragon? dragon = viking.Dragons.FirstOrDefault(e => e.Id == raisedPetRequest.RaisedPetData.RaisedPetID);
@@ -437,13 +389,8 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("ContentWebService.asmx/SetSelectedPet")]
-    public IActionResult SetSelectedPet([FromForm] string apiToken, [FromForm] int raisedPetID) {
-        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
-        if (viking is null) {
-            // TODO: result for invalid session
-            return Ok();
-        }
-
+    [VikingSession]
+    public IActionResult SetSelectedPet(Viking viking, [FromForm] int raisedPetID) {
         // Find the dragon
         Dragon? dragon = viking.Dragons.FirstOrDefault(e => e.Id == raisedPetID);
         if (dragon is null) {
@@ -463,13 +410,9 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("V2/ContentWebService.asmx/GetAllActivePetsByuserId")]
-    public RaisedPetData[]? GetAllActivePetsByuserId([FromForm] string apiToken, [FromForm] string userId, [FromForm] bool active) {
-        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
-        if (viking is null) {
-            return null;
-        }
-
-        RaisedPetData[] dragons = viking.Dragons // TODO (multiplayer) we should use userId
+    [VikingSession(UseLock=false)]
+    public RaisedPetData[]? GetAllActivePetsByuserId(Viking viking, [FromForm] string userId, [FromForm] bool active) {
+        RaisedPetData[] dragons = viking.Dragons // TODO (multiplayer) we should use userId ?
             .Where(d => d.RaisedPetData is not null)
             .Select(GetRaisedPetDataFromDragon)
             .ToArray();
@@ -483,12 +426,8 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("ContentWebService.asmx/GetUnselectedPetByTypes")]
-    public RaisedPetData[]? GetUnselectedPetByTypes([FromForm] string apiToken, [FromForm] string petTypeIDs, [FromForm] bool active) {
-        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
-        if (viking is null) {
-            return null;
-        }
-
+    [VikingSession(UseLock=false)]
+    public RaisedPetData[]? GetUnselectedPetByTypes(Viking viking, [FromForm] string petTypeIDs, [FromForm] bool active) {
         RaisedPetData[] dragons = viking.Dragons
             .Where(d => d.RaisedPetData is not null)
             .Select(GetRaisedPetDataFromDragon)
@@ -516,12 +455,8 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("ContentWebService.asmx/GetSelectedRaisedPet")]
-    public RaisedPetData[]? GetSelectedRaisedPet([FromForm] string apiToken, [FromForm] string userId, [FromForm] bool isActive) {
-        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
-        if (viking is null) {
-            return null;
-        }
-
+    [VikingSession(UseLock=false)]
+    public RaisedPetData[]? GetSelectedRaisedPet(Viking viking, [FromForm] string userId, [FromForm] bool isActive) {
         Dragon? dragon = viking.SelectedDragon;
         if (dragon is null) {
             return null;
@@ -535,12 +470,8 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("ContentWebService.asmx/SetImage")]
-    public bool SetImage([FromForm] string apiToken, [FromForm] string ImageType, [FromForm] int ImageSlot, [FromForm] string contentXML, [FromForm] string imageFile) {
-        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
-        if (viking is null || viking.Dragons is null) {
-            return false;
-        }
-
+    [VikingSession]
+    public bool SetImage(Viking viking, [FromForm] string ImageType, [FromForm] int ImageSlot, [FromForm] string contentXML, [FromForm] string imageFile) {
         // TODO: the other properties of contentXML
         ImageData data = XmlUtil.DeserializeXml<ImageData>(contentXML);
 
@@ -572,12 +503,8 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("ContentWebService.asmx/GetImage")]
-    public ImageData? GetImage([FromForm] string apiToken, [FromForm] string ImageType, [FromForm] int ImageSlot) {
-        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
-        if (viking is null || viking.Images is null) {
-            return null;
-        }
-
+    [VikingSession(UseLock=false)]
+    public ImageData? GetImage(Viking viking, [FromForm] string ImageType, [FromForm] int ImageSlot) {
         return GetImageData(viking, ImageType, ImageSlot);
     }
 
@@ -650,10 +577,10 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("ContentWebService.asmx/AcceptMission")]
-    public IActionResult AcceptMission([FromForm] string userId, [FromForm] int missionId) {
-        Viking? viking = ctx.Vikings.FirstOrDefault(x => x.Id == userId);
-        if (viking is null)
-            return Ok(false);
+    [VikingSession]
+    public IActionResult AcceptMission(Viking viking, [FromForm] string userId, [FromForm] int missionId) {
+        if (viking.Id != userId)
+            return Unauthorized("Can't accept not owned mission");
 
         MissionState? missionState = viking.MissionStates.FirstOrDefault(x => x.MissionId == missionId);
         if (missionState is null || missionState.MissionStatus != MissionStatus.Upcoming)
@@ -668,6 +595,7 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("V2/ContentWebService.asmx/GetUserMissionState")]
+    //[VikingSession(UseLock=false)]
     public IActionResult GetUserMissionState([FromForm] string userId, [FromForm] string filter) {
         MissionRequestFilterV2 filterV2 = XmlUtil.DeserializeXml<MissionRequestFilterV2>(filter);
         Viking? viking = ctx.Vikings.FirstOrDefault(x => x.Id == userId);
@@ -686,10 +614,10 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("V2/ContentWebService.asmx/SetTaskState")]
-    public IActionResult SetTaskState([FromForm] string apiToken, [FromForm] string userId, [FromForm] int missionId, [FromForm] int taskId, [FromForm] bool completed, [FromForm] string xmlPayload) {
-        Session? session = ctx.Sessions.FirstOrDefault(s => s.ApiToken == apiToken);
-        if (session is null || session.VikingId != userId)
-            return Ok(new SetTaskStateResult { Success = false, Status = SetTaskStateStatus.Unknown });
+    [VikingSession]
+    public IActionResult SetTaskState(Viking viking, [FromForm] string userId, [FromForm] int missionId, [FromForm] int taskId, [FromForm] bool completed, [FromForm] string xmlPayload) {
+        if (viking.Id != userId)
+            return Unauthorized("Can't set not owned task");
 
         List<MissionCompletedResult> results = missionService.UpdateTaskProgress(missionId, taskId, userId, completed, xmlPayload);
 
@@ -715,11 +643,8 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("V2/ContentWebService.asmx/PurchaseItems")]
-    public IActionResult PurchaseItems([FromForm] string apiToken, [FromForm] string purchaseItemRequest) {
-        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
-        if (viking is null)
-            return Ok();
-
+    [VikingSession]
+    public IActionResult PurchaseItems(Viking viking, [FromForm] string purchaseItemRequest) {
         PurchaseStoreItemRequest request = XmlUtil.DeserializeXml<PurchaseStoreItemRequest>(purchaseItemRequest);
         CommonInventoryResponseItem[] items = new CommonInventoryResponseItem[request.Items.Length];
         for (int i = 0; i < request.Items.Length; i++) {
@@ -744,11 +669,8 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("ContentWebService.asmx/PurchaseItems")]
-    public IActionResult PurchaseItemsV1([FromForm] string apiToken, [FromForm] string itemIDArrayXml) {
-        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
-        if (viking is null)
-            return Ok();
-
+    [VikingSession]
+    public IActionResult PurchaseItemsV1(Viking viking, [FromForm] string itemIDArrayXml) {
         int[] itemIdArr = XmlUtil.DeserializeXml<int[]>(itemIDArrayXml);
         CommonInventoryResponseItem[] items = new CommonInventoryResponseItem[itemIdArr.Length];
         for (int i = 0; i < itemIdArr.Length; i++) {
@@ -773,10 +695,11 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("ContentWebService.asmx/GetUserRoomItemPositions")]
-    public IActionResult GetUserRoomItemPositions([FromForm] string apiToken, [FromForm] string roomID) {
+    [VikingSession(UseLock=false)]
+    public IActionResult GetUserRoomItemPositions(Viking viking, [FromForm] string roomID) {
         if (roomID is null)
             roomID = "";
-        Room? room = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking?.Rooms.FirstOrDefault(x => x.RoomId == roomID);
+        Room? room = viking.Rooms.FirstOrDefault(x => x.RoomId == roomID); // TODO: this can break visiting farm of another viking's
         if (room is null)
             return Ok(new UserItemPositionList { UserItemPosition = new UserItemPosition[0] });
         return Ok(roomService.GetUserItemPositionList(room));
@@ -785,16 +708,17 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("ContentWebService.asmx/SetUserRoomItemPositions")]
-    public IActionResult SetUserRoomItemPositions([FromForm] string apiToken, [FromForm] string createXml, [FromForm] string updateXml, [FromForm] string removeXml, [FromForm] string roomID) {
+    [VikingSession]
+    public IActionResult SetUserRoomItemPositions(Viking viking, [FromForm] string createXml, [FromForm] string updateXml, [FromForm] string removeXml, [FromForm] string roomID) {
         if (roomID is null)
             roomID = "";
-        Room? room = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking?.Rooms.FirstOrDefault(x => x.RoomId == roomID);
+        Room? room = viking.Rooms.FirstOrDefault(x => x.RoomId == roomID);
         if (room is null) {
             room = new Room {
                 RoomId = roomID,
                 Items = new List<RoomItem>()
             };
-            ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking?.Rooms.Add(room);
+            viking.Rooms.Add(room);
             ctx.SaveChanges();
         }
 
@@ -858,16 +782,17 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("ContentWebService.asmx/SetUserRoom")]
-    public IActionResult SetUserRoom([FromForm] string apiToken, [FromForm] string request) {
+    [VikingSession]
+    public IActionResult SetUserRoom(Viking viking, [FromForm] string request) {
         UserRoom roomRequest = XmlUtil.DeserializeXml<UserRoom>(request);
-        Room? room = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking?.Rooms.FirstOrDefault(x => x.RoomId == roomRequest.RoomID);
+        Room? room = viking.Rooms.FirstOrDefault(x => x.RoomId == roomRequest.RoomID);
         if (room is null) {
             // setting farm room name can be done before call SetUserRoomItemPositions
             room = new Room {
                 RoomId = roomRequest.RoomID,
                 Name = roomRequest.Name
             };
-            ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking?.Rooms.Add(room);
+            viking.Rooms.Add(room);
         } else {
             room.Name = roomRequest.Name;
         }
@@ -882,21 +807,22 @@ public class ContentController : Controller {
     [Produces("application/xml")]
     [Route("ContentWebService.asmx/GetUserActivityByUserID")]
     public IActionResult GetUserActivityByUserID() {
+        // TODO: This is a placeholder
         return Ok(new ArrayOfUserActivity { UserActivity = new UserActivity[0] });
     }
 
     [HttpPost]
     [Produces("application/xml")]
     [Route("ContentWebService.asmx/SetNextItemState")]
-    public IActionResult SetNextItemState([FromForm] string apiToken, [FromForm] string setNextItemStateRequest) {
+    [VikingSession]
+    public IActionResult SetNextItemState(Viking viking, [FromForm] string setNextItemStateRequest) {
         SetNextItemStateRequest request = XmlUtil.DeserializeXml<SetNextItemStateRequest>(setNextItemStateRequest);
         RoomItem? item = ctx.RoomItems.FirstOrDefault(x => x.Id == request.UserItemPositionID);
         if (item is null)
             return Ok();
 
-        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
         if (item.Room.Viking != viking)
-            return Unauthorized();
+            return Unauthorized("Can't set state not owned item");
 
         // NOTE: The game sets OverrideStateCriteria only if a speedup is used
         return Ok(roomService.NextItemState(item, request.OverrideStateCriteria));

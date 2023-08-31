@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using sodoff.Attributes;
 using sodoff.Model;
 using sodoff.Schema;
 
@@ -25,15 +26,8 @@ public class MembershipController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("MembershipWebService.asmx/GetChildList")]
-    public IActionResult GetChildList([FromForm] string apiToken) {
-        User? user = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.User;
-        if (user is null)
-            // TODO: what response for not logged in?
-            return null;
-
-        if (user.Vikings.Count <= 0)
-            return null;
-
+    [VikingSession(Mode=VikingSession.Modes.USER, UseLock=false)]
+    public IActionResult GetChildList(User user) {
         ChildList profiles = new ChildList();
         profiles.strings = user.Vikings.Select(viking => viking.Id + ", " + viking.Name).ToArray();
 

@@ -20,14 +20,8 @@ public class AchievementController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("AchievementWebService.asmx/GetPetAchievementsByUserID")]
-    public IActionResult GetPetAchievementsByUserID([FromForm] string apiToken, [FromForm] string userId) {
-        // TODO: check session
-
-        Viking? viking = ctx.Vikings.FirstOrDefault(e => e.Id == userId);
-        if (viking is null) {
-            return null;
-        }
-
+    [VikingSession(UseLock=false)]
+    public IActionResult GetPetAchievementsByUserID(Viking viking, [FromForm] string userId) {
         List<UserAchievementInfo> dragonsAchievement = new List<UserAchievementInfo>();
         foreach (Dragon dragon in viking.Dragons) {
             dragonsAchievement.Add(
@@ -68,12 +62,8 @@ public class AchievementController : Controller {
 
     [HttpPost]
     [Route("AchievementWebService.asmx/SetDragonXP")]  // used by dragonrescue-import
-    public IActionResult SetDragonXP([FromForm] string apiToken, [FromForm] string dragonId, [FromForm] int value) {
-        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
-        if (viking is null) {
-            return Unauthorized();
-        }
-
+    [VikingSession]
+    public IActionResult SetDragonXP(Viking viking, [FromForm] string dragonId, [FromForm] int value) {
         Dragon? dragon = viking.Dragons.FirstOrDefault(e => e.EntityId == dragonId);
         if (dragon is null) {
             return Conflict("Dragon not found");
@@ -87,12 +77,8 @@ public class AchievementController : Controller {
 
     [HttpPost]
     [Route("AchievementWebService.asmx/SetPlayerXP")]  // used by dragonrescue-import
-    public IActionResult SetDragonXP([FromForm] string apiToken, [FromForm] int type, [FromForm] int value) {
-        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
-        if (viking is null) {
-            return Unauthorized();
-        }
-
+    [VikingSession]
+    public IActionResult SetDragonXP(Viking viking, [FromForm] int type, [FromForm] int value) {
         if (!Enum.IsDefined(typeof(AchievementPointTypes), type)) {
             return Conflict("Invalid XP type");
         }
@@ -138,7 +124,7 @@ public class AchievementController : Controller {
     [Produces("application/xml")]
     [Route("AchievementWebService.asmx/SetAchievementAndGetReward")]
     [Route("AchievementWebService.asmx/SetUserAchievementAndGetReward")]
-    [VikingSession()]
+    [VikingSession(UseLock=true)]
     public IActionResult SetAchievementAndGetReward(Viking viking, [FromForm] int achievementID) {
         var rewards = achievementService.ApplyAchievementRewardsByID(viking, achievementID);
 
@@ -151,7 +137,7 @@ public class AchievementController : Controller {
     [Produces("application/xml")]
     [Route("V2/AchievementWebService.asmx/SetUserAchievementTask")]
     [DecryptRequest("achievementTaskSetRequest")]
-    [VikingSession()]
+    [VikingSession(UseLock=true)]
     public IActionResult SetUserAchievementTask(Viking viking) {
         AchievementTaskSetRequest request = XmlUtil.DeserializeXml<AchievementTaskSetRequest>(Request.Form["achievementTaskSetRequest"]);
 
@@ -178,9 +164,9 @@ public class AchievementController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("AchievementWebService.asmx/SetAchievementByEntityIDs")]
-    public IActionResult SetAchievementByEntityIDs([FromForm] string apiToken, [FromForm] int achievementID) {
+    [VikingSession]
+    public IActionResult SetAchievementByEntityIDs(Viking viking, [FromForm] int achievementID) {
         // TODO: This is a placeholder
-        Viking? viking = ctx.Sessions.FirstOrDefault(x => x.ApiToken == apiToken).Viking;
         return Ok(new AchievementReward[1] {
             new AchievementReward {
                 Amount = 25,

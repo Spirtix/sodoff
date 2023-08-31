@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using Microsoft.AspNetCore.Mvc;
+using sodoff.Attributes;
 using sodoff.Model;
 using sodoff.Schema;
 using sodoff.Services;
@@ -32,26 +33,16 @@ public class ProfileController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("ProfileWebService.asmx/GetUserProfile")]
-    public IActionResult GetUserProfile([FromForm] string apiToken) {
-        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
-        User? user = viking?.User;
-        if (user is null || viking is null) {
-            // TODO: what response for not logged in?
-            return Ok();
-        }
-
-		return Ok(GetProfileDataFromViking(viking));
+    [VikingSession(UseLock=false)]
+    public IActionResult GetUserProfile(Viking viking) {
+        return Ok(GetProfileDataFromViking(viking));
     }
 
     [HttpPost]
     [Produces("application/xml")]
     [Route("ProfileWebService.asmx/GetDetailedChildList")]
-    public Schema.UserProfileDataList? GetDetailedChildList([FromForm] string parentApiToken) {
-        User? user = ctx.Sessions.FirstOrDefault(e => e.ApiToken == parentApiToken)?.User;
-        if (user is null)
-            // TODO: what response for not logged in?
-            return null;
-
+    [VikingSession(Mode=VikingSession.Modes.USER, ApiToken="parentApiToken", UseLock=false)]
+    public Schema.UserProfileDataList? GetDetailedChildList(User user) {
         if (user.Vikings.Count <= 0)
             return null;
 
@@ -64,7 +55,7 @@ public class ProfileController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("ProfileWebService.asmx/GetQuestions")]
-    public IActionResult GetQuestions([FromForm] string apiToken) {
+    public IActionResult GetQuestions() {
 		return Ok(new ProfileQuestionData {
             Lists = new ProfileQuestionList[] {
                 new ProfileQuestionList {
