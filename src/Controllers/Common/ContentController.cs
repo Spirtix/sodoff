@@ -16,13 +16,16 @@ public class ContentController : Controller {
     private MissionService missionService;
     private RoomService roomService;
     private AchievementService achievementService;
-    public ContentController(DBContext ctx, KeyValueService keyValueService, ItemService itemService, MissionService missionService, RoomService roomService, AchievementService achievementService) {
+    private InventoryService inventoryService;
+    private Random random = new Random();
+    public ContentController(DBContext ctx, KeyValueService keyValueService, ItemService itemService, MissionService missionService, RoomService roomService, AchievementService achievementService, InventoryService inventoryService) {
         this.ctx = ctx;
         this.keyValueService = keyValueService;
         this.itemService = itemService;
         this.missionService = missionService;
         this.roomService = roomService;
         this.achievementService = achievementService;
+        this.inventoryService = inventoryService;
     }
 
     [HttpPost]
@@ -107,7 +110,7 @@ public class ContentController : Controller {
             return null;
 
         // Get the pair
-        Model.PairData? pair = keyValueService.GetPairData(session.UserId, session.VikingId, pairId);
+        Model.PairData? pair = keyValueService.GetPairData(session.User, session.Viking, null, pairId);
 
         return keyValueService.ModelToSchema(pair);
     }
@@ -123,7 +126,7 @@ public class ContentController : Controller {
         if (session is null)
             return Ok(false);
 
-        bool result = keyValueService.SetPairData(session.UserId, session.VikingId, pairId, schemaData);
+        bool result = keyValueService.SetPairData(session.User, session.Viking, null, pairId, schemaData);
 
         return Ok(result);
     }
@@ -136,7 +139,7 @@ public class ContentController : Controller {
         if (session is null)
             return null;
 
-        Model.PairData? pair = keyValueService.GetPairData(userId, null, pairId);
+        Model.PairData? pair = keyValueService.GetPairData(session.User, session.Viking, userId, pairId);
 
         return keyValueService.ModelToSchema(pair);
     }
@@ -152,7 +155,7 @@ public class ContentController : Controller {
         if (session is null || string.IsNullOrEmpty(userId))
             return Ok(false);
 
-        bool result = keyValueService.SetPairData(userId, null, pairId, schemaData);
+        bool result = keyValueService.SetPairData(session.User, session.Viking, userId, pairId, schemaData);
 
         return Ok(result);
     }
@@ -162,39 +165,24 @@ public class ContentController : Controller {
     [Route("ContentWebService.asmx/GetCommonInventory")]
     [VikingSession(Mode=VikingSession.Modes.VIKING_OR_USER, UseLock=false)]
     public IActionResult GetCommonInventory(User? user, Viking? viking) {
-        List<UserItemData> userItemData = new();
         if (viking != null) {
-            List<InventoryItem> items = viking.Inventory.InventoryItems.ToList();
-            foreach (InventoryItem item in items) {
-                if (item.Quantity == 0) continue; // Don't include an item that the viking doesn't have
-                ItemData itemData = itemService.GetItem(item.ItemId);
-                UserItemData uid = new UserItemData {
-                    UserInventoryID = item.Id,
-                    ItemID = itemData.ItemID,
-                    Quantity = item.Quantity,
-                    Uses = itemData.Uses,
-                    ModifiedDate = new DateTime(DateTime.Now.Ticks),
-                    Item = itemData
-                };
-                userItemData.Add(uid);
-            }
+            return Ok( inventoryService.GetCommonInventoryData(viking) );
         } else {
             // TODO: placeholder - return 8 viking slot items
-            UserItemData uid = new UserItemData {
-                UserInventoryID = 0,
-                ItemID = 7971,
-                Quantity = 8,
-                Uses = -1,
-                ModifiedDate = new DateTime(DateTime.Now.Ticks),
-                Item = itemService.GetItem(7971)
-            };
-            userItemData.Add(uid);
+            return Ok(new CommonInventoryData {
+                UserID = Guid.Parse(user.Id),
+                Item = new UserItemData[] {
+                    new UserItemData {
+                        UserInventoryID = 0,
+                        ItemID = 7971,
+                        Quantity = 8,
+                        Uses = -1,
+                        ModifiedDate = new DateTime(DateTime.Now.Ticks),
+                        Item = itemService.GetItem(7971)
+                    }
+                }
+            });
         }
-
-        return Ok(new CommonInventoryData {
-            UserID = Guid.Parse(user is not null ? user.Id : viking.Id),
-            Item = userItemData.ToArray()
-        });
     }
 
     [HttpPost]
@@ -202,27 +190,7 @@ public class ContentController : Controller {
     [Route("V2/ContentWebService.asmx/GetCommonInventory")]
     [VikingSession(UseLock=false)]
     public IActionResult GetCommonInventoryV2(Viking viking) {
-        List<InventoryItem> items = viking.Inventory.InventoryItems.ToList();
-        List<UserItemData> userItemData = new();
-        foreach (InventoryItem item in items) {
-            if (item.Quantity == 0) continue; // Don't include an item that the viking doesn't have
-            ItemData itemData = itemService.GetItem(item.ItemId);
-            UserItemData uid = new UserItemData {
-                UserInventoryID = item.Id,
-                ItemID = itemData.ItemID,
-                Quantity = item.Quantity,
-                Uses = itemData.Uses,
-                ModifiedDate = new DateTime(DateTime.Now.Ticks),
-                Item = itemData
-            };
-            userItemData.Add(uid);
-        }
-
-        CommonInventoryData invData = new CommonInventoryData {
-            UserID = Guid.Parse(viking.UserId),
-            Item = userItemData.ToArray()
-        };
-        return Ok(invData);
+        return Ok(inventoryService.GetCommonInventoryData(viking));
     }
 
     [HttpPost]
@@ -245,7 +213,7 @@ public class ContentController : Controller {
         foreach (var req in request) {
             if (req.ItemID == 0) continue; // Do not save a null item
             
-            if (IsFarmExpansion((int)req.ItemID)) {
+            if (inventoryService.ItemNeedUniqueInventorySlot((int)req.ItemID)) {
                 // if req.Quantity < 0 remove unique items
                 for (int i=req.Quantity; i<0; ++i) {
                      InventoryItem? item = viking.Inventory.InventoryItems.FirstOrDefault(e => e.ItemId == req.ItemID && e.Quantity>0);
@@ -253,32 +221,16 @@ public class ContentController : Controller {
                 }
                 // if req.Quantity > 0 add unique items
                 for (int i=0; i<req.Quantity; ++i) {
-                    InventoryItem item = new InventoryItem { ItemId = (int)req.ItemID, Quantity = 1 };
-                    viking.Inventory.InventoryItems.Add(item);
-                    ctx.SaveChanges(); // We need to get the ID of the newly created item
-                    responseItems.Add(new CommonInventoryResponseItem {
-                        CommonInventoryID = item.Id,
-                        ItemID = item.ItemId,
-                        Quantity = 0
-                    });
+                    responseItems.Add(
+                        inventoryService.AddItemToInventoryAndGetResponse(viking, (int)req.ItemID!, 1)
+                    );
                 }
             } else {
-                InventoryItem? item = viking.Inventory.InventoryItems.FirstOrDefault(e => e.ItemId == req.ItemID);
-                if (item is null) {
-                    item = new InventoryItem { ItemId = (int)req.ItemID, Quantity = 0 };
-                    viking.Inventory.InventoryItems.Add(item);
+                if (req.Quantity > 0) {
+                    responseItems.Add(
+                        inventoryService.AddItemToInventoryAndGetResponse(viking, (int)req.ItemID!, req.Quantity)
+                    );
                 }
-                int updateQuantity = 0; // The game expects 0 if quantity got updated by just 1
-                if (req.Quantity > 1)
-                    updateQuantity = req.Quantity; // Otherwise it expects the quantity from the request
-                item.Quantity += req.Quantity;
-                ctx.SaveChanges(); // We need to get the ID of the newly created item
-                if (req.Quantity > 0)
-                    responseItems.Add(new CommonInventoryResponseItem {
-                        CommonInventoryID = item.Id,
-                        ItemID = item.ItemId,
-                        Quantity = updateQuantity
-                    });
             }
         }
 
@@ -696,20 +648,9 @@ public class ContentController : Controller {
         PurchaseStoreItemRequest request = XmlUtil.DeserializeXml<PurchaseStoreItemRequest>(purchaseItemRequest);
         CommonInventoryResponseItem[] items = new CommonInventoryResponseItem[request.Items.Length];
         for (int i = 0; i < request.Items.Length; i++) {
-            InventoryItem? item = null;
-            if (!IsFarmExpansion(request.Items[i])) 
-                item = viking.Inventory.InventoryItems.FirstOrDefault(e => e.ItemId == request.Items[i]);
-            if (item is null) {
-                item = new InventoryItem { ItemId = request.Items[i], Quantity = 0 };
-                viking.Inventory.InventoryItems.Add(item);
-            }
-            item.Quantity++;
-            ctx.SaveChanges();
-            items[i] = new CommonInventoryResponseItem {
-                CommonInventoryID = item.Id,
-                ItemID = request.Items[i],
-                Quantity = 0 // The quantity of purchased items is always 0 and the items are instead duplicated in both the request and the response
-            };
+            items[i] = inventoryService.AddItemToInventoryAndGetResponse(viking, request.Items[i], 1);
+            // NOTE: The quantity of purchased items is always 0 and the items are instead duplicated in both the request and the response.
+            //       Call AddItemToInventoryAndGetResponse with Quantity == 1 we get response with quantity == 0.
         }
 
         CommonInventoryResponse response = new CommonInventoryResponse {
@@ -733,18 +674,9 @@ public class ContentController : Controller {
         int[] itemIdArr = XmlUtil.DeserializeXml<int[]>(itemIDArrayXml);
         CommonInventoryResponseItem[] items = new CommonInventoryResponseItem[itemIdArr.Length];
         for (int i = 0; i < itemIdArr.Length; i++) {
-            InventoryItem? item = viking.Inventory.InventoryItems.FirstOrDefault(e => e.ItemId == itemIdArr[i]);
-            if (item is null) {
-                item = new InventoryItem { ItemId = itemIdArr[i], Quantity = 0 };
-                viking.Inventory.InventoryItems.Add(item);
-            }
-            item.Quantity++;
-            ctx.SaveChanges();
-            items[i] = new CommonInventoryResponseItem {
-                CommonInventoryID = item.Id,
-                ItemID = itemIdArr[i],
-                Quantity = 0 // The quantity of purchased items is always 0 and the items are instead duplicated in both the request and the response
-            };
+            items[i] = inventoryService.AddItemToInventoryAndGetResponse(viking, itemIdArr[i], 1);
+            // NOTE: The quantity of purchased items is always 0 and the items are instead duplicated in both the request and the response.
+            //       Call AddItemToInventoryAndGetResponse with Quantity == 1 we get response with quantity == 0.
         }
 
         CommonInventoryResponse response = new CommonInventoryResponse {
@@ -917,11 +849,315 @@ public class ContentController : Controller {
         });
     }
 
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("V2/ContentWebService.asmx/RerollUserItem")]
+    public IActionResult RerollUserItem([FromForm] string apiToken, [FromForm] string request) {
+        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
+        if (viking is null || viking.Inventory is null) return Unauthorized();
+
+        RollUserItemRequest req = XmlUtil.DeserializeXml<RollUserItemRequest>(request);
+
+        // get item
+        InventoryItem? invItem = viking.Inventory.InventoryItems.FirstOrDefault(e => e.Id == req.UserInventoryID);
+        if (invItem is null)
+            return Ok(new RollUserItemResponse { Status = Status.ItemNotFound });
+        
+        // get item data and stats
+        ItemData itemData = itemService.GetItem(invItem.ItemId);
+        ItemStatsMap itemStatsMap;
+        if (invItem.StatsSerialized != null) {
+            itemStatsMap = XmlUtil.DeserializeXml<ItemStatsMap>(invItem.StatsSerialized);
+        } else {
+            itemStatsMap = itemData.ItemStatsMap;
+        }
+
+        List<ItemStat> newStats;
+        Status status = Status.Failure;
+        
+        // update stats
+        if (req.ItemStatNames != null) {
+            // reroll only one stat (from req.ItemStatNames)
+            newStats = new List<ItemStat>();
+            foreach (string name in req.ItemStatNames) {
+                ItemStat itemStat = itemStatsMap.ItemStats.FirstOrDefault(e => e.Name == name);
+
+                // draw new stats
+                StatRangeMap rangeMap = itemData.PossibleStatsMap.Stats.FirstOrDefault(e => e.ItemStatsID == itemStat.ItemStatID).ItemStatsRangeMaps.FirstOrDefault(e => e.ItemTierID == (int)(itemStatsMap.ItemTier));
+                int newVal = random.Next(rangeMap.StartRange, rangeMap.EndRange+1);
+
+                // check draw results
+                Int32.TryParse(itemStat.Value, out int oldVal);
+                if (newVal > oldVal) {
+                    itemStat.Value = newVal.ToString();
+                    newStats.Add(itemStat);
+                    status = Status.Success;
+                }
+            }
+            // get shards
+            inventoryService.AddItemToInventory(viking, InventoryService.Shards, -((int)(itemData.ItemRarity) + (int)(itemStatsMap.ItemTier) - 1));
+        } else {
+            // reroll full item
+            newStats = itemService.CreateItemStats(itemData.PossibleStatsMap, (int)itemData.ItemRarity, (int)itemStatsMap.ItemTier);
+            itemStatsMap.ItemStats = newStats.ToArray();
+            status = Status.Success;
+            // get shards
+            int price = 0;
+            switch (itemData.ItemRarity) {
+                case ItemRarity.Common:
+                    price = 5;
+                    break;
+                case ItemRarity.Rare:
+                    price = 7;
+                    break;
+                case ItemRarity.Epic:
+                    price = 10;
+                    break;
+                case ItemRarity.Legendary:
+                    price = 20;
+                    break;
+            }
+            switch (itemStatsMap.ItemTier) {
+                case ItemTier.Tier2:
+                    price = (int)Math.Floor(price * 1.5);
+                    break;
+                case ItemTier.Tier3:
+                case ItemTier.Tier4:
+                    price = price * 2;
+                    break;
+            }
+            inventoryService.AddItemToInventory(viking, InventoryService.Shards, -price);
+        }
+ 
+        // save
+        invItem.StatsSerialized = XmlUtil.SerializeXml(itemStatsMap);
+        ctx.SaveChanges();
+
+        // return results
+        return Ok(new RollUserItemResponse {
+            Status = status,
+            ItemStats = newStats.ToArray() // we need return only updated stats, so can't `= itemStatsMap.ItemStats`
+        });
+    }
+    
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("V2/ContentWebService.asmx/FuseItems")]
+    public IActionResult FuseItems([FromForm] string apiToken, [FromForm] string fuseItemsRequest) {
+        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
+        if (viking is null || viking.Inventory is null) return Unauthorized();
+
+        FuseItemsRequest req = XmlUtil.DeserializeXml<FuseItemsRequest>(fuseItemsRequest);
+
+        ItemData blueprintItem;
+        try {
+            blueprintItem = itemService.GetItem(req.BluePrintItemID ?? -1);
+        } catch(System.Collections.Generic.KeyNotFoundException) {
+            return Ok(new FuseItemsResponse { Status = Status.BluePrintItemNotFound });
+        }
+
+        // TODO: check for blueprintItem.BluePrint.Deductibles and blueprintItem.BluePrint.Ingredients
+        
+        // remove items from DeductibleItemInventoryMaps and BluePrintFuseItemMaps
+        foreach (var item in req.DeductibleItemInventoryMaps) {
+            InventoryItem? invItem = viking.Inventory.InventoryItems.FirstOrDefault(e => e.Id == item.UserInventoryID);
+            invItem.Quantity -= item.Quantity;
+        }
+        foreach (var item in req.BluePrintFuseItemMaps) {
+            InventoryItem? invItem = viking.Inventory.InventoryItems.FirstOrDefault(e => e.Id == item.UserInventoryID);
+            viking.Inventory.InventoryItems.Remove(invItem);
+        }
+        
+        var resItemList = new List<InventoryItemStatsMap>();
+        foreach (BluePrintSpecification output in blueprintItem.BluePrint.Outputs) {
+            if (output.ItemID is null)
+                continue;
+            
+            // get new item info
+            int newItemId = (int)(output.ItemID);
+            ItemData newItemData = itemService.GetItem(newItemId);
+            
+            // check for "box tickets"
+            if (itemService.ItemHasCategory(newItemData, 462)) {
+                newItemId = itemService.OpenBox(newItemData).ItemId;
+            }
+            
+            resItemList.Add(
+                inventoryService.AddBattleItemToInventory(viking, newItemId, (int)output.Tier)
+            );
+        }
+        
+        // return response with new item info
+        return Ok(new FuseItemsResponse {
+            Status = Status.Success,
+            InventoryItemStatsMaps = resItemList
+        });
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("V2/ContentWebService.asmx/SellItems")]
+    public IActionResult SellItems([FromForm] string apiToken, [FromForm] string sellItemsRequest) {
+        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
+        if (viking is null || viking.Inventory is null) return Unauthorized();
+
+        int price = 0;
+        SellItemsRequest req = XmlUtil.DeserializeXml<SellItemsRequest>(sellItemsRequest);
+        foreach (var invItemID in req.UserInventoryCommonIDs) {
+            // get item from inventory
+            InventoryItem? item = viking.Inventory.InventoryItems.FirstOrDefault(e => e.Id == invItemID);
+
+            // get item data
+            ItemData? itemData = itemService.GetItem(item.ItemId);
+
+            // calculate price
+            switch (itemData.ItemRarity) {
+                case ItemRarity.Common:
+                    price += 1;
+                    break;
+                case ItemRarity.Rare:
+                    price += 3;
+                    break;
+                case ItemRarity.Epic:
+                    price += 5;
+                    break;
+                case ItemRarity.Legendary:
+                    price += 10;
+                    break;
+            }
+            
+            // TODO: cash rewards
+
+            // remove item
+            viking.Inventory.InventoryItems.Remove(item);
+        }
+        
+        // apply shards reward
+        CommonInventoryResponseItem? resShardsItem = inventoryService.AddItemToInventoryAndGetResponse(viking, InventoryService.Shards, price);
+
+        // save
+        ctx.SaveChanges();
+
+        // return success with shards reward
+        return Ok(new CommonInventoryResponse {
+            Success = true,
+            CommonInventoryIDs = new CommonInventoryResponseItem[] {
+                resShardsItem
+            }
+        });
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("V2/ContentWebService.asmx/AddBattleItems")]
+    public IActionResult AddBattleItems([FromForm] string apiToken, [FromForm] string request) {
+        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
+        if (viking is null || viking.Inventory is null) return Unauthorized();
+
+        AddBattleItemsRequest req = XmlUtil.DeserializeXml<AddBattleItemsRequest>(request);
+        
+        var resItemList = new List<InventoryItemStatsMap>();
+        foreach (BattleItemTierMap battleItemTierMap in req.BattleItemTierMaps) {
+            for (int i=0; i<battleItemTierMap.Quantity; ++i) {
+                resItemList.Add(
+                    inventoryService.AddBattleItemToInventory(viking, battleItemTierMap.ItemID, (int)battleItemTierMap.Tier, battleItemTierMap.ItemStats)
+                    // NOTE: battleItemTierMap.ItemStats is extension for importer
+                );
+            }
+        }
+        
+        return Ok(new AddBattleItemsResponse{
+            Status = Status.Success,
+            InventoryItemStatsMaps = resItemList
+        });
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("V2/ContentWebService.asmx/ApplyRewards")]
+    public IActionResult ApplyRewards([FromForm] string apiToken, [FromForm] string request) {
+        Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
+        if (viking is null || viking.Inventory is null) return Unauthorized();
+        
+        ApplyRewardsRequest req = XmlUtil.DeserializeXml<ApplyRewardsRequest>(request);
+        
+        List<AchievementReward> achievementRewards = new List<AchievementReward>();
+        UserItemStatsMap rewardedItem = null;
+        CommonInventoryResponse rewardedBlueprint = null;
+        
+        int rewardMultipler = 0;
+        if (req.LevelRewardType == LevelRewardType.LevelFailure) {
+            rewardMultipler = 1;
+        } else if (req.LevelRewardType == LevelRewardType.LevelCompletion) {
+            rewardMultipler = 2 * req.LevelDifficultyID;
+        }
+        
+        if (rewardMultipler > 0) {
+            // TODO: XP values and method of calculation is not grounded in anything ...
+
+            // dragons XP
+            int dragonXp = 40 * rewardMultipler;
+            foreach (RaisedPetEntityMap petInfo in req.RaisedPetEntityMaps) {
+                Dragon? dragon = viking.Dragons.FirstOrDefault(e => e.Id == petInfo.RaisedPetID);
+                dragon.PetXP = (dragon.PetXP ?? 0) + dragonXp;
+                achievementRewards.Add(new AchievementReward{
+                    EntityID = petInfo.EntityID,
+                    PointTypeID = AchievementPointTypes.DragonXP,
+                    EntityTypeID = 3, // dragon ?
+                    RewardID = 1265, // TODO: placeholder
+                    Amount = dragonXp
+                });
+            }
+
+            // player XP and gems
+            achievementRewards.Add(
+                achievementService.AddAchievementPointsAndGetReward(viking, AchievementPointTypes.PlayerXP, 60 * rewardMultipler)
+            );
+            achievementRewards.Add(
+                achievementService.AddAchievementPointsAndGetReward(viking, AchievementPointTypes.CashCurrency, 2 * rewardMultipler)
+            );
+        }
+
+        //  - battle backpack items and blueprints
+        if (req.LevelRewardType != LevelRewardType.LevelFailure) {
+            ItemData rewardItem = itemService.GetDTReward();
+            if (itemService.ItemHasCategory(rewardItem, 651)) {
+                // blueprint
+                CommonInventoryResponseItem blueprintItem = inventoryService.AddItemToInventoryAndGetResponse(viking, rewardItem.ItemID, 1);
+                rewardedBlueprint = new CommonInventoryResponse {
+                    Success = true,
+                    CommonInventoryIDs = new CommonInventoryResponseItem[] {
+                        blueprintItem
+                    }
+                };
+            } else {
+                // DT item
+                InventoryItemStatsMap item = inventoryService.AddBattleItemToInventory(viking, rewardItem.ItemID, random.Next(1, 4));
+                rewardedItem = new UserItemStatsMap {
+                    Item = item.Item,
+                    ItemStats = item.ItemStatsMap.ItemStats,
+                    ItemTier = item.ItemStatsMap.ItemTier,
+                    CreatedDate = new DateTime(DateTime.Now.Ticks)
+                };
+            }
+        }
+
+        // save
+        ctx.SaveChanges();
+        
+        return Ok(new ApplyRewardsResponse {
+            Status = Status.Success,
+            AchievementRewards = achievementRewards.ToArray(),
+            RewardedItemStatsMap = rewardedItem,
+            CommonInventoryResponse = rewardedBlueprint,
+        });
+    }
+
     private RaisedPetData GetRaisedPetDataFromDragon (Dragon dragon) {
         RaisedPetData data = XmlUtil.DeserializeXml<RaisedPetData>(dragon.RaisedPetData);
         data.RaisedPetID = dragon.Id;
         data.EntityID = Guid.Parse(dragon.EntityId);
-        data.IsSelected = dragon.SelectedViking is not null;
+        data.IsSelected = (dragon.Viking.SelectedDragonId == dragon.Id);
         return data;
     }
 
@@ -986,18 +1222,6 @@ public class ContentController : Controller {
             ImageURL = imageUrl,
             TemplateName = image.TemplateName,
         };
-    }
-
-    private bool IsFarmExpansion(int itemId) {
-        ItemData? itemData = itemService.GetItem(itemId);
-        if (itemData != null && itemData.Category != null) {
-            foreach (ItemDataCategory itemCategory in itemData.Category) {
-                if (itemCategory.CategoryId == 541) { // if item is farm expansion
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     private void AddSuggestion(Random rand, string name, List<string> suggestions) {

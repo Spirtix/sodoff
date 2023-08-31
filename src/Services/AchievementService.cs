@@ -7,6 +7,7 @@ using System.Xml.Linq;
 
 namespace sodoff.Services {
     public class AchievementService {
+        private InventoryService inventoryService;
 
         Dictionary<AchievementPointTypes, UserRank[]> ranks = new();
         Dictionary<int, AchievementReward[]> achivmentsRewardByID = new();
@@ -15,7 +16,9 @@ namespace sodoff.Services {
         int dragonAdultMinXP;
         int dragonTitanMinXP;
 
-        public AchievementService() {
+        public AchievementService(InventoryService inventoryService) {
+            this.inventoryService = inventoryService;
+
             ArrayOfUserRank allranks = XmlUtil.DeserializeXml<ArrayOfUserRank>(XmlUtil.ReadResourceXmlString("allranks"));
             foreach (var pointType in Enum.GetValues<AchievementPointTypes>()) {
                 ranks[pointType] = allranks.UserRank.Where(r => r.PointTypeID == pointType).ToArray();
@@ -100,24 +103,28 @@ namespace sodoff.Services {
             }
         }
 
+        public AchievementReward AddAchievementPointsAndGetReward(Viking viking, AchievementPointTypes type, int value) {
+            AddAchievementPoints(viking, type, value);
+            return new AchievementReward{
+                EntityID = Guid.Parse(viking.Id),
+                PointTypeID = type,
+                EntityTypeID = 1, // player ?
+                RewardID = 1265, // TODO: placeholder
+                Amount = value
+            };
+        }
+
         public void ApplyAchievementReward(Viking viking, AchievementReward reward) {
             if (reward.PointTypeID == AchievementPointTypes.ItemReward) {
-                // TODO: This is not a pretty solution. Use inventory service in the future
-                InventoryItem? ii = viking.Inventory.InventoryItems.FirstOrDefault(x => x.ItemId == reward.ItemID);
-                if (ii is null) {
-                    ii = new InventoryItem {
-                        ItemId = reward.ItemID,
-                        Quantity = 0
-                    };
-                    viking.Inventory.InventoryItems.Add(ii);
-                }
-                ii.Quantity += (int)reward.Amount!;
+                inventoryService.AddItemToInventory(viking, reward.ItemID, (int)reward.Amount!);
             } else { // currencies, all types of player XP and dragon XP
                 AddAchievementPoints(viking, reward.PointTypeID, reward.Amount);
             }
         }
 
         public AchievementReward[] ApplyAchievementRewards(Viking viking, AchievementReward[] rewards) {
+            if (rewards is null)
+                return null;
             foreach (var reward in rewards) {
                 ApplyAchievementReward(viking, reward);
                 /* TODO we don't need this?

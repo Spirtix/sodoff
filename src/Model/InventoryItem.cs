@@ -8,6 +8,8 @@ namespace sodoff.Model {
         public int ItemId { get; set; }
 
         public int InventoryId { get; set; }
+        
+        public string? StatsSerialized { get; set; }
 
         public virtual Inventory Inventory { get; set; }
 

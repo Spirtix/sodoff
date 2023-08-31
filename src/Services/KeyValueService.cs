@@ -10,27 +10,24 @@ public class KeyValueService {
         this.ctx = ctx;
     }
 
-    public Model.PairData? GetPairData(string? UserId, string? VikingId, int pairId) {
-        Model.PairData? pair = null;
-        if (VikingId != null)
-            pair = ctx.PairData.FirstOrDefault(e => e.PairId == pairId && e.VikingId == VikingId);
-        else if (UserId != null)
-            pair = ctx.PairData.FirstOrDefault(e => e.PairId == pairId && e.UserId == UserId);
-
-        return pair;
+    public Model.PairData? GetPairData(User? user, Viking? viking, string? userId, int pairId) {
+        Dragon? dragon = null;
+        return CheckOwnerAndGetPairData(ref user, ref viking, ref dragon, userId, pairId);
     }
 
-    public bool SetPairData(string? UserId, string? VikingId, int pairId, Schema.PairData schemaData) {
+    public bool SetPairData(User? user, Viking? viking, string? userId, int pairId, Schema.PairData schemaData) {
         // Get the pair
-        Model.PairData? pair = GetPairData(UserId, VikingId, pairId);
+        Dragon? dragon = null;
+        Model.PairData? pair = CheckOwnerAndGetPairData(ref user, ref viking, ref dragon, userId, pairId);
 
         // Create the pair if it doesn't exist
         bool exists = true;
         if (pair is null) {
             pair = new Model.PairData {
                 PairId = pairId,
-                UserId = UserId,
-                VikingId = VikingId,
+                UserId = user?.Id,
+                VikingId = viking?.Id,
+                DragonId = dragon?.Id,
                 Pairs = new List<Model.Pair>()
             };
             exists = false;
@@ -77,4 +74,28 @@ public class KeyValueService {
         return new Schema.PairData { Pairs = pairs.ToArray() };
     } 
 
+    private Model.PairData? CheckOwnerAndGetPairData(ref User? user, ref Viking? viking, ref Dragon dragon, string? userId, int pairId) {
+        if (userId != null) {
+            // find dragon
+            dragon = viking?.Dragons.FirstOrDefault(e => e.EntityId == userId);
+
+            // if not dragon then try viking -> check ID
+            if (dragon != null || viking?.Id != userId) viking = null;
+
+            // if not dragon nor viking then try user -> check ID
+            if (viking != null || user?.Id != userId) user = null;
+        }
+
+        // NOTE: only one of (dragon, viking, user) can be not null here
+
+        Model.PairData? pair = null;
+        if (viking != null)
+            pair = viking.PairData.FirstOrDefault(e => e.PairId == pairId);
+        else if (user != null)
+            pair = user.PairData.FirstOrDefault(e => e.PairId == pairId);
+        else if (dragon != null)
+            pair = dragon.PairData.FirstOrDefault(e => e.PairId == pairId);
+
+        return pair;
+    }
 }

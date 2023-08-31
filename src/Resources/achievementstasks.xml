@@ -517,6 +517,8 @@
    </AchievementsTaskInfo>
    <AchievementsTaskInfo>
       <TID>2261</TID>
+      <!-- defeated enemy in dt -->
+      <!-- TODO: temporary disabled - this probably should not be repeated for every event
       <AR>
          <a>300</a>
          <p>1</p>
@@ -537,10 +539,12 @@
          <t>1</t>
          <r>937</r>
          <ii>0</ii>
-      </AR>
+      </AR> -->
    </AchievementsTaskInfo>
    <AchievementsTaskInfo>
       <TID>2262</TID>
+      <!-- ?? in DT -->
+      <!-- TODO: temporary disabled - this probably should not be repeated for every event
       <AR>
          <a>10</a>
          <p>12</p>
@@ -568,7 +572,7 @@
          <t>1</t>
          <r>937</r>
          <ii>0</ii>
-      </AR>
+      </AR> -->
    </AchievementsTaskInfo>
    <AchievementsTaskInfo>
       <TID>2263</TID>
@@ -610,6 +614,7 @@
    </AchievementsTaskInfo>
    <AchievementsTaskInfo>
       <TID>2264</TID>
+      <!-- ?? in DT -->
       <AR>
          <a>100</a>
          <p>1</p>
@@ -658,7 +663,9 @@
    </AchievementsTaskInfo>
    <AchievementsTaskInfo>
       <TID>2267</TID>
+      <!-- winning DT -->
       <!-- can return higher (10 times!) rewards also -->
+      <!-- TODO: temporary disabled - this probably should not be repeated for every event
       <AR>
          <a>20</a>
          <p>1</p>
@@ -686,11 +693,13 @@
          <t>1</t>
          <r>937</r>
          <ii>0</ii>
-      </AR>
+      </AR> -->
    </AchievementsTaskInfo>
    <AchievementsTaskInfo>
       <TID>2268</TID>
+      <!-- winning DT -->
       <!-- can return higher rewards also, for example 340 dragon XP and 330 player XP -->
+      <!-- TODO: temporary disabled - this probably should not be repeated for every event
       <AR>
          <a>30</a>
          <p>1</p>
@@ -718,7 +727,11 @@
          <t>1</t>
          <r>937</r>
          <ii>0</ii>
-      </AR>
+      </AR> -->
+   </AchievementsTaskInfo>
+   <AchievementsTaskInfo>
+      <TID>2269</TID>
+      <!-- losing DT -->
    </AchievementsTaskInfo>
    <AchievementsTaskInfo>
       <TID>2275</TID>
