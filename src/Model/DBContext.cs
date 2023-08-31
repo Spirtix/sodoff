@@ -26,6 +26,7 @@ public class DBContext : DbContext {
         => optionsBuilder.UseSqlite($"Data Source={DbPath}").UseLazyLoadingProxies();
 
     protected override void OnModelCreating(ModelBuilder builder) {
+        // Sessions
         builder.Entity<Session>().HasOne(s => s.User)
             .WithMany(e => e.Sessions)
             .HasForeignKey(e => e.UserId)
@@ -36,10 +37,25 @@ public class DBContext : DbContext {
             .HasForeignKey(e => e.VikingId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        // Users
         builder.Entity<User>().HasMany(u => u.Sessions)
             .WithOne(e => e.User);
 
-        builder.Entity<Viking>().HasMany(u => u.Sessions)
+        builder.Entity<User>().HasMany(u => u.PairData)
+            .WithOne(e => e.User);
+
+        builder.Entity<User>().HasMany(u => u.Vikings)
+            .WithOne(e => e.User);
+
+        // Vikings
+        builder.Entity<Viking>().HasOne(v => v.User)
+            .WithMany(e => e.Vikings)
+            .HasForeignKey(e => e.UserId);
+
+        builder.Entity<Viking>().HasMany(v => v.Dragons)
+            .WithOne(e => e.Viking);
+
+        builder.Entity<Viking>().HasMany(v => v.Sessions)
             .WithOne(e => e.Viking);
 
         builder.Entity<Viking>().HasMany(v => v.MissionStates)
@@ -51,47 +67,45 @@ public class DBContext : DbContext {
         builder.Entity<Viking>().HasMany(v => v.AchievementPoints)
             .WithOne(e => e.Viking);
 
-        builder.Entity<Viking>().HasOne(s => s.User)
-            .WithMany(e => e.Vikings)
-            .HasForeignKey(e => e.UserId);
+        builder.Entity<Viking>().HasMany(v => v.PairData)
+            .WithOne(e => e.Viking);
 
         builder.Entity<Viking>().HasOne(v => v.Inventory)
-            .WithOne(e => e.Viking)
-            .HasForeignKey<Viking>(e => e.InventoryId);
+            .WithOne(e => e.Viking);
 
-        builder.Entity<User>().HasMany(u => u.Vikings)
-            .WithOne(e => e.User);
+        builder.Entity<Viking>().HasMany(v => v.Images)
+            .WithOne(e => e.Viking);
 
-        builder.Entity<Dragon>().HasOne(s => s.Viking)
+        builder.Entity<Viking>().HasOne(v => v.SelectedDragon)
+            .WithOne()
+            .HasForeignKey<Viking>(e => e.SelectedDragonId);
+
+        // Dragons
+        builder.Entity<Dragon>().HasOne(d => d.Viking)
             .WithMany(e => e.Dragons)
             .HasForeignKey(e => e.VikingId);
 
-        builder.Entity<Viking>().HasMany(u => u.Dragons)
-            .WithOne(e => e.Viking);
+        builder.Entity<Dragon>().HasMany(d => d.PairData)
+            .WithOne(e => e.Dragon);
 
-        builder.Entity<Viking>().HasOne(s => s.SelectedDragon)
-            .WithOne(e => e.SelectedViking)
-            .HasForeignKey<Dragon>(e => e.SelectedVikingId);
-
-        builder.Entity<Dragon>().HasOne(s => s.SelectedViking)
-            .WithOne(e => e.SelectedDragon)
-            .HasForeignKey<Viking>(e => e.SelectedDragonId);
-
-        builder.Entity<Image>().HasOne(s => s.Viking)
-            .WithMany(e => e.Images)
-            .HasForeignKey(e => e.VikingId);
-
-        builder.Entity<Viking>().HasMany(u => u.Images)
-            .WithOne(e => e.Viking);
-
-        builder.Entity<Viking>().HasOne(v => v.Inventory)
-            .WithOne(e => e.Viking);
-
-        builder.Entity<PairData>()
-            .HasKey(e => e.Id);
-
+        // PairData & Pair
         builder.Entity<PairData>().HasMany(p => p.Pairs)
             .WithOne(e => e.PairData);
+
+        builder.Entity<PairData>().HasOne(p => p.Viking)
+            .WithMany(e => e.PairData)
+            .HasForeignKey(e => e.VikingId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<PairData>().HasOne(p => p.User)
+            .WithMany(e => e.PairData)
+            .HasForeignKey(e => e.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<PairData>().HasOne(p => p.Dragon)
+            .WithMany(e => e.PairData)
+            .HasForeignKey(e => e.DragonId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.Entity<Pair>()
             .HasOne(p => p.PairData)
@@ -99,14 +113,7 @@ public class DBContext : DbContext {
             .HasForeignKey(p => p.MasterId)
             .HasPrincipalKey(e => e.Id);
 
-        builder.Entity<TaskStatus>().HasKey(e => new { e.Id, e.VikingId, e.MissionId });
-
-        builder.Entity<TaskStatus>()
-            .HasOne(t => t.Viking)
-            .WithMany();
-
-        builder.Entity<Inventory>().HasKey(e => e.Id);
-
+        // Inventory & InventoryItem
         builder.Entity<Inventory>()
             .HasOne(i => i.Viking)
             .WithOne(e => e.Inventory)
@@ -121,10 +128,7 @@ public class DBContext : DbContext {
             .WithMany(e => e.InventoryItems)
             .HasForeignKey(e => e.InventoryId);
 
-        builder.Entity<MissionState>().HasOne(m => m.Viking)
-            .WithMany(e => e.MissionStates)
-            .HasForeignKey(e => e.VikingId);
-
+        // Room & RoomItem
         builder.Entity<Room>().HasOne(r => r.Viking)
             .WithMany(e => e.Rooms)
             .HasForeignKey(e => e.VikingId);
@@ -135,6 +139,21 @@ public class DBContext : DbContext {
         builder.Entity<RoomItem>().HasOne(i => i.Room)
             .WithMany(r => r.Items)
             .HasForeignKey(e => e.RoomId);
+
+        // Others ..
+        builder.Entity<Image>().HasOne(s => s.Viking)
+            .WithMany(e => e.Images)
+            .HasForeignKey(e => e.VikingId);
+
+        builder.Entity<TaskStatus>().HasKey(e => new { e.Id, e.VikingId, e.MissionId });
+
+        builder.Entity<TaskStatus>()
+            .HasOne(t => t.Viking)
+            .WithMany();
+
+        builder.Entity<MissionState>().HasOne(m => m.Viking)
+            .WithMany(e => e.MissionStates)
+            .HasForeignKey(e => e.VikingId);
 
         builder.Entity<AchievementPoints>().HasKey(e => new { e.VikingId, e.Type });
 

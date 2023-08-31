@@ -17,5 +17,13 @@ public class PairData {
 
     public string? VikingId { get; set; }
 
+    public int? DragonId { get; set; }
+
     public virtual ICollection<Pair> Pairs { get; set; }
+
+    public virtual User? User { get; set; }
+
+    public virtual Viking? Viking { get; set; }
+
+    public virtual Dragon? Dragon { get; set; }
 }
