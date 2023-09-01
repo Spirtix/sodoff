@@ -155,5 +155,15 @@ namespace sodoff.Services {
                 return new AchievementReward[0];
             }
         }
+        
+        public UserGameCurrency GetUserCurrency(Viking viking) {
+            // TODO: return real values (after implement currency collecting methods)
+            return new UserGameCurrency {
+                CashCurrency = 65536,
+                GameCurrency = 65536,
+                UserGameCurrencyID = 1, // TODO: user's wallet ID?
+                UserID = Guid.Parse(viking.Id)
+            };
+        }
     }
 }

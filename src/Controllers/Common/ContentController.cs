@@ -620,12 +620,7 @@ public class ContentController : Controller {
         CommonInventoryResponse response = new CommonInventoryResponse {
             Success = true,
             CommonInventoryIDs = items,
-            UserGameCurrency = new UserGameCurrency {
-                UserID = Guid.Parse(viking.Id),
-                UserGameCurrencyID = 1, // TODO: user's wallet ID?
-                CashCurrency = 65536,
-                GameCurrency = 65536,
-            }
+            UserGameCurrency = achievementService.GetUserCurrency(viking)
         };
         return Ok(response);
     }
@@ -646,12 +641,7 @@ public class ContentController : Controller {
         CommonInventoryResponse response = new CommonInventoryResponse {
             Success = true,
             CommonInventoryIDs = items,
-            UserGameCurrency = new UserGameCurrency {
-                UserID = Guid.Parse(viking.Id),
-                UserGameCurrencyID = 1, // TODO: user's wallet ID?
-                CashCurrency = 65536,
-                GameCurrency = 65536,
-            }
+            UserGameCurrency = achievementService.GetUserCurrency(viking)
         };
         return Ok(response);
     }
@@ -803,14 +793,10 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("ContentWebService.asmx/GetUserGameCurrency")]
-    public IActionResult GetUserGameCurrency([FromForm] string userId) {
+    [VikingSession]
+    public IActionResult GetUserGameCurrency(Viking viking) {
         // TODO: This is a placeholder
-        return Ok(new UserGameCurrency {
-            CashCurrency = 65536,
-            GameCurrency = 65536,
-            UserGameCurrencyID = 0,
-            UserID = Guid.Parse(userId)
-        });
+        return Ok(achievementService.GetUserCurrency(viking));
     }
 
     [HttpPost]
@@ -947,6 +933,8 @@ public class ContentController : Controller {
             );
         }
         
+        // NOTE: saved inside AddBattleItemToInventory
+         
         // return response with new item info
         return Ok(new FuseItemsResponse {
             Status = Status.Success,
@@ -959,40 +947,19 @@ public class ContentController : Controller {
     [Route("V2/ContentWebService.asmx/SellItems")]
     [VikingSession]
     public IActionResult SellItems(Viking viking, [FromForm] string sellItemsRequest) {
-        int price = 0;
+        int shard = 0;
+        int gold = 0;
         SellItemsRequest req = XmlUtil.DeserializeXml<SellItemsRequest>(sellItemsRequest);
         foreach (var invItemID in req.UserInventoryCommonIDs) {
-            // get item from inventory
-            InventoryItem? item = viking.Inventory.InventoryItems.FirstOrDefault(e => e.Id == invItemID);
-
-            // get item data
-            ItemData? itemData = itemService.GetItem(item.ItemId);
-
-            // calculate price
-            switch (itemData.ItemRarity) {
-                case ItemRarity.Common:
-                    price += 1;
-                    break;
-                case ItemRarity.Rare:
-                    price += 3;
-                    break;
-                case ItemRarity.Epic:
-                    price += 5;
-                    break;
-                case ItemRarity.Legendary:
-                    price += 10;
-                    break;
-            }
-            
-            // TODO: cash rewards
-
-            // remove item
-            viking.Inventory.InventoryItems.Remove(item);
+            inventoryService.SellInventoryItem(viking, invItemID, ref gold, ref shard);
         }
-        
-        // apply shards reward
-        CommonInventoryResponseItem? resShardsItem = inventoryService.AddItemToInventoryAndGetResponse(viking, InventoryService.Shards, price);
 
+        // apply shards reward
+        CommonInventoryResponseItem resShardsItem = inventoryService.AddItemToInventoryAndGetResponse(viking, InventoryService.Shards, shard);
+        
+        // apply cash (gold) reward from sell items
+        achievementService.AddAchievementPoints(viking, AchievementPointTypes.GameCurrency, gold);
+        
         // save
         ctx.SaveChanges();
 
@@ -1001,7 +968,8 @@ public class ContentController : Controller {
             Success = true,
             CommonInventoryIDs = new CommonInventoryResponseItem[] {
                 resShardsItem
-            }
+            },
+            UserGameCurrency = achievementService.GetUserCurrency(viking)
         });
     }
 
@@ -1022,12 +990,79 @@ public class ContentController : Controller {
             }
         }
         
+        // NOTE: saved inside AddBattleItemToInventory
+        
         return Ok(new AddBattleItemsResponse{
             Status = Status.Success,
             InventoryItemStatsMaps = resItemList
         });
     }
 
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("V2/ContentWebService.asmx/ProcessRewardedItems")]
+    [VikingSession]
+    public IActionResult ProcessRewardedItems(Viking viking, [FromForm] string request) {
+        ProcessRewardedItemsRequest req = XmlUtil.DeserializeXml<ProcessRewardedItemsRequest>(request);
+        
+        int shard = 0;
+        int gold = 0;
+        bool soldInventoryItems = false;
+        bool soldRewardBinItems = false;
+        var itemsAddedToInventory = new List<CommonInventoryResponseRewardBinItem>();
+        foreach (ItemActionTypeMap actionMap in req.ItemsActionMap) {
+            switch (actionMap.Action) {
+                case ActionType.MoveToInventory:
+                    // item is in inventory in result of ApplyRewards ... only add to itemsAddedToInventory
+                    itemsAddedToInventory.Add (new CommonInventoryResponseRewardBinItem {
+                        ItemID = viking.Inventory.InventoryItems.FirstOrDefault(e => e.Id == actionMap.ID).ItemId,
+                        CommonInventoryID = actionMap.ID,
+                        Quantity = 0,
+                        UserItemStatsMapID = actionMap.ID
+                    });
+                    break;
+                case ActionType.SellInventoryItem:
+                    soldInventoryItems = true;
+                    inventoryService.SellInventoryItem(viking, actionMap.ID, ref gold, ref shard);
+                    break;
+                case ActionType.SellRewardBinItem:
+                    soldRewardBinItems = true;
+                    inventoryService.SellInventoryItem(viking, actionMap.ID, ref gold, ref shard);
+                    break;
+            }
+        }
+        
+        // apply shards reward from sell items
+        InventoryItem item = inventoryService.AddItemToInventory(viking, InventoryService.Shards, shard);
+        
+        // NOTE: client expects multiple items each with quantity = 0
+        var inventoryResponse = new CommonInventoryResponseItem[shard];
+        for (int i=0; i<shard; ++i) {
+            inventoryResponse[i] = new CommonInventoryResponseItem {
+                CommonInventoryID = item.Id,
+                ItemID = item.ItemId,
+                Quantity = 0
+            };
+        }
+        
+        // apply cash (gold) reward from sell items
+        achievementService.AddAchievementPoints(viking, AchievementPointTypes.GameCurrency, gold);
+        
+        // save
+        ctx.SaveChanges();
+        
+        return Ok(new ProcessRewardedItemsResponse {
+            SoldInventoryItems = soldInventoryItems,
+            SoldRewardBinItems = soldRewardBinItems,
+            MovedRewardBinItems = itemsAddedToInventory.ToArray(),
+            CommonInventoryResponse = new CommonInventoryResponse {
+                Success = false,
+                CommonInventoryIDs = inventoryResponse,
+                UserGameCurrency = achievementService.GetUserCurrency(viking)
+            }
+        });
+    }
+    
     [HttpPost]
     [Produces("application/xml")]
     [Route("V2/ContentWebService.asmx/ApplyRewards")]
@@ -1091,6 +1126,7 @@ public class ContentController : Controller {
                     Item = item.Item,
                     ItemStats = item.ItemStatsMap.ItemStats,
                     ItemTier = item.ItemStatsMap.ItemTier,
+                    UserItemStatsMapID = item.CommonInventoryID,
                     CreatedDate = new DateTime(DateTime.Now.Ticks)
                 };
             }
