@@ -80,7 +80,12 @@ public class KeyValueService {
             dragon = viking?.Dragons.FirstOrDefault(e => e.EntityId == userId);
 
             // if not dragon then try viking -> check ID
-            if (dragon != null || viking?.Id != userId) viking = null;
+            if (dragon != null || viking?.Id != userId) {
+                // if not viking and user not set, then try set user from viking
+                if (user is null)
+                    user = viking?.User;
+                viking = null;
+            }
 
             // if not dragon nor viking then try user -> check ID
             if (viking != null || user?.Id != userId) user = null;
