@@ -117,7 +117,7 @@ public class ProfileController : Controller {
                 ParentUserID = viking.UserId,
                 Username = viking.Name,
                 FirstName = viking.Name,
-                MultiplayerEnabled = false,
+                MultiplayerEnabled = true,
                 Locale = "en-US", // placeholder
                 GenderID = Gender.Male, // placeholder
                 OpenChatEnabled = true,
