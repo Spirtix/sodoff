@@ -71,6 +71,35 @@ namespace sodoff.Services {
             };
         }
 
+        public void SellInventoryItem(Viking viking, int invItemID, ref int gold, ref int shard) {
+            // get item from inventory
+            InventoryItem? item = viking.Inventory.InventoryItems.FirstOrDefault(e => e.Id == invItemID);
+
+            // get item data
+            ItemData? itemData = itemService.GetItem(item.ItemId);
+
+            // calculate shard price
+            switch (itemData.ItemRarity) {
+                case ItemRarity.Common:
+                    shard += 1;
+                    break;
+                case ItemRarity.Rare:
+                    shard += 3;
+                    break;
+                case ItemRarity.Epic:
+                    shard += 5;
+                    break;
+                case ItemRarity.Legendary:
+                    shard += 10;
+                    break;
+            }
+
+            // TODO: calculate cash (gold) rewards
+
+            // remove item
+            viking.Inventory.InventoryItems.Remove(item);
+        }
+
         public CommonInventoryData GetCommonInventoryData(Viking viking) {
             List<InventoryItem> items = viking.Inventory.InventoryItems.ToList();
 

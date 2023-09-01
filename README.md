@@ -104,6 +104,7 @@ Then run School of Dragons.
 - SetNextItemState (may require more work, we don't know yet)
 - SetUserRoom
 - SetUserAchievementTask (returns a real reward but still use task placeholder)
+- ProcessRewardedItems (need add cash reward)
 - SellItems (need add cash reward)
 - ApplyRewards
 
