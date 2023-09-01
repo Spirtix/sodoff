@@ -1071,8 +1071,8 @@ public class ContentController : Controller {
         ApplyRewardsRequest req = XmlUtil.DeserializeXml<ApplyRewardsRequest>(request);
         
         List<AchievementReward> achievementRewards = new List<AchievementReward>();
-        UserItemStatsMap rewardedItem = null;
-        CommonInventoryResponse rewardedBlueprint = null;
+        UserItemStatsMap? rewardedItem = null;
+        CommonInventoryResponse? rewardedBlueprint = null;
         
         int rewardMultipler = 0;
         if (req.LevelRewardType == LevelRewardType.LevelFailure) {
@@ -1085,17 +1085,19 @@ public class ContentController : Controller {
             // TODO: XP values and method of calculation is not grounded in anything ...
 
             // dragons XP
-            int dragonXp = 40 * rewardMultipler;
-            foreach (RaisedPetEntityMap petInfo in req.RaisedPetEntityMaps) {
-                Dragon? dragon = viking.Dragons.FirstOrDefault(e => e.Id == petInfo.RaisedPetID);
-                dragon.PetXP = (dragon.PetXP ?? 0) + dragonXp;
-                achievementRewards.Add(new AchievementReward{
-                    EntityID = petInfo.EntityID,
-                    PointTypeID = AchievementPointTypes.DragonXP,
-                    EntityTypeID = 3, // dragon ?
-                    RewardID = 1265, // TODO: placeholder
-                    Amount = dragonXp
-                });
+            if (req.RaisedPetEntityMaps != null) {
+                int dragonXp = 40 * rewardMultipler;
+                foreach (RaisedPetEntityMap petInfo in req.RaisedPetEntityMaps) {
+                    Dragon? dragon = viking.Dragons.FirstOrDefault(e => e.Id == petInfo.RaisedPetID);
+                    dragon.PetXP = (dragon.PetXP ?? 0) + dragonXp;
+                    achievementRewards.Add(new AchievementReward{
+                        EntityID = petInfo.EntityID,
+                        PointTypeID = AchievementPointTypes.DragonXP,
+                        EntityTypeID = 3, // dragon ?
+                        RewardID = 1265, // TODO: placeholder
+                        Amount = dragonXp
+                    });
+                }
             }
 
             // player XP and gems
