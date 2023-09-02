@@ -7,6 +7,7 @@ using System.Xml.Linq;
 
 namespace sodoff.Services {
     public class AchievementService {
+        private AchievementStoreSingleton achievementStore;
         private InventoryService inventoryService;
 
         Dictionary<AchievementPointTypes, UserRank[]> ranks = new();
@@ -16,30 +17,9 @@ namespace sodoff.Services {
         int dragonAdultMinXP;
         int dragonTitanMinXP;
 
-        public AchievementService(InventoryService inventoryService) {
+        public AchievementService(AchievementStoreSingleton achievementStore, InventoryService inventoryService) {
+            this.achievementStore = achievementStore;
             this.inventoryService = inventoryService;
-
-            ArrayOfUserRank allranks = XmlUtil.DeserializeXml<ArrayOfUserRank>(XmlUtil.ReadResourceXmlString("allranks"));
-            foreach (var pointType in Enum.GetValues<AchievementPointTypes>()) {
-                ranks[pointType] = allranks.UserRank.Where(r => r.PointTypeID == pointType).ToArray();
-            }
-
-            AchievementsIdInfo[] allAchievementsIdInfo = XmlUtil.DeserializeXml<AchievementsIdInfo[]>(XmlUtil.ReadResourceXmlString("achievementsids"));
-            foreach (var achievementsIdInfo in allAchievementsIdInfo) {
-                achivmentsRewardByID[achievementsIdInfo.AchievementID] = achievementsIdInfo.AchievementReward;
-            }
-            
-            AchievementsTaskInfo[] allAchievementsTaskInfo = XmlUtil.DeserializeXml<AchievementsTaskInfo[]>(XmlUtil.ReadResourceXmlString("achievementstasks"));
-            foreach (var achievementsTaskInfo in allAchievementsTaskInfo) {
-                achivmentsRewardByTask[achievementsTaskInfo.TaskID] = achievementsTaskInfo.AchievementReward;
-            }
-
-            dragonAdultMinXP = ranks[AchievementPointTypes.DragonXP][10].Value;
-            dragonTitanMinXP = ranks[AchievementPointTypes.DragonXP][20].Value;
-        }
-
-        public int GetRankFromXP(int? xpPoints, AchievementPointTypes type) {
-            return ranks[type].Count(r => r.Value <= xpPoints);
         }
 
         public UserAchievementInfo CreateUserAchievementInfo(string userId, int? value, AchievementPointTypes type) {
@@ -48,7 +28,7 @@ namespace sodoff.Services {
             return new UserAchievementInfo {
                 UserID = Guid.Parse(userId),
                 AchievementPointTotal = value,
-                RankID = GetRankFromXP(value, type),
+                RankID = achievementStore.GetRankFromXP(value, type),
                 PointTypeID = type
             };
         }
@@ -58,17 +38,8 @@ namespace sodoff.Services {
         }
 
         public void DragonLevelUpOnAgeUp(Dragon dragon, RaisedPetGrowthState oldGrowthState, RaisedPetGrowthState newGrowthState) {
-            if (oldGrowthState is null || newGrowthState.Order > oldGrowthState.Order) {
-                // age up
-                int dragonXP = dragon.PetXP ?? 0;
-                if (newGrowthState.Order == 4 && dragonXP < dragonAdultMinXP) {
-                    // to adult via ticket -> add XP
-                    dragonXP += dragonAdultMinXP;
-                } else if  (newGrowthState.Order == 5 && dragonXP < dragonTitanMinXP) {
-                    // adult to titan via ticket -> add XP
-                    dragonXP += dragonTitanMinXP - dragonAdultMinXP;
-                }
-                dragon.PetXP = dragonXP;
+            if (oldGrowthState is null || newGrowthState.Order > oldGrowthState.Order) { // if dragon age up
+                dragon.PetXP = achievementStore.GetUpdatedDragonXP(dragon.PetXP ?? 0, newGrowthState.Order);
             }
         }
 
@@ -139,8 +110,8 @@ namespace sodoff.Services {
         }
 
         public AchievementReward[] ApplyAchievementRewardsByID(Viking viking, int achievementID) {
-            if (achivmentsRewardByID.ContainsKey(achievementID)) {
-                var rewards = achivmentsRewardByID[achievementID];
+            var rewards = achievementStore.GetAchievementRewardsById(achievementID);
+            if (rewards != null) {
                 return ApplyAchievementRewards(viking, rewards);
             } else {
                 return new AchievementReward[0];
@@ -148,8 +119,8 @@ namespace sodoff.Services {
         }
 
         public AchievementReward[] ApplyAchievementRewardsByTask(Viking viking, AchievementTask task) {
-            if (achivmentsRewardByTask.ContainsKey(task.TaskID)) {
-                var rewards = achivmentsRewardByTask[task.TaskID];
+            var rewards = achievementStore.GetAchievementRewardsByTask(task.TaskID);
+            if (rewards != null) {
                 return ApplyAchievementRewards(viking, rewards);
             } else {
                 return new AchievementReward[0];
