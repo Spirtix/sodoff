@@ -14,14 +14,17 @@ builder.Services.AddControllers(options => {
     options.Filters.Add<LogRequestOnError>();
 });
 builder.Services.AddDbContext<DBContext>();
-builder.Services.AddScoped<KeyValueService>();
-builder.Services.AddSingleton<ItemService>();
+
 builder.Services.AddSingleton<MissionStoreSingleton>();
-builder.Services.AddScoped<MissionService>();
+builder.Services.AddSingleton<AchievementStoreSingleton>();
+builder.Services.AddSingleton<ItemService>();
 builder.Services.AddSingleton<StoreService>();
+
+builder.Services.AddScoped<KeyValueService>();
+builder.Services.AddScoped<MissionService>();
 builder.Services.AddScoped<RoomService>();
-builder.Services.AddSingleton<AchievementService>();
 builder.Services.AddScoped<InventoryService>();
+builder.Services.AddScoped<AchievementService>();
 
 var app = builder.Build();
 
