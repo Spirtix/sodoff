@@ -374,10 +374,10 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("V2/ContentWebService.asmx/GetAllActivePetsByuserId")]
-    [VikingSession(UseLock=false)]
-    public RaisedPetData[]? GetAllActivePetsByuserId(Viking viking, [FromForm] string userId, [FromForm] bool active) {
-        RaisedPetData[] dragons = viking.Dragons // TODO (multiplayer) we should use userId ?
-            .Where(d => d.RaisedPetData is not null)
+    public RaisedPetData[]? GetAllActivePetsByuserId([FromForm] string userId, [FromForm] bool active) {
+        // NOTE: this is public info (for mmo) - no session check
+        RaisedPetData[] dragons = ctx.Dragons
+            .Where(d => d.VikingId == userId && d.RaisedPetData != null)
             .Select(GetRaisedPetDataFromDragon)
             .ToArray();
 
@@ -476,12 +476,11 @@ public class ContentController : Controller {
     [Produces("application/xml")]
     [Route("ContentWebService.asmx/GetImageByUserId")]
     public ImageData? GetImageByUserId([FromForm] string userId, [FromForm] string ImageType, [FromForm] int ImageSlot) {
+        // NOTE: this is public info (for mmo) - no session check
         Viking? viking = ctx.Vikings.FirstOrDefault(e => e.Id == userId);
         if (viking is null || viking.Images is null) {
             return null;
         }
-
-        // TODO: should we restrict images to only those the caller owns?
 
         return GetImageData(viking, ImageType, ImageSlot);
     }
@@ -649,13 +648,16 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("ContentWebService.asmx/GetUserRoomItemPositions")]
-    [VikingSession(UseLock=false)]
-    public IActionResult GetUserRoomItemPositions(Viking viking, [FromForm] string roomID) {
+    public IActionResult GetUserRoomItemPositions([FromForm] string userId, [FromForm] string roomID) {
+        // NOTE: this is public info (for mmo) - no session check
+        Viking? viking = ctx.Vikings.FirstOrDefault(e => e.Id == userId);
+
         if (roomID is null)
             roomID = "";
-        Room? room = viking.Rooms.FirstOrDefault(x => x.RoomId == roomID); // TODO: this can break visiting farm of another viking's
+        Room? room = viking?.Rooms.FirstOrDefault(x => x.RoomId == roomID);
         if (room is null)
             return Ok(new UserItemPositionList { UserItemPosition = new UserItemPosition[0] });
+
         return Ok(roomService.GetUserItemPositionList(room));
     }
 
