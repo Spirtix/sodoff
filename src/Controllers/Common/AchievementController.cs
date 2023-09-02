@@ -20,10 +20,10 @@ public class AchievementController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("AchievementWebService.asmx/GetPetAchievementsByUserID")]
-    [VikingSession(UseLock=false)]
-    public IActionResult GetPetAchievementsByUserID(Viking viking, [FromForm] string userId) {
+    public IActionResult GetPetAchievementsByUserID([FromForm] string userId) {
+        // NOTE: this is public info (for mmo) - no session check
         List<UserAchievementInfo> dragonsAchievement = new List<UserAchievementInfo>();
-        foreach (Dragon dragon in viking.Dragons) {
+        foreach (Dragon dragon in ctx.Dragons.Where(d => d.VikingId == userId)) {
             dragonsAchievement.Add(
                 achievementService.CreateUserAchievementInfo(dragon.EntityId, dragon.PetXP, AchievementPointTypes.DragonXP)
             );
@@ -94,8 +94,7 @@ public class AchievementController : Controller {
     [Produces("application/xml")]
     [Route("AchievementWebService.asmx/GetAchievementsByUserID")]
     public IActionResult GetAchievementsByUserID([FromForm] string userId) {
-        // TODO: check session
-        
+        // NOTE: this is public info (for mmo) - no session check
         Viking? viking = ctx.Vikings.FirstOrDefault(e => e.Id == userId);
         if (viking != null) {
             return Ok(new ArrayOfUserAchievementInfo {
