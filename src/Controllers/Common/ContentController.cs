@@ -1005,6 +1005,9 @@ public class ContentController : Controller {
     public IActionResult ProcessRewardedItems(Viking viking, [FromForm] string request) {
         ProcessRewardedItemsRequest req = XmlUtil.DeserializeXml<ProcessRewardedItemsRequest>(request);
         
+        if (req is null || req.ItemsActionMap is null)
+            return Ok(new ProcessRewardedItemsResponse());
+        
         int shard = 0;
         int gold = 0;
         bool soldInventoryItems = false;
