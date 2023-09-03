@@ -44,7 +44,7 @@ namespace sodoff.Services {
         }
 
         public void SetAchievementPoints(Viking viking, AchievementPointTypes type, int value) {
-            if (type == AchievementPointTypes.DragonXP) {
+            if (type == AchievementPointTypes.DragonXP && viking.SelectedDragon != null) {
                 viking.SelectedDragon.PetXP = value;
             } else if (type != null) {
                 AchievementPoints xpPoints = viking.AchievementPoints.FirstOrDefault(a => a.Type == (int)type);
@@ -59,7 +59,7 @@ namespace sodoff.Services {
         }
 
         public void AddAchievementPoints(Viking viking, AchievementPointTypes? type, int? value) {
-            if (type == AchievementPointTypes.DragonXP) {
+            if (type == AchievementPointTypes.DragonXP && viking.SelectedDragon != null) {
                 viking.SelectedDragon.PetXP = (viking.SelectedDragon.PetXP ?? 0) + (value ?? 0);
             } else if (type != null) {
                 AchievementPoints xpPoints = viking.AchievementPoints.FirstOrDefault(a => a.Type == (int)type);

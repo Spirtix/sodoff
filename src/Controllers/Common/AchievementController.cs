@@ -163,6 +163,20 @@ public class AchievementController : Controller {
 
     [HttpPost]
     [Produces("application/xml")]
+    [Route("AchievementWebService.asmx/ApplyPayout")]
+    [VikingSession]
+    public IActionResult ApplyPayout(Viking viking, string ModuleName, int points) {
+        // TODO: use args (ModuleName and points) to calculate reward
+        return Ok(new AchievementReward[]{
+            achievementService.AddAchievementPointsAndGetReward(viking, AchievementPointTypes.PlayerXP, 10),
+            achievementService.AddAchievementPointsAndGetReward(viking, AchievementPointTypes.GameCurrency, 5),
+            achievementService.AddAchievementPointsAndGetReward(viking, AchievementPointTypes.DragonXP, 6),
+            achievementService.AddAchievementPointsAndGetReward(viking, AchievementPointTypes.UDTPoints, 6),
+        });
+    }
+    
+    [HttpPost]
+    [Produces("application/xml")]
     [Route("AchievementWebService.asmx/SetAchievementByEntityIDs")]
     [VikingSession]
     public IActionResult SetAchievementByEntityIDs(Viking viking, [FromForm] int achievementID) {
