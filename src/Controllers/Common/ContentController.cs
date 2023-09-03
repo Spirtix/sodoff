@@ -376,9 +376,13 @@ public class ContentController : Controller {
     [Route("V2/ContentWebService.asmx/GetAllActivePetsByuserId")]
     public RaisedPetData[]? GetAllActivePetsByuserId([FromForm] string userId, [FromForm] bool active) {
         // NOTE: this is public info (for mmo) - no session check
+        Viking? viking = ctx.Vikings.FirstOrDefault(e => e.Id == userId);
+        if (viking is null)
+            return null;
+
         RaisedPetData[] dragons = ctx.Dragons
             .Where(d => d.VikingId == userId && d.RaisedPetData != null)
-            .Select(GetRaisedPetDataFromDragon)
+            .Select(d => GetRaisedPetDataFromDragon(d, viking.SelectedDragonId))
             .ToArray();
 
         if (dragons.Length == 0) {
@@ -394,7 +398,7 @@ public class ContentController : Controller {
     public RaisedPetData[]? GetUnselectedPetByTypes(Viking viking, [FromForm] string petTypeIDs, [FromForm] bool active) {
         RaisedPetData[] dragons = viking.Dragons
             .Where(d => d.RaisedPetData is not null)
-            .Select(GetRaisedPetDataFromDragon)
+            .Select(d => GetRaisedPetDataFromDragon(d, viking.SelectedDragonId))
             .ToArray();
 
         if (dragons.Length == 0) {
@@ -703,6 +707,7 @@ public class ContentController : Controller {
     [Produces("application/xml")]
     [Route("ContentWebService.asmx/GetUserRoomList")]
     public IActionResult GetUserRoomList([FromForm] string request) {
+        // NOTE: this is public info (for mmo) - no session check
         // TODO: Categories are not supported
         UserRoomGetRequest userRoomRequest = XmlUtil.DeserializeXml<UserRoomGetRequest>(request);
         ICollection<Room>? rooms = ctx.Vikings.FirstOrDefault(x => x.Id == userRoomRequest.UserID.ToString())?.Rooms;
@@ -1150,11 +1155,13 @@ public class ContentController : Controller {
         });
     }
 
-    private RaisedPetData GetRaisedPetDataFromDragon (Dragon dragon) {
+    private static RaisedPetData GetRaisedPetDataFromDragon (Dragon dragon, int? selectedDragonId = null) {
+        if (selectedDragonId is null)
+            selectedDragonId = dragon.Viking.SelectedDragonId;
         RaisedPetData data = XmlUtil.DeserializeXml<RaisedPetData>(dragon.RaisedPetData);
         data.RaisedPetID = dragon.Id;
         data.EntityID = Guid.Parse(dragon.EntityId);
-        data.IsSelected = (dragon.Viking.SelectedDragonId == dragon.Id);
+        data.IsSelected = (selectedDragonId == dragon.Id);
         return data;
     }
 
