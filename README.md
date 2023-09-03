@@ -82,6 +82,7 @@ Then run School of Dragons.
 - RerollUserItem
 - FuseItems
 - AddBattleItems
+- SetAchievementByEntityIDs
 
 #### Implemented enough (probably)
 - GetRules (doesn't return any rules, probably doesn't need to)
@@ -107,6 +108,7 @@ Then run School of Dragons.
 - ProcessRewardedItems (need add cash reward)
 - SellItems (need add cash reward)
 - ApplyRewards
+- ApplyPayout
 
 #### Currently static or stubbed
 - GetAllRanks (needs to be populated with what ranks the user has)
@@ -123,4 +125,3 @@ Then run School of Dragons.
 - GetAverageRatingForRoom (return max rating)
 - GetUserActivityByUserID (returns an empty array)
 - GetUserGameCurrency (return 65536 gems and 65536 coins)
-- SetAchievementByEntityIDs (returns a static achievement)

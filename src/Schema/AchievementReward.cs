@@ -44,4 +44,8 @@ public class AchievementReward
 
 	[XmlElement(ElementName = "cid")]
 	public int CommonInventoryID;
+
+	public AchievementReward Clone() {
+		return (AchievementReward) this.MemberwiseClone();
+	}
 }

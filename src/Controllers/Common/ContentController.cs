@@ -1103,8 +1103,6 @@ public class ContentController : Controller {
                     achievementRewards.Add(new AchievementReward{
                         EntityID = petInfo.EntityID,
                         PointTypeID = AchievementPointTypes.DragonXP,
-                        EntityTypeID = 3, // dragon ?
-                        RewardID = 1265, // TODO: placeholder
                         Amount = dragonXp
                     });
                 }
@@ -1112,10 +1110,10 @@ public class ContentController : Controller {
 
             // player XP and gems
             achievementRewards.Add(
-                achievementService.AddAchievementPointsAndGetReward(viking, AchievementPointTypes.PlayerXP, 60 * rewardMultipler)
+                achievementService.AddAchievementPoints(viking, AchievementPointTypes.PlayerXP, 60 * rewardMultipler)
             );
             achievementRewards.Add(
-                achievementService.AddAchievementPointsAndGetReward(viking, AchievementPointTypes.CashCurrency, 2 * rewardMultipler)
+                achievementService.AddAchievementPoints(viking, AchievementPointTypes.CashCurrency, 2 * rewardMultipler)
             );
         }
 

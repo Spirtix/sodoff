@@ -79,6 +79,7 @@ methods = [
   'DeleteAccountNotification',
   'SetUserAchievementAndGetReward',
   'ProcessRewardedItems',
+  'ApplyPayout',
 ]
 
 def routable(path):

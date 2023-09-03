@@ -58,9 +58,20 @@ namespace sodoff.Services {
             }
         }
 
-        public void AddAchievementPoints(Viking viking, AchievementPointTypes? type, int? value) {
+        public AchievementReward? AddDragonAchievementPoints(Dragon dragon, int? value) {
+            dragon.PetXP = (dragon.PetXP ?? 0) + (value ?? 0);
+
+            return new AchievementReward{
+                // NOTE: RewardID and EntityTypeID are not used by client
+                EntityID = Guid.Parse(dragon.EntityId),
+                PointTypeID = AchievementPointTypes.DragonXP,
+                Amount = value ?? 0
+            };
+        }
+
+        public AchievementReward? AddAchievementPoints(Viking viking, AchievementPointTypes? type, int? value) {
             if (type == AchievementPointTypes.DragonXP && viking.SelectedDragon != null) {
-                viking.SelectedDragon.PetXP = (viking.SelectedDragon.PetXP ?? 0) + (value ?? 0);
+                return AddDragonAchievementPoints(viking.SelectedDragon, value);
             } else if (type != null) {
                 AchievementPoints xpPoints = viking.AchievementPoints.FirstOrDefault(a => a.Type == (int)type);
                 if (xpPoints is null) {
@@ -71,48 +82,59 @@ namespace sodoff.Services {
                     viking.AchievementPoints.Add(xpPoints);
                 }
                 xpPoints.Value += value ?? 0;
+
+                return new AchievementReward{
+                    EntityID = Guid.Parse(viking.Id),
+                    PointTypeID = type,
+                    Amount = value
+                };
             }
+            return null;
         }
 
-        public AchievementReward AddAchievementPointsAndGetReward(Viking viking, AchievementPointTypes type, int value) {
-            AddAchievementPoints(viking, type, value);
-            return new AchievementReward{
-                EntityID = Guid.Parse(viking.Id),
-                PointTypeID = type,
-                EntityTypeID = 1, // player ?
-                RewardID = 1265, // TODO: placeholder
-                Amount = value
-            };
-        }
-
-        public void ApplyAchievementReward(Viking viking, AchievementReward reward) {
+        public AchievementReward? ApplyAchievementReward(Viking viking, AchievementReward reward) {
             if (reward.PointTypeID == AchievementPointTypes.ItemReward) {
                 inventoryService.AddItemToInventory(viking, reward.ItemID, (int)reward.Amount!);
+
+                AchievementReward grantedReward = reward.Clone();
+                grantedReward.EntityID = Guid.Parse(viking.Id);
+                return grantedReward;
             } else { // currencies, all types of player XP and dragon XP
-                AddAchievementPoints(viking, reward.PointTypeID, reward.Amount);
+                return AddAchievementPoints(viking, reward.PointTypeID, reward.Amount);
             }
         }
 
-        public AchievementReward[] ApplyAchievementRewards(Viking viking, AchievementReward[] rewards) {
+        public AchievementReward[] ApplyAchievementRewards(Viking viking, AchievementReward[] rewards, Guid[]? dragonsIDs = null) {
             if (rewards is null)
                 return null;
+
+            List<AchievementReward> grantedRewards = new List<AchievementReward>();
             foreach (var reward in rewards) {
-                ApplyAchievementReward(viking, reward);
-                /* TODO we don't need this?
-                if (reward.PointTypeID == AchievementPointTypes.DragonXP) {
-                    reward.EntityID = Guid.Parse(viking.SelectedDragon.EntityId)
+                if (dragonsIDs != null && reward.PointTypeID == AchievementPointTypes.DragonXP) {
+                    double amountDouble = (reward.Amount ?? 0)/dragonsIDs.Length;
+                    int amount = (int)Math.Ceiling(amountDouble);
+                    foreach (Guid dragonID in dragonsIDs) {
+                        Dragon dragon = viking.Dragons.FirstOrDefault(e => e.EntityId == dragonID.ToString());
+                        grantedRewards.Add(
+                            AddDragonAchievementPoints(dragon, amount)
+                        );
+                    }
                 } else {
-                    reward.EntityID = Guid.Parse(viking.Id)
-                } */
+                    grantedRewards.Add(
+                        ApplyAchievementReward(viking, reward)
+                    );
+                }
             }
+
             // TODO: check trophies, etc criteria and id need apply and add to results extra reward here
-            return rewards;
+
+            return grantedRewards.ToArray();
         }
 
-        public AchievementReward[] ApplyAchievementRewardsByID(Viking viking, int achievementID) {
+        public AchievementReward[] ApplyAchievementRewardsByID(Viking viking, int achievementID, Guid[]? dragonsIDs = null) {
             var rewards = achievementStore.GetAchievementRewardsById(achievementID);
             if (rewards != null) {
-                return ApplyAchievementRewards(viking, rewards);
+                return ApplyAchievementRewards(viking, rewards, dragonsIDs);
             } else {
                 return new AchievementReward[0];
             }
