@@ -6,4 +6,5 @@ src/obj
 src/sodoff.db
 src/sodoff.db-shm
 src/sodoff.db-wal
+src/Properties
 __pycache__/
