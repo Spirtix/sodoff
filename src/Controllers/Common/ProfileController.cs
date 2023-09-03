@@ -19,14 +19,13 @@ public class ProfileController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("ProfileWebService.asmx/GetUserProfileByUserID")]
-    public IActionResult GetUserProfileByUserID([FromForm] string apiToken, [FromForm] string userId) {
-        Session session = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken);
-        if (session?.User is null && session?.Viking is null) {
-            // TODO: what response for not logged in?
-            return Ok();
-        }
+    public IActionResult GetUserProfileByUserID([FromForm] string userId) {
+        // NOTE: this is public info (for mmo) - no session check
 
         Viking? viking = ctx.Vikings.FirstOrDefault(e => e.Id == userId);
+        if (viking is null)
+            return Conflict("Viking not found");
+
         return Ok(GetProfileDataFromViking(viking));
     }
 
