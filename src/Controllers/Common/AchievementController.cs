@@ -167,10 +167,10 @@ public class AchievementController : Controller {
     public IActionResult ApplyPayout(Viking viking, string ModuleName, int points) {
         // TODO: use args (ModuleName and points) to calculate reward
         return Ok(new AchievementReward[]{
-            achievementService.AddAchievementPointsAndGetReward(viking, AchievementPointTypes.PlayerXP, 10),
-            achievementService.AddAchievementPointsAndGetReward(viking, AchievementPointTypes.GameCurrency, 5),
-            achievementService.AddAchievementPointsAndGetReward(viking, AchievementPointTypes.DragonXP, 6),
-            achievementService.AddAchievementPointsAndGetReward(viking, AchievementPointTypes.UDTPoints, 6),
+            achievementService.AddAchievementPoints(viking, AchievementPointTypes.PlayerXP, 10),
+            achievementService.AddAchievementPoints(viking, AchievementPointTypes.GameCurrency, 5),
+            achievementService.AddAchievementPoints(viking, AchievementPointTypes.DragonXP, 6),
+            achievementService.AddAchievementPoints(viking, AchievementPointTypes.UDTPoints, 6),
         });
     }
     
@@ -178,16 +178,11 @@ public class AchievementController : Controller {
     [Produces("application/xml")]
     [Route("AchievementWebService.asmx/SetAchievementByEntityIDs")]
     [VikingSession]
-    public IActionResult SetAchievementByEntityIDs(Viking viking, [FromForm] int achievementID) {
-        // TODO: This is a placeholder
-        return Ok(new AchievementReward[1] {
-            new AchievementReward {
-                Amount = 25,
-                PointTypeID = AchievementPointTypes.PlayerXP,
-                EntityID = Guid.Parse(viking.Id),
-                EntityTypeID = 1,
-                RewardID = 552
-            }
-        });
+    public IActionResult SetAchievementByEntityIDs(Viking viking, [FromForm] int achievementID, [FromForm] string petIDs) {
+        Guid[] petGuids = XmlUtil.DeserializeXml<Guid[]>(petIDs);
+
+        return Ok(
+            achievementService.ApplyAchievementRewardsByID(viking, achievementID, petGuids)
+        );
     }
 }
