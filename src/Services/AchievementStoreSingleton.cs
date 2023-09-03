@@ -7,7 +7,6 @@ using System.Xml.Linq;
 
 namespace sodoff.Services {
     public class AchievementStoreSingleton {
-        private InventoryService inventoryService;
 
         Dictionary<AchievementPointTypes, UserRank[]> ranks = new();
         Dictionary<int, AchievementReward[]> achivmentsRewardByID = new();
@@ -16,8 +15,7 @@ namespace sodoff.Services {
         int dragonAdultMinXP;
         int dragonTitanMinXP;
 
-        public AchievementStoreSingleton(InventoryService inventoryService) {
-            this.inventoryService = inventoryService;
+        public AchievementStoreSingleton() {
 
             ArrayOfUserRank allranks = XmlUtil.DeserializeXml<ArrayOfUserRank>(XmlUtil.ReadResourceXmlString("allranks"));
             foreach (var pointType in Enum.GetValues<AchievementPointTypes>()) {
