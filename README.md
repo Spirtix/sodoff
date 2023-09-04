@@ -83,6 +83,7 @@ Then run School of Dragons.
 - FuseItems
 - AddBattleItems
 - SetAchievementByEntityIDs
+- RedeemMysteryBoxItems
 
 #### Implemented enough (probably)
 - GetRules (doesn't return any rules, probably doesn't need to)
