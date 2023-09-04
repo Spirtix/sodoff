@@ -10,13 +10,6 @@ namespace sodoff.Services {
         private AchievementStoreSingleton achievementStore;
         private InventoryService inventoryService;
 
-        Dictionary<AchievementPointTypes, UserRank[]> ranks = new();
-        Dictionary<int, AchievementReward[]> achivmentsRewardByID = new();
-        Dictionary<int, AchievementReward[]> achivmentsRewardByTask = new();
-
-        int dragonAdultMinXP;
-        int dragonTitanMinXP;
-
         public AchievementService(AchievementStoreSingleton achievementStore, InventoryService inventoryService) {
             this.achievementStore = achievementStore;
             this.inventoryService = inventoryService;

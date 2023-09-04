@@ -176,7 +176,7 @@ public class ContentController : Controller {
         // Now that we know the request is valid, update the inventory
         foreach (var req in request) {
             if (req.ItemID == 0) continue; // Do not save a null item
-            
+
             if (inventoryService.ItemNeedUniqueInventorySlot((int)req.ItemID)) {
                 // if req.Quantity < 0 remove unique items
                 for (int i=req.Quantity; i<0; ++i) {
@@ -190,10 +190,9 @@ public class ContentController : Controller {
                     );
                 }
             } else {
+                var responseItem = inventoryService.AddItemToInventoryAndGetResponse(viking, (int)req.ItemID!, req.Quantity);
                 if (req.Quantity > 0) {
-                    responseItems.Add(
-                        inventoryService.AddItemToInventoryAndGetResponse(viking, (int)req.ItemID!, req.Quantity)
-                    );
+                    responseItems.Add(responseItem);
                 }
             }
         }
@@ -1014,6 +1013,10 @@ public class ContentController : Controller {
         SellItemsRequest req = XmlUtil.DeserializeXml<SellItemsRequest>(sellItemsRequest);
         foreach (var invItemID in req.UserInventoryCommonIDs) {
             inventoryService.SellInventoryItem(viking, invItemID, ref gold, ref shard);
+        }
+
+        if (gold == 0 && shard == 0) { // NOTE: client sometimes call SellItems with invalid UserInventoryCommonIDs for unknown reasons
+            return Ok(new CommonInventoryResponse { Success = false });
         }
 
         // apply shards reward
