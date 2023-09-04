@@ -609,20 +609,71 @@ public class ContentController : Controller {
 
     [HttpPost]
     [Produces("application/xml")]
+    [Route("/ContentWebService.asmx/RedeemMysteryBoxItems")]
+    [VikingSession]
+    public IActionResult RedeemMysteryBoxItems(Viking viking, [FromForm] string request) {
+        var req = XmlUtil.DeserializeXml<RedeemRequest>(request);
+
+        // get and reduce quantity of box item
+        InventoryItem? invItem = viking.Inventory.InventoryItems.FirstOrDefault(e => e.ItemId == req.ItemID);
+        if (invItem is null || invItem.Quantity < 1) {
+            return Ok(new CommonInventoryResponse{ Success = false });
+        }
+        --invItem.Quantity;
+
+        // get real item id (from box) and add it to inventory
+        ItemData boxItem = itemService.GetItem(req.ItemID);
+        ItemData newItem = itemService.GetItem(itemService.OpenBox(boxItem).ItemId);
+        CommonInventoryResponseItem newInvItem = inventoryService.AddItemToInventoryAndGetResponse(viking, newItem.ItemID, 1);
+
+        // prepare list of possible rewards for response
+        List<ItemData> prizeItems = new List<ItemData>();
+        prizeItems.Add(newItem);
+        foreach (var reward in boxItem.Relationship.Where(e => e.Type == "Prize")) {
+            if (prizeItems.Count >= req.RedeemItemFetchCount)
+                break;
+            prizeItems.Add(itemService.GetItem(reward.ItemId));
+        }
+
+        return Ok(new CommonInventoryResponse{
+            Success = true,
+            CommonInventoryIDs = new CommonInventoryResponseItem[]{ newInvItem },
+            PrizeItems = new List<PrizeItemResponse>{ new PrizeItemResponse{
+                ItemID = req.ItemID,
+                PrizeItemID = newItem.ItemID,
+                MysteryPrizeItems = prizeItems,
+            }}
+        });
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
     [Route("V2/ContentWebService.asmx/PurchaseItems")]
     [VikingSession]
     public IActionResult PurchaseItems(Viking viking, [FromForm] string purchaseItemRequest) {
         PurchaseStoreItemRequest request = XmlUtil.DeserializeXml<PurchaseStoreItemRequest>(purchaseItemRequest);
-        CommonInventoryResponseItem[] items = new CommonInventoryResponseItem[request.Items.Length];
+        List<CommonInventoryResponseItem> items = new List<CommonInventoryResponseItem>();
         for (int i = 0; i < request.Items.Length; i++) {
-            items[i] = inventoryService.AddItemToInventoryAndGetResponse(viking, request.Items[i], 1);
+            int itemId = request.Items[i];
+            if (itemService.IsBundleItem(itemId) && !request.AddMysteryBoxToInventory) {
+                ItemData bundleItem = itemService.GetItem(itemId);
+                foreach (var reward in bundleItem.Relationship.Where(e => e.Type == "Bundle")) {
+                    int quantity = reward.Quantity;
+                    if (quantity == 0)
+                        quantity = 1;
+                    for (int j=0; j<quantity; ++j)
+                        items.Add(inventoryService.AddItemToInventoryAndGetResponse(viking, reward.ItemId, 1));
+                }
+            } else {
+                items.Add(inventoryService.AddItemToInventoryAndGetResponse(viking, itemId, 1));
+            }
             // NOTE: The quantity of purchased items is always 0 and the items are instead duplicated in both the request and the response.
             //       Call AddItemToInventoryAndGetResponse with Quantity == 1 we get response with quantity == 0.
         }
 
         CommonInventoryResponse response = new CommonInventoryResponse {
             Success = true,
-            CommonInventoryIDs = items,
+            CommonInventoryIDs = items.ToArray(),
             UserGameCurrency = achievementService.GetUserCurrency(viking)
         };
         return Ok(response);
@@ -636,7 +687,11 @@ public class ContentController : Controller {
         int[] itemIdArr = XmlUtil.DeserializeXml<int[]>(itemIDArrayXml);
         CommonInventoryResponseItem[] items = new CommonInventoryResponseItem[itemIdArr.Length];
         for (int i = 0; i < itemIdArr.Length; i++) {
-            items[i] = inventoryService.AddItemToInventoryAndGetResponse(viking, itemIdArr[i], 1);
+            int itemId = itemIdArr[i];
+            if (itemService.IsBoxItem(itemId)) {
+                itemId = itemService.OpenBox(itemId).ItemId;
+            }
+            items[i] = inventoryService.AddItemToInventoryAndGetResponse(viking, itemId, 1);
             // NOTE: The quantity of purchased items is always 0 and the items are instead duplicated in both the request and the response.
             //       Call AddItemToInventoryAndGetResponse with Quantity == 1 we get response with quantity == 0.
         }

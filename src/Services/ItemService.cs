@@ -52,6 +52,18 @@ namespace sodoff.Services {
             return null;
         }
 
+        public ItemDataRelationship OpenBox(int boxItemId) {
+            return OpenBox(items[boxItemId]);
+        }
+
+        public bool IsBoxItem(int itemId) {
+            return items[itemId].Relationship?.FirstOrDefault(e => e.Type == "Prize") != null;
+        }
+
+        public bool IsBundleItem(int itemId) {
+            return items[itemId].Relationship?.FirstOrDefault(e => e.Type == "Bundle") != null;
+        }
+
         public bool CheckItemGender(ItemData itemData, Gender gender) {
             string? itemGender = itemData.Attribute?.FirstOrDefault(e => e.Key == "Gender")?.Value;
             if (itemGender != null) {

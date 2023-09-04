@@ -80,6 +80,7 @@ methods = [
   'SetUserAchievementAndGetReward',
   'ProcessRewardedItems',
   'ApplyPayout',
+  'RedeemMysteryBoxItems',
 ]
 
 def routable(path):
