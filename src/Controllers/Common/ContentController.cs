@@ -1119,7 +1119,8 @@ public class ContentController : Controller {
 
         //  - battle backpack items and blueprints
         if (req.LevelRewardType != LevelRewardType.LevelFailure) {
-            ItemData rewardItem = itemService.GetDTReward();
+            Gender gender = XmlUtil.DeserializeXml<AvatarData>(viking.AvatarSerialized).GenderType;
+            ItemData rewardItem = itemService.GetDTReward(gender);
             if (itemService.ItemHasCategory(rewardItem, 651)) {
                 // blueprint
                 CommonInventoryResponseItem blueprintItem = inventoryService.AddItemToInventoryAndGetResponse(viking, rewardItem.ItemID, 1);
