@@ -126,7 +126,6 @@ public class AchievementController : Controller {
     [VikingSession(UseLock=true)]
     public IActionResult SetAchievementAndGetReward(Viking viking, [FromForm] int achievementID) {
         var rewards = achievementService.ApplyAchievementRewardsByID(viking, achievementID);
-
         ctx.SaveChanges();
 
         return Ok(rewards);
@@ -166,12 +165,15 @@ public class AchievementController : Controller {
     [VikingSession]
     public IActionResult ApplyPayout(Viking viking, string ModuleName, int points) {
         // TODO: use args (ModuleName and points) to calculate reward
-        return Ok(new AchievementReward[]{
+        var rewards = new AchievementReward[]{
             achievementService.AddAchievementPoints(viking, AchievementPointTypes.PlayerXP, 10),
             achievementService.AddAchievementPoints(viking, AchievementPointTypes.GameCurrency, 5),
             achievementService.AddAchievementPoints(viking, AchievementPointTypes.DragonXP, 6),
             achievementService.AddAchievementPoints(viking, AchievementPointTypes.UDTPoints, 6),
-        });
+        };
+        ctx.SaveChanges();
+        
+        return Ok(rewards);
     }
     
     [HttpPost]
@@ -181,8 +183,9 @@ public class AchievementController : Controller {
     public IActionResult SetAchievementByEntityIDs(Viking viking, [FromForm] int achievementID, [FromForm] string petIDs) {
         Guid[] petGuids = XmlUtil.DeserializeXml<Guid[]>(petIDs);
 
-        return Ok(
-            achievementService.ApplyAchievementRewardsByID(viking, achievementID, petGuids)
-        );
+        var rewards = achievementService.ApplyAchievementRewardsByID(viking, achievementID, petGuids);
+        ctx.SaveChanges();
+        
+        return Ok(rewards);
     }
 }
