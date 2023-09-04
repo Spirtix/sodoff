@@ -74,6 +74,8 @@ namespace sodoff.Services {
         public void SellInventoryItem(Viking viking, int invItemID, ref int gold, ref int shard) {
             // get item from inventory
             InventoryItem? item = viking.Inventory.InventoryItems.FirstOrDefault(e => e.Id == invItemID);
+            if (item is null)
+                return;
 
             // get item data
             ItemData? itemData = itemService.GetItem(item.ItemId);
