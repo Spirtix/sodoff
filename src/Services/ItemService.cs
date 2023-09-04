@@ -24,9 +24,14 @@ namespace sodoff.Services {
             return items[id];
         }
 
-        public ItemData GetDTReward() {
-            // TODO: better calculation of reward item - use difficulty of DT level, item rarity, tier, etc
-            int itemID = itemsRewardForDT[random.Next(0, itemsRewardForDT.Length)];
+        public ItemData GetDTReward(Gender gender) {
+            int itemID = 12374;
+            for (int i=0; i<8; ++i) {
+                // TODO: better calculation of reward item - use difficulty of DT level, item rarity, tier, etc
+                itemID = itemsRewardForDT[random.Next(0, itemsRewardForDT.Length)];
+                if (CheckItemGender(items[itemID], gender))
+                    return items[itemID];
+            }
             return items[itemID];
         }
 
@@ -45,6 +50,17 @@ namespace sodoff.Services {
                 }
             }
             return null;
+        }
+
+        public bool CheckItemGender(ItemData itemData, Gender gender) {
+            string? itemGender = itemData.Attribute?.FirstOrDefault(e => e.Key == "Gender")?.Value;
+            if (itemGender != null) {
+                if (gender == Gender.Male && itemGender == "F")
+                    return false;
+                if (gender == Gender.Female && itemGender == "M")
+                    return false;
+            }
+            return true;
         }
 
         public bool ItemHasCategory(ItemData itemData, int categoryId) {
