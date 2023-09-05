@@ -42,7 +42,19 @@ public class MissionService {
                 Viking viking = ctx.Vikings.FirstOrDefault(x => x.Id == userId)!;
                 MissionState? missionState = viking.MissionStates.FirstOrDefault(x => x.MissionId == missionId);
                 if (missionState != null && missionState.MissionStatus == MissionStatus.Active) {
-                    missionState.MissionStatus = MissionStatus.Completed;
+                    if (mission.Repeatable) {
+                        // NOTE: This won't work if repeatable mission use sub-missions, but SoD doesn't have those repeatable mission
+                        // NOTE: Repeatable missions needs re-login to work correctly (this looks like og bug)
+                        //       probably due to client-side cache of task payload / status
+                        var taskStatuses = ctx.TaskStatuses.Where(e => e.VikingId == userId && e.MissionId == missionId);
+                        foreach (var task in taskStatuses) {
+                            task.Payload = null;
+                            task.Completed = false;
+                        }
+                        missionState.MissionStatus = MissionStatus.Upcoming;
+                    } else {
+                        missionState.MissionStatus = MissionStatus.Completed;
+                    }
                     missionState.UserAccepted = null;
                 }
                 var rewards = achievementService.ApplyAchievementRewards(viking, mission.Rewards.ToArray());
