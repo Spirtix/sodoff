@@ -19,33 +19,33 @@ public class ProfileController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("ProfileWebService.asmx/GetUserProfileByUserID")]
-    public IActionResult GetUserProfileByUserID([FromForm] string userId) {
+    public IActionResult GetUserProfileByUserID([FromForm] string userId, [FromForm] string apiKey) {
         // NOTE: this is public info (for mmo) - no session check
 
         Viking? viking = ctx.Vikings.FirstOrDefault(e => e.Id == userId);
         if (viking is null)
             return Conflict("Viking not found");
 
-        return Ok(GetProfileDataFromViking(viking));
+        return Ok(GetProfileDataFromViking(viking, apiKey));
     }
 
     [HttpPost]
     [Produces("application/xml")]
     [Route("ProfileWebService.asmx/GetUserProfile")]
     [VikingSession(UseLock=false)]
-    public IActionResult GetUserProfile(Viking viking) {
-        return Ok(GetProfileDataFromViking(viking));
+    public IActionResult GetUserProfile(Viking viking, [FromForm] string apiKey) {
+        return Ok(GetProfileDataFromViking(viking, apiKey));
     }
 
     [HttpPost]
     [Produces("application/xml")]
     [Route("ProfileWebService.asmx/GetDetailedChildList")]
     [VikingSession(Mode=VikingSession.Modes.USER, ApiToken="parentApiToken", UseLock=false)]
-    public Schema.UserProfileDataList? GetDetailedChildList(User user) {
+    public Schema.UserProfileDataList? GetDetailedChildList(User user, [FromForm] string apiKey) {
         if (user.Vikings.Count <= 0)
             return null;
 
-        UserProfileData[] profiles = user.Vikings.Select(GetProfileDataFromViking).ToArray();
+        UserProfileData[] profiles = user.Vikings.Select(v => GetProfileDataFromViking(v, apiKey)).ToArray();
         return new UserProfileDataList {
             UserProfiles = profiles
         };
@@ -105,11 +105,25 @@ public class ProfileController : Controller {
         return Ok("<?xml version='1.0' encoding='UTF-8'?><ArrayOfProfileTag xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:nil=\"true\"/>");
     }
     
-    private UserProfileData GetProfileDataFromViking(Viking viking) {
+    private UserProfileData GetProfileDataFromViking(Viking viking, string apiKey) {
         // Get the avatar data
         AvatarData avatarData = null;
         if (viking.AvatarSerialized is not null) {
             avatarData = XmlUtil.DeserializeXml<AvatarData>(viking.AvatarSerialized);
+        }
+
+        if (avatarData != null && (apiKey == "a3a12a0a-7c6e-4e9b-b0f7-22034d799013")) {
+            if (avatarData.Part.FirstOrDefault(e => e.PartType == "Sword") is null) {
+                var extraParts = new AvatarDataPart[] {
+                    new AvatarDataPart {
+                        PartType = "Sword",
+                        Geometries = new string[] {"NULL"},
+                        Textures = new string[] {"__EMPTY__"},
+                        UserInventoryId = null,
+                    }
+                };
+                avatarData.Part = extraParts.Concat(avatarData.Part).ToArray();
+            }
         }
 
         // Build the AvatarDisplayData
