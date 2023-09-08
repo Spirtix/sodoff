@@ -620,15 +620,15 @@ public class ContentController : Controller {
         }
         --invItem.Quantity;
 
-        // get real item id (from box) and add it to inventory
-        ItemData boxItem = itemService.GetItem(req.ItemID);
-        ItemData newItem = itemService.GetItem(itemService.OpenBox(boxItem).ItemId);
-        CommonInventoryResponseItem newInvItem = inventoryService.AddItemToInventoryAndGetResponse(viking, newItem.ItemID, 1);
+        // get real item id (from box) add it to inventory
+        itemService.OpenBox(req.ItemID, out int newItemId, out int quantity);
+        ItemData newItem = itemService.GetItem(newItemId);
+        CommonInventoryResponseItem newInvItem = inventoryService.AddItemToInventoryAndGetResponse(viking, newItem.ItemID, quantity);
 
         // prepare list of possible rewards for response
         List<ItemData> prizeItems = new List<ItemData>();
         prizeItems.Add(newItem);
-        foreach (var reward in boxItem.Relationship.Where(e => e.Type == "Prize")) {
+        foreach (var reward in itemService.GetItem(req.ItemID).Relationship.Where(e => e.Type == "Prize")) {
             if (prizeItems.Count >= req.RedeemItemFetchCount)
                 break;
             prizeItems.Add(itemService.GetItem(reward.ItemId));
@@ -654,17 +654,23 @@ public class ContentController : Controller {
         List<CommonInventoryResponseItem> items = new List<CommonInventoryResponseItem>();
         for (int i = 0; i < request.Items.Length; i++) {
             int itemId = request.Items[i];
-            if (itemService.IsBundleItem(itemId) && !request.AddMysteryBoxToInventory) {
+            if (request.AddMysteryBoxToInventory) {
+                // force add boxes as item (without "opening")
+                items.Add(inventoryService.AddItemToInventoryAndGetResponse(viking, itemId, 1));
+            } else if (itemService.IsBundleItem(itemId)) {
+                // open and add bundle
                 ItemData bundleItem = itemService.GetItem(itemId);
                 foreach (var reward in bundleItem.Relationship.Where(e => e.Type == "Bundle")) {
-                    int quantity = reward.Quantity;
-                    if (quantity == 0)
-                        quantity = 1;
+                    int quantity = itemService.GetItemQuantity(reward);
                     for (int j=0; j<quantity; ++j)
                         items.Add(inventoryService.AddItemToInventoryAndGetResponse(viking, reward.ItemId, 1));
                 }
             } else {
-                items.Add(inventoryService.AddItemToInventoryAndGetResponse(viking, itemId, 1));
+                // check for mystery box ... open if need
+                itemService.CheckAndOpenBox(itemId, out itemId, out int quantity);
+                for (int j=0; j<quantity; ++j) {
+                    items.Add(inventoryService.AddItemToInventoryAndGetResponse(viking, itemId, 1));
+                }
             }
             // NOTE: The quantity of purchased items is always 0 and the items are instead duplicated in both the request and the response.
             //       Call AddItemToInventoryAndGetResponse with Quantity == 1 we get response with quantity == 0.
@@ -684,20 +690,19 @@ public class ContentController : Controller {
     [VikingSession]
     public IActionResult PurchaseItemsV1(Viking viking, [FromForm] string itemIDArrayXml) {
         int[] itemIdArr = XmlUtil.DeserializeXml<int[]>(itemIDArrayXml);
-        CommonInventoryResponseItem[] items = new CommonInventoryResponseItem[itemIdArr.Length];
+        List<CommonInventoryResponseItem> items = new List<CommonInventoryResponseItem>();
         for (int i = 0; i < itemIdArr.Length; i++) {
-            int itemId = itemIdArr[i];
-            if (itemService.IsBoxItem(itemId)) {
-                itemId = itemService.OpenBox(itemId).ItemId;
+            itemService.CheckAndOpenBox(itemIdArr[i], out int itemId, out int quantity);
+            for (int j=0; j<quantity; ++j) {
+                items.Add(inventoryService.AddItemToInventoryAndGetResponse(viking, itemId, 1));
+                // NOTE: The quantity of purchased items is always 0 and the items are instead duplicated in both the request and the response.
+                //       Call AddItemToInventoryAndGetResponse with Quantity == 1 we get response with quantity == 0.
             }
-            items[i] = inventoryService.AddItemToInventoryAndGetResponse(viking, itemId, 1);
-            // NOTE: The quantity of purchased items is always 0 and the items are instead duplicated in both the request and the response.
-            //       Call AddItemToInventoryAndGetResponse with Quantity == 1 we get response with quantity == 0.
         }
 
         CommonInventoryResponse response = new CommonInventoryResponse {
             Success = true,
-            CommonInventoryIDs = items,
+            CommonInventoryIDs = items.ToArray(),
             UserGameCurrency = achievementService.GetUserCurrency(viking)
         };
         return Ok(response);
@@ -979,19 +984,13 @@ public class ContentController : Controller {
         foreach (BluePrintSpecification output in blueprintItem.BluePrint.Outputs) {
             if (output.ItemID is null)
                 continue;
-            
-            // get new item info
-            int newItemId = (int)(output.ItemID);
-            ItemData newItemData = itemService.GetItem(newItemId);
-            
-            // check for "box tickets"
-            if (itemService.ItemHasCategory(newItemData, 462)) {
-                newItemId = itemService.OpenBox(newItemData).ItemId;
+
+            itemService.CheckAndOpenBox((int)(output.ItemID), out int newItemId, out int quantity);
+            for (int i=0; i<quantity; ++i) {
+                resItemList.Add(
+                    inventoryService.AddBattleItemToInventory(viking, newItemId, (int)output.Tier)
+                );
             }
-            
-            resItemList.Add(
-                inventoryService.AddBattleItemToInventory(viking, newItemId, (int)output.Tier)
-            );
         }
         
         // NOTE: saved inside AddBattleItemToInventory
@@ -1139,8 +1138,8 @@ public class ContentController : Controller {
         ApplyRewardsRequest req = XmlUtil.DeserializeXml<ApplyRewardsRequest>(request);
         
         List<AchievementReward> achievementRewards = new List<AchievementReward>();
-        UserItemStatsMap? rewardedItem = null;
-        CommonInventoryResponse? rewardedBlueprint = null;
+        UserItemStatsMap? rewardedBattleItem = null;
+        CommonInventoryResponse? rewardedStandardItem = null;
         
         int rewardMultipler = 0;
         if (req.LevelRewardType == LevelRewardType.LevelFailure) {
@@ -1175,23 +1174,26 @@ public class ContentController : Controller {
             );
         }
 
-        //  - battle backpack items and blueprints
+        //  - battle backpack items, blueprints and other items
         if (req.LevelRewardType != LevelRewardType.LevelFailure) {
             Gender gender = XmlUtil.DeserializeXml<AvatarData>(viking.AvatarSerialized).GenderType;
             ItemData rewardItem = itemService.GetDTReward(gender);
-            if (itemService.ItemHasCategory(rewardItem, 651)) {
-                // blueprint
-                CommonInventoryResponseItem blueprintItem = inventoryService.AddItemToInventoryAndGetResponse(viking, rewardItem.ItemID, 1);
-                rewardedBlueprint = new CommonInventoryResponse {
+            if (itemService.ItemHasCategory(rewardItem, 651) || rewardItem.PossibleStatsMap is null) {
+                // blueprint or no battle item (including box)
+                List<CommonInventoryResponseItem> standardItems = new List<CommonInventoryResponseItem>();
+                itemService.CheckAndOpenBox(rewardItem.ItemID, out int itemId, out int quantity);
+                for (int i=0; i<quantity; ++i) {
+                    standardItems.Add(inventoryService.AddItemToInventoryAndGetResponse(viking, itemId, 1));
+                    // NOTE: client require single quantity items
+                }
+                rewardedStandardItem = new CommonInventoryResponse {
                     Success = true,
-                    CommonInventoryIDs = new CommonInventoryResponseItem[] {
-                        blueprintItem
-                    }
+                    CommonInventoryIDs = standardItems.ToArray()
                 };
             } else {
                 // DT item
                 InventoryItemStatsMap item = inventoryService.AddBattleItemToInventory(viking, rewardItem.ItemID, random.Next(1, 4));
-                rewardedItem = new UserItemStatsMap {
+                rewardedBattleItem = new UserItemStatsMap {
                     Item = item.Item,
                     ItemStats = item.ItemStatsMap.ItemStats,
                     ItemTier = item.ItemStatsMap.ItemTier,
@@ -1207,8 +1209,8 @@ public class ContentController : Controller {
         return Ok(new ApplyRewardsResponse {
             Status = Status.Success,
             AchievementRewards = achievementRewards.ToArray(),
-            RewardedItemStatsMap = rewardedItem,
-            CommonInventoryResponse = rewardedBlueprint,
+            RewardedItemStatsMap = rewardedBattleItem,
+            CommonInventoryResponse = rewardedStandardItem,
         });
     }
 
