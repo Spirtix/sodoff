@@ -17,4 +17,7 @@ public class ItemDataRelationship
 
 	[XmlElement(ElementName = "q")]
 	public int Quantity;
+
+	[XmlElement(ElementName = "mxq")]
+	public int? MaxQuantity;
 }
