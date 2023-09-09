@@ -963,7 +963,13 @@ public class ContentController : Controller {
 
         ItemData blueprintItem;
         try {
-            blueprintItem = itemService.GetItem(req.BluePrintItemID ?? -1);
+            if (req.BluePrintInventoryID != null) {
+                blueprintItem = itemService.GetItem(
+                    viking.Inventory.InventoryItems.FirstOrDefault(e => e.Id == req.BluePrintInventoryID).ItemId
+                );
+            } else {
+                blueprintItem = itemService.GetItem(req.BluePrintItemID ?? -1);
+            }
         } catch(System.Collections.Generic.KeyNotFoundException) {
             return Ok(new FuseItemsResponse { Status = Status.BluePrintItemNotFound });
         }
