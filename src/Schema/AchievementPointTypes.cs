@@ -27,6 +27,9 @@ public enum AchievementPointTypes {
     [XmlEnum("10")]
     PlayerFishingXP = 10,
     
+    [XmlEnum("11")]
+    Trophies = 11,
+    
     [XmlEnum("12")]
     UDTPoints = 12,
     
