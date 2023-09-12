@@ -4,15 +4,24 @@ using sodoff.Util;
 namespace sodoff.Services;
 
 public class StoreService {
-
-    // NOTE: ANother memory waste (slow clap)
     Dictionary<int, ItemsInStoreData> stores = new();
 
-    public StoreService() {
-        GetStoreResponse storeArray = XmlUtil.DeserializeXml<GetStoreResponse>(XmlUtil.ReadResourceXmlString("store"));
-        foreach (var s in storeArray.Stores)
-            if (s.ID != null)
-                stores.Add((int)s.ID, s);
+    public StoreService(ItemService itemService) {
+        StoreData[] storeArray = XmlUtil.DeserializeXml<StoreData[]>(XmlUtil.ReadResourceXmlString("store"));
+        foreach (var s in storeArray) {
+            var newStore = new ItemsInStoreData {
+                ID = s.Id,
+                StoreName = s.StoreName,
+                Description = s.Description,
+                Items = new ItemData[s.ItemId.Length],
+                SalesAtStore = s.SalesAtStore,
+                PopularItems = s.PopularItems
+            };
+            for (int i=0; i<s.ItemId.Length; ++i) {
+                newStore.Items[i] = itemService.GetItem(s.ItemId[i]);
+            }
+            stores.Add(s.Id, newStore);
+        }
     }
 
     public ItemsInStoreData GetStore(int id) {
