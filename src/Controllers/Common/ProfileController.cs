@@ -23,8 +23,11 @@ public class ProfileController : Controller {
         // NOTE: this is public info (for mmo) - no session check
 
         Viking? viking = ctx.Vikings.FirstOrDefault(e => e.Id == userId);
-        if (viking is null)
-            return Conflict("Viking not found");
+        if (viking is null) {
+            return Ok(new UserProfileData());
+            // NOTE: do not return `Conflict("Viking not found")` due to client side error handling
+            //       (not Ok response cause soft-lock client - can't close error message)
+        }
 
         return Ok(GetProfileDataFromViking(viking));
     }
