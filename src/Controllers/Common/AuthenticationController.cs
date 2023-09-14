@@ -96,6 +96,7 @@ public class AuthenticationController : Controller {
                 MembershipID = "ef84db9-59c6-4950-b8ea-bbc1521f899b", // placeholder
                 FacebookUserID = 0,
                 MultiplayerEnabled = false,
+                IsApproved = true,
                 Age = 24,
                 OpenChatEnabled = true
             });
@@ -109,6 +110,7 @@ public class AuthenticationController : Controller {
                 UserID = viking.Id,
                 Username = viking.Name,
                 MultiplayerEnabled = false,
+                IsApproved = true,
                 Age = 24,
                 OpenChatEnabled = true
             });

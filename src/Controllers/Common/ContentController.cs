@@ -230,27 +230,32 @@ public class ContentController : Controller {
         return Ok(new DateTime(DateTime.Now.Ticks));
     }
 
+    private int GetAvatarVersion(AvatarData avatarData) {
+        foreach (AvatarDataPart part in avatarData.Part) {
+            if (part.PartType == "Version") {
+                return (int)part.Offsets[0].X * 100 + (int)part.Offsets[0].Y * 10 + (int)part.Offsets[0].Z;
+            }
+        }
+        return 0;
+    }
+
     [HttpPost]
     [Produces("application/xml")]
     [Route("V2/ContentWebService.asmx/SetAvatar")]
     [VikingSession]
-    public IActionResult SetAvatar(Viking viking, [FromForm] string contentXML, [FromForm] string apiKey) {
-        if (apiKey != "e20150cc-ff70-435c-90fd-341dc9161cc3") { // allow write old avatar from Magic & Mythies
-            AvatarData avatarData = XmlUtil.DeserializeXml<AvatarData>(contentXML);
-            foreach (AvatarDataPart part in avatarData.Part) {
-                if (part.PartType == "Version") {
-                    if (part.Offsets[0].X < 6 || part.Offsets[0].X == 6 && part.Offsets[0].Y < 1) {
-                        // do not allow to save avatar data from old clients (avatar data version < 6.1) ... it's broke profile on 3.31
-                        // but return as true to trick the client to avoid re-show change viking name dialog
-                        // TODO: maybe better set pair AvatarNameCustomizationDone -> 1 (in "2017" pairs) and return error here?
-                        return Ok(new SetAvatarResult {
-                            Success = true,
-                            DisplayName = viking.Name,
-                            StatusCode = AvatarValidationResult.Valid
-                        });
-                    }
-                    break;
-                }
+    public IActionResult SetAvatar(Viking viking, [FromForm] string contentXML) {
+        if (viking.AvatarSerialized != null) {
+            AvatarData dbAvatarData = XmlUtil.DeserializeXml<AvatarData>(viking.AvatarSerialized);
+            AvatarData reqAvatarData = XmlUtil.DeserializeXml<AvatarData>(contentXML);
+
+            int dbAvatarVersion = GetAvatarVersion(dbAvatarData);
+            int reqAvatarVersion = GetAvatarVersion(reqAvatarData);
+
+            if (dbAvatarVersion > reqAvatarVersion) {
+                // do not allow override newer version avatar data by older version
+                return Ok(new SetAvatarResult {
+                    Success = false,
+                });
             }
         }
 

@@ -28,6 +28,9 @@ public class MembershipController : Controller {
     [Route("MembershipWebService.asmx/GetChildList")] // used by old SoD (e.g. 2.9)
     [VikingSession(Mode=VikingSession.Modes.USER, UseLock=false)]
     public IActionResult GetChildList(User user) {
+        if (user.Vikings.Count <= 0)
+            return Ok();
+
         ChildList profiles = new ChildList();
         profiles.strings = user.Vikings.Select(viking => viking.Id + ", " + viking.Name).ToArray();
 
