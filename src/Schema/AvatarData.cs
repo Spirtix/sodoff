@@ -7,9 +7,9 @@ namespace sodoff.Schema;
 public class AvatarData
 {
 	[XmlElement(ElementName = "IsSuggestedAvatarName", IsNullable = true)]
-	public bool? IsSuggestedAvatarName;
+    public bool? IsSuggestedAvatarName { get; set; }
 
-	public int? Id;
+    public int? Id;
 
 	public string DisplayName;
 

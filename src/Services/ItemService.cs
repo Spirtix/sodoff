@@ -35,6 +35,16 @@ namespace sodoff.Services {
             return items[itemID];
         }
 
+        public int GetItemQuantity(ItemDataRelationship itemData) {
+            if (itemData.MaxQuantity is null || itemData.MaxQuantity < 2 || itemData.MaxQuantity == itemData.Quantity) {
+                if (itemData.Quantity == 0)
+                    return 1;
+                else
+                    return itemData.Quantity;
+            }
+            return random.Next(1, (int)itemData.MaxQuantity + 1);
+        }
+
         public ItemDataRelationship OpenBox(ItemData boxItem) {
             var boxRewards = boxItem.Relationship.Where(e => e.Type == "Prize").ToArray();
             int totalWeight = boxRewards.Sum(e => e.Weight);
@@ -52,8 +62,19 @@ namespace sodoff.Services {
             return null;
         }
 
-        public ItemDataRelationship OpenBox(int boxItemId) {
-            return OpenBox(items[boxItemId]);
+        public void OpenBox(int boxItemId, out int itemId, out int quantity) {
+            var reward = OpenBox(items[boxItemId]);
+            itemId = reward.ItemId;
+            quantity = GetItemQuantity(reward);
+        }
+
+        public void CheckAndOpenBox(int boxItemId, out int itemId, out int quantity) {
+            if (IsBoxItem(boxItemId)) {
+                OpenBox(boxItemId, out itemId, out quantity);
+            } else {
+                itemId = boxItemId;
+                quantity = 1;
+            }
         }
 
         public bool IsBoxItem(int itemId) {

@@ -422,4 +422,10 @@
    <int>16160</int>
    <int>16209</int>
    <int>16162</int>
+
+   <!-- runes (~0.95% probability) -->
+   <int>18794</int>
+   <int>18794</int>
+   <int>18794</int>
+   <int>18794</int>
 </ArrayOfInt>

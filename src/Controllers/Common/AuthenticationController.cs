@@ -95,7 +95,7 @@ public class AuthenticationController : Controller {
                 Username = user.Username,
                 MembershipID = "ef84db9-59c6-4950-b8ea-bbc1521f899b", // placeholder
                 FacebookUserID = 0,
-                MultiplayerEnabled = false,
+                MultiplayerEnabled = true,
                 IsApproved = true,
                 Age = 24,
                 OpenChatEnabled = true
@@ -109,7 +109,7 @@ public class AuthenticationController : Controller {
             return Ok(new UserInfo {
                 UserID = viking.Id,
                 Username = viking.Name,
-                MultiplayerEnabled = false,
+                MultiplayerEnabled = true,
                 IsApproved = true,
                 Age = 24,
                 OpenChatEnabled = true

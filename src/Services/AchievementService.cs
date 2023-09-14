@@ -54,6 +54,11 @@ namespace sodoff.Services {
         public AchievementReward? AddDragonAchievementPoints(Dragon dragon, int? value) {
             dragon.PetXP = (dragon.PetXP ?? 0) + (value ?? 0);
 
+            if (dragon.PetXP < 0) {
+                dragon.PetXP = int.MaxValue;
+                value = 0;
+            }
+
             return new AchievementReward{
                 // NOTE: RewardID and EntityTypeID are not used by client
                 EntityID = Guid.Parse(dragon.EntityId),
@@ -75,6 +80,11 @@ namespace sodoff.Services {
                     viking.AchievementPoints.Add(xpPoints);
                 }
                 xpPoints.Value += value ?? 0;
+
+                if (xpPoints.Value < 0) {
+                    xpPoints.Value = int.MaxValue;
+                    value = 0;
+                }
 
                 return new AchievementReward{
                     EntityID = Guid.Parse(viking.Id),
