@@ -109,6 +109,7 @@ public class AuthenticationController : Controller {
             return Ok(new UserInfo {
                 UserID = viking.Id,
                 Username = viking.Name,
+                FacebookUserID = 0,
                 MultiplayerEnabled = true,
                 IsApproved = true,
                 Age = 24,
