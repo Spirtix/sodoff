@@ -115,7 +115,7 @@ public class ContentController : Controller {
     [Produces("application/xml")]
     [Route("ContentWebService.asmx/SetKeyValuePair")]
     [Route("ContentWebService.asmx/SetKeyValuePairByUserID")]
-    [VikingSession(Mode=VikingSession.Modes.VIKING_OR_USER)]
+    [VikingSession(Mode=VikingSession.Modes.VIKING_OR_USER, UseLock=true)]
     public IActionResult SetKeyValuePairByUserID(User? user, Viking? viking, [FromForm] int pairId, [FromForm] string contentXML, [FromForm] string? userId) {
         Schema.PairData schemaData = XmlUtil.DeserializeXml<Schema.PairData>(contentXML);
 
