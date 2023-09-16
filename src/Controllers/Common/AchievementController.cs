@@ -179,7 +179,7 @@ public class AchievementController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("AchievementWebService.asmx/SetAchievementByEntityIDs")]
-    [VikingSession]
+    [VikingSession(UseLock=true)]
     public IActionResult SetAchievementByEntityIDs(Viking viking, [FromForm] int achievementID, [FromForm] string petIDs) {
         Guid[] petGuids = XmlUtil.DeserializeXml<Guid[]>(petIDs);
 
