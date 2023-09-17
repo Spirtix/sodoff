@@ -304,8 +304,14 @@
    <int>20610</int>
    <int>20857</int>
    <int>20858</int>
-   <int>7149</int>
-   <int>7150</int>
+   <!--<int>7149</int> broken -->
+   <!--<int>7150</int> broken -->
+   <int>8820</int>
+   <int>8821</int>
+   <int>8824</int>
+   <int>8825</int>
+   <int>8826</int>
+   <int>8822</int>
    
    <!-- blueprints -->
    <int>18508</int>
@@ -423,7 +429,7 @@
    <int>16209</int>
    <int>16162</int>
 
-   <!-- runes (~0.95% probability) -->
+   <!-- runes (~1.2% probability) -->
    <int>18794</int>
    <int>18794</int>
    <int>18794</int>
