@@ -24,6 +24,9 @@ public class MissionService {
         } else if (missionId == 999 && apiKey == "a2a09a0a-7c6e-4e9b-b0f7-22034d799013") {
             mission = missionStore.GetMission(20999);
             mission.MissionID = 999;
+        } else if (missionId == 999 && apiKey == "a1a13a0a-7c6e-4e9b-b0f7-22034d799013") {
+            mission = missionStore.GetMission(30999);
+            mission.MissionID = 999;
         } else {
             mission = missionStore.GetMission(missionId);
         }
@@ -109,16 +112,17 @@ public class MissionService {
             mission.Completed = 1;
     }
 
-    public void SetUpMissions(Viking viking) {
+    public void SetUpMissions(Viking viking, string apiKey) {
         viking.MissionStates = new List<MissionState>();
-        foreach (int m in missionStore.GetActiveMissions()) {
+
+        foreach (int m in missionStore.GetActiveMissions(apiKey)) {
             viking.MissionStates.Add(new MissionState {
                 MissionId = m,
                 MissionStatus = MissionStatus.Active
             });
         }
         
-        foreach (int m in missionStore.GetUpcomingMissions()) {
+        foreach (int m in missionStore.GetUpcomingMissions(apiKey)) {
             viking.MissionStates.Add(new MissionState {
                 MissionId = m,
                 MissionStatus = MissionStatus.Upcoming

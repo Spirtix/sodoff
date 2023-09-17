@@ -591,10 +591,22 @@ public class ContentController : Controller {
 
     [HttpPost]
     [Produces("application/xml")]
-    [Route("ContentWebService.asmx/GetUserMissionState")] // used by Magic & Mythies
-    public IActionResult GetUserMissionStatev1([FromForm] string userId, [FromForm] string filter) {
-        // TODO: This is a placeholder
-        return Ok(new UserMissionStateResult { Missions = new List<Mission>()  });
+    [Route("ContentWebService.asmx/GetUserMissionState")] // used by SoD 1.13
+    public IActionResult GetUserMissionStatev1([FromForm] string userId, [FromForm] string filter, [FromForm] string apiKey) {
+        Viking? viking = ctx.Vikings.FirstOrDefault(x => x.Id == userId);
+        if (viking is null)
+            return Ok("error");
+
+        UserMissionStateResult result = new UserMissionStateResult { Missions = new List<Mission>()  };
+        foreach (var mission in viking.MissionStates.Where(x => x.MissionStatus != MissionStatus.Completed)) {
+            Mission updatedMission = missionService.GetMissionWithProgress(mission.MissionId, viking.Id, apiKey);
+            if (mission.UserAccepted != null)
+                updatedMission.Accepted = (bool)mission.UserAccepted;
+            result.Missions.Add(updatedMission);
+        }
+
+        result.UserID = Guid.Parse(viking.Id);
+        return Ok(result);
     }
 
     [HttpPost]
@@ -625,6 +637,27 @@ public class ContentController : Controller {
 
         result.UserID = Guid.Parse(viking.Id);
         return Ok(result);
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("ContentWebService.asmx/SetTaskState")] // used by SoD 1.13
+    [VikingSession(UseLock=true)]
+    public IActionResult SetTaskStatev1(Viking viking, [FromForm] string userId, [FromForm] int missionId, [FromForm] int taskId, [FromForm] bool completed, [FromForm] string xmlPayload, [FromForm] string apiKey) {
+        if (viking.Id != userId)
+            return Unauthorized("Can't set not owned task");
+
+        List<MissionCompletedResult> results = missionService.UpdateTaskProgress(missionId, taskId, userId, completed, xmlPayload, apiKey);
+
+        SetTaskStateResult taskResult = new SetTaskStateResult {
+            Success = true,
+            Status = SetTaskStateStatus.TaskCanBeDone,
+        };
+
+        if (results.Count > 0)
+            taskResult.MissionsCompleted = results.ToArray();
+
+        return Ok(taskResult);
     }
 
     [HttpPost]

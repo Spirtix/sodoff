@@ -125,18 +125,13 @@ public class RegistrationController : Controller {
             Rooms = new List<Room>()
         };
 
-        missionService.SetUpMissions(v);
+        missionService.SetUpMissions(v, apiKey);
 
         ctx.Vikings.Add(v);
 
         if (apiKey == "a1a13a0a-7c6e-4e9b-b0f7-22034d799013") {
             keyValueService.SetPairData(null, v, null, 2017, new Schema.PairData {
                 Pairs = new Schema.Pair[]{
-                    new Schema.Pair {
-                        // mark Berk tutorial on 1.13 as done ... we don't have data to restore this tutorial
-                        PairKey = "HubBerkDOFirstCommon",
-                        PairValue = "1"
-                    },
                     new Schema.Pair {
                         // avoid show change viking name dialog
                         PairKey = "AvatarNameCustomizationDone",
