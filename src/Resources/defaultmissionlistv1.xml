@@ -1,5 +1,11 @@
 ﻿<?xml version='1.0' encoding='utf-8'?>
 <DefaultMissions>
+  <!-- list of default mission for oldest versions (1.13)
+    * must not contain contain missions with Type == 7 <Prerequisites> (causes xml deserialize error in client)
+    * "New Student" (999) must be Upcoming not Active mission
+    * should not contain any visible missions not supported in oldest versions
+    * TODO: remove all missions not supported in oldest versions
+  -->
   <Active>
     <id>1035</id>
     <id>1036</id>

@@ -108,7 +108,7 @@ public class ProfileController : Controller {
         return Ok("<?xml version='1.0' encoding='UTF-8'?><ArrayOfProfileTag xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:nil=\"true\"/>");
     }
     
-    private UserProfileData GetProfileDataFromViking(Viking viking, string apiKey) {
+    private UserProfileData GetProfileDataFromViking(Viking viking, [FromForm] string apiKey) {
         // Get the avatar data
         AvatarData avatarData = null;
         if (viking.AvatarSerialized is not null) {
@@ -139,7 +139,7 @@ public class ProfileController : Controller {
                 ParentUserID = viking.UserId,
                 Username = viking.Name,
                 FirstName = viking.Name,
-                MultiplayerEnabled = true,
+                MultiplayerEnabled = (apiKey != "a1a13a0a-7c6e-4e9b-b0f7-22034d799013" && apiKey != "a2a09a0a-7c6e-4e9b-b0f7-22034d799013" && apiKey != "a3a12a0a-7c6e-4e9b-b0f7-22034d799013"),
                 Locale = "en-US", // placeholder
                 GenderID = Gender.Male, // placeholder
                 OpenChatEnabled = true,
