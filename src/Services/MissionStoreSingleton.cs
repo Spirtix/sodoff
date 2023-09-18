@@ -8,6 +8,8 @@ public class MissionStoreSingleton {
     private Dictionary<int, Mission> missions = new();
     private int[] activeMissions;
     private int[] upcomingMissions;
+    private int[] activeMissionsV1;
+    private int[] upcomingMissionsV1;
 
     public MissionStoreSingleton() {
         ServerMissionArray missionArray = XmlUtil.DeserializeXml<ServerMissionArray>(XmlUtil.ReadResourceXmlString("missions"));
@@ -17,17 +19,27 @@ public class MissionStoreSingleton {
         }
         activeMissions = defaultMissions.Active;
         upcomingMissions = defaultMissions.Upcoming;
+        
+        defaultMissions = XmlUtil.DeserializeXml<DefaultMissions>(XmlUtil.ReadResourceXmlString("defaultmissionlistv1"));
+        activeMissionsV1 = defaultMissions.Active;
+        upcomingMissionsV1 = defaultMissions.Upcoming;
     }
 
     public Mission GetMission(int missionID) {
         return DeepCopy(missions[missionID]);
     }
 
-    public int[] GetActiveMissions() {
+    public int[] GetActiveMissions(string apiKey) {
+        if (apiKey == "a1a13a0a-7c6e-4e9b-b0f7-22034d799013") {
+            return activeMissionsV1;
+        }
         return activeMissions;
     }
 
-    public int[] GetUpcomingMissions() {
+    public int[] GetUpcomingMissions(string apiKey) {
+        if (apiKey == "a1a13a0a-7c6e-4e9b-b0f7-22034d799013") {
+            return upcomingMissionsV1;
+        }
         return upcomingMissions;
     }
 

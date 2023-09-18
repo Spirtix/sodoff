@@ -95,7 +95,7 @@ public class KeyValueService {
 
         Model.PairData? pair = null;
         if (viking != null)
-            pair = viking.PairData.FirstOrDefault(e => e.PairId == pairId);
+            pair = viking.PairData?.FirstOrDefault(e => e.PairId == pairId);
         else if (user != null)
             pair = user.PairData.FirstOrDefault(e => e.PairId == pairId);
         else if (dragon != null)

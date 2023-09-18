@@ -1,5 +1,6 @@
 ﻿<?xml version='1.0' encoding='utf-8'?>
 <DefaultMissions>
+  <!-- list of default mission for most versions (2.9, 3.12, 3.31) -->
   <Active>
     <id>999</id>
     <id>1035</id>

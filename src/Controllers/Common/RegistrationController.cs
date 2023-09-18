@@ -14,12 +14,14 @@ public class RegistrationController : Controller {
     private ItemService itemService;
     private MissionService missionService;
     private RoomService roomService;
+    private KeyValueService keyValueService;
 
-    public RegistrationController(DBContext ctx, ItemService itemService, MissionService missionService, RoomService roomService) {
+    public RegistrationController(DBContext ctx, ItemService itemService, MissionService missionService, RoomService roomService, KeyValueService keyValueService) {
         this.ctx = ctx;
         this.itemService = itemService;
         this.missionService = missionService;
         this.roomService = roomService;
+        this.keyValueService = keyValueService;
     }
 
     [HttpPost]
@@ -91,10 +93,11 @@ public class RegistrationController : Controller {
 
     [HttpPost]
     [Produces("application/xml")]
+    [Route("V3/RegistrationWebService.asmx/RegisterChild")] // used by Magic & Mythies
     [Route("V4/RegistrationWebService.asmx/RegisterChild")]
     [DecryptRequest("childRegistrationData")]
     [EncryptResponse]
-    public IActionResult RegisterChild([FromForm] string parentApiToken) {
+    public IActionResult RegisterChild([FromForm] string parentApiToken, [FromForm] string apiKey) {
         User? user = ctx.Sessions.FirstOrDefault(e => e.ApiToken == parentApiToken)?.User;
         if (user is null) {
             return Ok(new RegistrationResult{
@@ -115,6 +118,7 @@ public class RegistrationController : Controller {
 
         Inventory inv = new Inventory { InventoryItems = new List<InventoryItem>() };
         inv.InventoryItems.Add(new InventoryItem { ItemId = 8977, Quantity = 1 }); // DragonStableINTDO - Dragons Dragon Stable
+
         Viking v = new Viking {
             Id = Guid.NewGuid().ToString(),
             Name = data.ChildName,
@@ -123,10 +127,22 @@ public class RegistrationController : Controller {
             AchievementPoints = new List<AchievementPoints>(),
             Rooms = new List<Room>()
         };
-        
-        missionService.SetUpMissions(v);
-        
+
+        missionService.SetUpMissions(v, apiKey);
+
         ctx.Vikings.Add(v);
+
+        if (apiKey == "a1a13a0a-7c6e-4e9b-b0f7-22034d799013") {
+            keyValueService.SetPairData(null, v, null, 2017, new Schema.PairData {
+                Pairs = new Schema.Pair[]{
+                    new Schema.Pair {
+                        // avoid show change viking name dialog
+                        PairKey = "AvatarNameCustomizationDone",
+                        PairValue = "1"
+                    },
+                }
+            });
+        }
         ctx.SaveChanges();
 
         roomService.CreateRoom(v, "MyRoomINT");

@@ -16,13 +16,25 @@ public class MissionService {
         this.achievementService = achievementService;
     }
 
-    public Mission GetMissionWithProgress(int missionId, string userId) {
-        Mission mission = missionStore.GetMission(missionId);
+    public Mission GetMissionWithProgress(int missionId, string userId, string apiKey) {
+        Mission mission;
+        if (missionId == 999 && apiKey == "a3a12a0a-7c6e-4e9b-b0f7-22034d799013") { // TODO This is not a pretty solution with hard-coded values.
+            mission = missionStore.GetMission(10999);
+            mission.MissionID = 999;
+        } else if (missionId == 999 && apiKey == "a2a09a0a-7c6e-4e9b-b0f7-22034d799013") {
+            mission = missionStore.GetMission(20999);
+            mission.MissionID = 999;
+        } else if (missionId == 999 && apiKey == "a1a13a0a-7c6e-4e9b-b0f7-22034d799013") {
+            mission = missionStore.GetMission(30999);
+            mission.MissionID = 999;
+        } else {
+            mission = missionStore.GetMission(missionId);
+        }
         UpdateMissionRecursive(mission, userId);
         return mission;
     }
 
-    public List<MissionCompletedResult> UpdateTaskProgress(int missionId, int taskId, string userId, bool completed, string xmlPayload) {
+    public List<MissionCompletedResult> UpdateTaskProgress(int missionId, int taskId, string userId, bool completed, string xmlPayload, string apiKey) {
         SetTaskProgressDB(missionId, taskId, userId, completed, xmlPayload);
 
         // NOTE: This won't work if a mission can be completed by completing an inner mission
@@ -36,7 +48,7 @@ public class MissionService {
         // I do know that outer missions have inner missions as RuleItems, and if the RuleItem is supposed to be "complete" and it isn't, the quest breaks when the player quits the game and loads the quest again
         List<MissionCompletedResult> result = new();
         if (completed) {
-            Mission mission = GetMissionWithProgress(missionId, userId);
+            Mission mission = GetMissionWithProgress(missionId, userId, apiKey);
             if (MissionCompleted(mission)) {
                 // Update mission from active to completed
                 Viking viking = ctx.Vikings.FirstOrDefault(x => x.Id == userId)!;
@@ -100,16 +112,17 @@ public class MissionService {
             mission.Completed = 1;
     }
 
-    public void SetUpMissions(Viking viking) {
+    public void SetUpMissions(Viking viking, string apiKey) {
         viking.MissionStates = new List<MissionState>();
-        foreach (int m in missionStore.GetActiveMissions()) {
+
+        foreach (int m in missionStore.GetActiveMissions(apiKey)) {
             viking.MissionStates.Add(new MissionState {
                 MissionId = m,
                 MissionStatus = MissionStatus.Active
             });
         }
         
-        foreach (int m in missionStore.GetUpcomingMissions()) {
+        foreach (int m in missionStore.GetUpcomingMissions(apiKey)) {
             viking.MissionStates.Add(new MissionState {
                 MissionId = m,
                 MissionStatus = MissionStatus.Upcoming

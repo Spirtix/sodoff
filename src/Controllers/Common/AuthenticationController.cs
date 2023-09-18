@@ -86,7 +86,7 @@ public class AuthenticationController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("AuthenticationWebService.asmx/GetUserInfoByApiToken")]
-    public IActionResult GetUserInfoByApiToken([FromForm] string apiToken) {
+    public IActionResult GetUserInfoByApiToken([FromForm] string apiToken, [FromForm] string apiKey) {
         // First check if this is a user session
         User? user = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.User;
         if (user is not null) {
@@ -95,7 +95,8 @@ public class AuthenticationController : Controller {
                 Username = user.Username,
                 MembershipID = "ef84db9-59c6-4950-b8ea-bbc1521f899b", // placeholder
                 FacebookUserID = 0,
-                MultiplayerEnabled = true,
+                MultiplayerEnabled = (apiKey != "a1a13a0a-7c6e-4e9b-b0f7-22034d799013" && apiKey != "a2a09a0a-7c6e-4e9b-b0f7-22034d799013" && apiKey != "a3a12a0a-7c6e-4e9b-b0f7-22034d799013"),
+                IsApproved = true,
                 Age = 24,
                 OpenChatEnabled = true
             });
@@ -108,7 +109,9 @@ public class AuthenticationController : Controller {
             return Ok(new UserInfo {
                 UserID = viking.Id,
                 Username = viking.Name,
-                MultiplayerEnabled = true,
+                FacebookUserID = 0,
+                MultiplayerEnabled = (apiKey != "a1a13a0a-7c6e-4e9b-b0f7-22034d799013" && apiKey != "a2a09a0a-7c6e-4e9b-b0f7-22034d799013" && apiKey != "a3a12a0a-7c6e-4e9b-b0f7-22034d799013"),
+                IsApproved = true,
                 Age = 24,
                 OpenChatEnabled = true
             });

@@ -230,25 +230,32 @@ public class ContentController : Controller {
         return Ok(new DateTime(DateTime.Now.Ticks));
     }
 
+    private int GetAvatarVersion(AvatarData avatarData) {
+        foreach (AvatarDataPart part in avatarData.Part) {
+            if (part.PartType == "Version") {
+                return (int)part.Offsets[0].X * 100 + (int)part.Offsets[0].Y * 10 + (int)part.Offsets[0].Z;
+            }
+        }
+        return 0;
+    }
+
     [HttpPost]
     [Produces("application/xml")]
     [Route("V2/ContentWebService.asmx/SetAvatar")]
     [VikingSession]
     public IActionResult SetAvatar(Viking viking, [FromForm] string contentXML) {
-        AvatarData avatarData = XmlUtil.DeserializeXml<AvatarData>(contentXML);
-        foreach (AvatarDataPart part in avatarData.Part) {
-            if (part.PartType == "Version") {
-                if (part.Offsets[0].X < 6 || part.Offsets[0].X == 6 && part.Offsets[0].Y < 1) {
-                    // do not allow to save avatar data from old clients (avatar data version < 6.1) ... it's broke profile on 3.31
-                    // but return as true to trick the client to avoid re-show change viking name dialog
-                    // TODO: maybe better set pair AvatarNameCustomizationDone -> 1 (in "2017" pairs) and return error here?
-                    return Ok(new SetAvatarResult {
-                        Success = true,
-                        DisplayName = viking.Name,
-                        StatusCode = AvatarValidationResult.Valid
-                    });
-                }
-                break;
+        if (viking.AvatarSerialized != null) {
+            AvatarData dbAvatarData = XmlUtil.DeserializeXml<AvatarData>(viking.AvatarSerialized);
+            AvatarData reqAvatarData = XmlUtil.DeserializeXml<AvatarData>(contentXML);
+
+            int dbAvatarVersion = GetAvatarVersion(dbAvatarData);
+            int reqAvatarVersion = GetAvatarVersion(reqAvatarData);
+
+            if (dbAvatarVersion > reqAvatarVersion) {
+                // do not allow override newer version avatar data by older version
+                return Ok(new SetAvatarResult {
+                    Success = false,
+                });
             }
         }
 
@@ -325,6 +332,30 @@ public class ContentController : Controller {
 
     [HttpPost]
     [Produces("application/xml")]
+    [Route("V2/ContentWebService.asmx/SetRaisedPet")] // used by Magic & Mythies
+    [VikingSession]
+    public IActionResult SetRaisedPetv2(Viking viking, [FromForm] string raisedPetData) {
+        RaisedPetData petData = XmlUtil.DeserializeXml<RaisedPetData>(raisedPetData);
+
+        // Find the dragon
+        Dragon? dragon = viking.Dragons.FirstOrDefault(e => e.Id == petData.RaisedPetID);
+        if (dragon is null) {
+            return Ok(new SetRaisedPetResponse {
+                RaisedPetSetResult = RaisedPetSetResult.Invalid
+            });
+        }
+
+        dragon.RaisedPetData = XmlUtil.SerializeXml(UpdateDragon(dragon, petData));
+        ctx.Update(dragon);
+        ctx.SaveChanges();
+
+        return Ok(new SetRaisedPetResponse {
+            RaisedPetSetResult = RaisedPetSetResult.Success
+        });
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
     [Route("v3/ContentWebService.asmx/SetRaisedPet")]
     [VikingSession]
     public IActionResult SetRaisedPet(Viking viking, [FromForm] string request, [FromForm] bool? import) {
@@ -392,7 +423,7 @@ public class ContentController : Controller {
 
     [HttpPost]
     [Produces("application/xml")]
-    [Route("ContentWebService.asmx/GetUnselectedPetByTypes")]
+    [Route("ContentWebService.asmx/GetUnselectedPetByTypes")] // used by old SoD (e.g. 1.13)
     [VikingSession(UseLock=false)]
     public RaisedPetData[]? GetUnselectedPetByTypes(Viking viking, [FromForm] string petTypeIDs, [FromForm] bool active) {
         RaisedPetData[] dragons = viking.Dragons
@@ -491,14 +522,14 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("V2/ContentWebService.asmx/GetUserUpcomingMissionState")]
-    public IActionResult GetUserUpcomingMissionState([FromForm] string apiToken, [FromForm] string userId) {
+    public IActionResult GetUserUpcomingMissionState([FromForm] string apiToken, [FromForm] string userId, [FromForm] string apiKey) {
         Viking? viking = ctx.Vikings.FirstOrDefault(x => x.Id == userId);
         if (viking is null)
             return Ok("error");
         
         UserMissionStateResult result = new UserMissionStateResult { Missions = new List<Mission>() };
         foreach (var mission in viking.MissionStates.Where(x => x.MissionStatus == MissionStatus.Upcoming))
-            result.Missions.Add(missionService.GetMissionWithProgress(mission.MissionId, viking.Id));
+            result.Missions.Add(missionService.GetMissionWithProgress(mission.MissionId, viking.Id, apiKey));
 
         result.UserID = Guid.Parse(viking.Id);
         return Ok(result);
@@ -507,14 +538,14 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("V2/ContentWebService.asmx/GetUserActiveMissionState")]
-    public IActionResult GetUserActiveMissionState([FromForm] string apiToken, [FromForm] string userId) {
+    public IActionResult GetUserActiveMissionState([FromForm] string apiToken, [FromForm] string userId, [FromForm] string apiKey) {
         Viking? viking = ctx.Vikings.FirstOrDefault(x => x.Id == userId);
         if (viking is null)
             return Ok("error");
         
         UserMissionStateResult result = new UserMissionStateResult { Missions = new List<Mission>()  };
         foreach (var mission in viking.MissionStates.Where(x => x.MissionStatus == MissionStatus.Active)) {
-            Mission updatedMission = missionService.GetMissionWithProgress(mission.MissionId, viking.Id);
+            Mission updatedMission = missionService.GetMissionWithProgress(mission.MissionId, viking.Id, apiKey);
             if (mission.UserAccepted != null)
                 updatedMission.Accepted = (bool)mission.UserAccepted;
             result.Missions.Add(updatedMission);
@@ -527,14 +558,14 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("V2/ContentWebService.asmx/GetUserCompletedMissionState")]
-    public IActionResult GetUserCompletedMissionState([FromForm] string apiToken, [FromForm] string userId) {
+    public IActionResult GetUserCompletedMissionState([FromForm] string apiToken, [FromForm] string userId, [FromForm] string apiKey) {
         Viking? viking = ctx.Vikings.FirstOrDefault(x => x.Id == userId);
         if (viking is null)
             return Ok("error");
 
         UserMissionStateResult result = new UserMissionStateResult { Missions = new List<Mission>()  };
         foreach (var mission in viking.MissionStates.Where(x => x.MissionStatus == MissionStatus.Completed))
-            result.Missions.Add(missionService.GetMissionWithProgress(mission.MissionId, viking.Id));
+            result.Missions.Add(missionService.GetMissionWithProgress(mission.MissionId, viking.Id, apiKey));
 
         result.UserID = Guid.Parse(viking.Id);
         return Ok(result);
@@ -560,18 +591,19 @@ public class ContentController : Controller {
 
     [HttpPost]
     [Produces("application/xml")]
-    [Route("V2/ContentWebService.asmx/GetUserMissionState")]
-    //[VikingSession(UseLock=false)]
-    public IActionResult GetUserMissionState([FromForm] string userId, [FromForm] string filter) {
-        MissionRequestFilterV2 filterV2 = XmlUtil.DeserializeXml<MissionRequestFilterV2>(filter);
+    [Route("ContentWebService.asmx/GetUserMissionState")] // used by SoD 1.13
+    public IActionResult GetUserMissionStatev1([FromForm] string userId, [FromForm] string filter, [FromForm] string apiKey) {
         Viking? viking = ctx.Vikings.FirstOrDefault(x => x.Id == userId);
         if (viking is null)
             return Ok("error");
 
         UserMissionStateResult result = new UserMissionStateResult { Missions = new List<Mission>()  };
-        foreach (var m in filterV2.MissionPair)
-            if (m.MissionID != null)
-            result.Missions.Add(missionService.GetMissionWithProgress((int)m.MissionID, viking.Id));
+        foreach (var mission in viking.MissionStates.Where(x => x.MissionStatus != MissionStatus.Completed)) {
+            Mission updatedMission = missionService.GetMissionWithProgress(mission.MissionId, viking.Id, apiKey);
+            if (mission.UserAccepted != null)
+                updatedMission.Accepted = (bool)mission.UserAccepted;
+            result.Missions.Add(updatedMission);
+        }
 
         result.UserID = Guid.Parse(viking.Id);
         return Ok(result);
@@ -579,13 +611,64 @@ public class ContentController : Controller {
 
     [HttpPost]
     [Produces("application/xml")]
-    [Route("V2/ContentWebService.asmx/SetTaskState")]
-    [VikingSession]
-    public IActionResult SetTaskState(Viking viking, [FromForm] string userId, [FromForm] int missionId, [FromForm] int taskId, [FromForm] bool completed, [FromForm] string xmlPayload) {
+    [Route("V2/ContentWebService.asmx/GetUserMissionState")]
+    //[VikingSession(UseLock=false)]
+    public IActionResult GetUserMissionState([FromForm] string userId, [FromForm] string filter, [FromForm] string apiKey) {
+        MissionRequestFilterV2 filterV2 = XmlUtil.DeserializeXml<MissionRequestFilterV2>(filter);
+        Viking? viking = ctx.Vikings.FirstOrDefault(x => x.Id == userId);
+        if (viking is null)
+            return Ok("error");
+
+        UserMissionStateResult result = new UserMissionStateResult { Missions = new List<Mission>()  };
+        if (filterV2.MissionPair.Count > 0) {
+            foreach (var m in filterV2.MissionPair)
+                if (m.MissionID != null)
+                    result.Missions.Add(missionService.GetMissionWithProgress((int)m.MissionID, viking.Id, apiKey));
+        // TODO: probably should also check for msiion based on filterV2.ProductGroupID vs mission.GroupID
+        } else {
+            if (filterV2.GetCompletedMission ?? false) {
+                foreach (var mission in viking.MissionStates.Where(x => x.MissionStatus == MissionStatus.Completed))
+                    result.Missions.Add(missionService.GetMissionWithProgress(mission.MissionId, viking.Id, apiKey));
+            } else {
+                foreach (var mission in viking.MissionStates.Where(x => x.MissionStatus != MissionStatus.Completed))
+                    result.Missions.Add(missionService.GetMissionWithProgress(mission.MissionId, viking.Id, apiKey));
+            }
+        }
+
+        result.UserID = Guid.Parse(viking.Id);
+        return Ok(result);
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("ContentWebService.asmx/SetTaskState")] // used by SoD 1.13
+    [VikingSession(UseLock=true)]
+    public IActionResult SetTaskStatev1(Viking viking, [FromForm] string userId, [FromForm] int missionId, [FromForm] int taskId, [FromForm] bool completed, [FromForm] string xmlPayload, [FromForm] string apiKey) {
         if (viking.Id != userId)
             return Unauthorized("Can't set not owned task");
 
-        List<MissionCompletedResult> results = missionService.UpdateTaskProgress(missionId, taskId, userId, completed, xmlPayload);
+        List<MissionCompletedResult> results = missionService.UpdateTaskProgress(missionId, taskId, userId, completed, xmlPayload, apiKey);
+
+        SetTaskStateResult taskResult = new SetTaskStateResult {
+            Success = true,
+            Status = SetTaskStateStatus.TaskCanBeDone,
+        };
+
+        if (results.Count > 0)
+            taskResult.MissionsCompleted = results.ToArray();
+
+        return Ok(taskResult);
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("V2/ContentWebService.asmx/SetTaskState")]
+    [VikingSession]
+    public IActionResult SetTaskState(Viking viking, [FromForm] string userId, [FromForm] int missionId, [FromForm] int taskId, [FromForm] bool completed, [FromForm] string xmlPayload, [FromForm] string apiKey) {
+        if (viking.Id != userId)
+            return Unauthorized("Can't set not owned task");
+
+        List<MissionCompletedResult> results = missionService.UpdateTaskProgress(missionId, taskId, userId, completed, xmlPayload, apiKey);
 
         SetTaskStateResult taskResult = new SetTaskStateResult {
             Success = true,
