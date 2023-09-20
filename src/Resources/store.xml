@@ -1,5 +1,118 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ArrayOfStoreData xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<!-- 
+SoD stores:
+	* main store:
+		* Bundles, Expansions -> 102
+		* Dragon Eggs, Care, Saddles, Skins  -> 92
+		* Viking Clothes, Gear -> 91
+		* Hideout Furniture -> 145
+		* Farming -> 90
+		* Fishing -> 94
+		NOTE: main store uses item from all of the above stores and divides them by category (and some items are in wrong store), see bellow for details
+	* special:
+		* default (free, non inventory) avatar parts (eyes, hairs, ...) and clothes -> 95
+		* default (free, non inventory) free blueprints -> 161
+		* flight club "Hero Dragons" levels -> 105
+		* clans crest -> 104
+		* hidden shopping (instant hatch, maze rewards, change name, ...) -> 93
+	* unknown:
+		85 (not used for Hideout Furniture in main store)
+
+SoD 3.31 main store section and subsection filtering:
+	Farming   storeIDs=[90, 91, 92, 94, 102, 145]
+		Hot Deals   categoryIDs=[574]
+		Seeds   categoryIDs=[393]
+		Buildings   categoryIDs=[392]
+		Animal Feed   categoryIDs=[573]
+		Animals   categoryIDs=[391]
+		Farm Decorations   categoryIDs=[394]
+		Cauldrons   categoryIDs=[482]
+		Produce   categoryIDs=[416]
+		Expansion   categoryIDs=[544]
+		Plots   categoryIDs=[543]
+	Viking Gear   storeIDs=[90, 91, 92, 94, 102, 145]
+		Weapons   categoryIDs=[387]
+		Helmets   categoryIDs=[19]
+		Masks   categoryIDs=[434]
+		Shields   categoryIDs=[491]
+		Wristbands   categoryIDs=[410]
+		Shoulder Pads   categoryIDs=[418]
+		Facial War Paint   categoryIDs=[421]
+		Blueprints   categoryIDs=[651]
+	Viking Clothes   storeIDs=[90, 91, 92, 94, 102, 145]
+		Hot Deals   categoryIDs=[577]
+		Shirts   categoryIDs=[12]
+		Pants   categoryIDs=[13]
+		Shoes   categoryIDs=[14]
+		Hair   categoryIDs=[18]
+		Flight Suits   categoryIDs=[464]
+		Facial Decals   categoryIDs=[420]
+	Dragon Care   storeIDs=[90, 91, 92, 94, 102, 145]
+		Stables   categoryIDs=[455]
+		Consumables   categoryIDs=[458, 643]
+		Dragon Age Up   categoryIDs=[435]
+	Dragon Eggs   storeIDs=[90, 91, 92, 94, 102, 145]
+		Hot Deals   categoryIDs=[552]
+		Sharp   categoryIDs=[545]
+		Mystery   categoryIDs=[546]
+		Boulder   categoryIDs=[547]
+		Stoker   categoryIDs=[548]
+		Tracker   categoryIDs=[549]
+		Strike   categoryIDs=[550]
+		Tidal   categoryIDs=[551]
+	Bundles   storeIDs=[90, 91, 92, 94, 102, 145]
+		Buy Coins   categoryIDs=[425]
+		Dragon Age Up   categoryIDs=[435]
+		Dragons Bundle   categoryIDs=[436]
+		New User Bundles   categoryIDs=[575]
+		Mystery Boxes   categoryIDs=[462]
+	Membership   storeIDs=[90, 91, 92, 94, 102, 145]
+		Membership   categoryIDs=[2, 542]
+	Fishing   storeIDs=[90, 91, 92, 94, 102, 145]
+		Bait   categoryIDs=[407]
+		Rods   categoryIDs=[406]
+		Fish   categoryIDs=[408]
+	Hideout Furniture   storeIDs=[90, 91, 92, 94, 102, 145]
+		Hot Deals   categoryIDs=[569]
+		Beds   categoryIDs=[531]
+		Tables   categoryIDs=[532]
+		Chairs   categoryIDs=[533]
+		Wall Lighting   categoryIDs=[570]
+		Wall Hangings   categoryIDs=[534]
+		Lighting   categoryIDs=[572]
+		Statues   categoryIDs=[571]
+		Decor   categoryIDs=[535]
+	Dragon Skins   storeIDs=[90, 91, 92, 94, 102, 145]
+		Hot Deals   categoryIDs=[567]
+		Sharp Class   categoryIDs=[553]
+		Mystery Class   categoryIDs=[554]
+		Boulder Class   categoryIDs=[555]
+		Stoker Class   categoryIDs=[556]
+		Tracker Class   categoryIDs=[557]
+		Strike Class   categoryIDs=[558]
+		Tidal Class   categoryIDs=[559]
+	Dragon Saddles   storeIDs=[90, 91, 92, 94, 102, 145]
+		Hot Deals   categoryIDs=[568]
+		Sharp Class   categoryIDs=[560]
+		Mystery Class   categoryIDs=[561]
+		Boulder Class   categoryIDs=[562]
+		Stoker Class   categoryIDs=[563]
+		Tracker Class   categoryIDs=[564]
+		Strike Class   categoryIDs=[565]
+		Tidal Class   categoryIDs=[566]
+	Deals and Sales   storeIDs=[90, 91, 94, 102, 145, 92]
+		New   categoryIDs=[]
+		On Sale   categoryIDs=[]
+		Limited Availability   categoryIDs=[]
+		Popular   categoryIDs=[12, 13, 14, 18, 19, 434, 410, 418, 420, 421, 380, 424, 406, 407, 408, 393, 392, 391, 394, 416, 1, 425, 2, 435]
+	Expansions   storeIDs=[90, 91, 92, 94, 102, 145]
+		Expansions   categoryIDs=[514, 435]
+	Gems and Coins   storeIDs=[90, 91, 92, 94, 102, 145]
+		Buy Gems   categoryIDs=[1]
+		Buy Coins   categoryIDs=[425]
+		Buy Special Items   categoryIDs=[3]
+-->
 	<StoreData>
 		<i>1</i>
 		<s>House Depot</s>
@@ -9725,6 +9838,7 @@
 			<id>8378</id>
 			<c>10</c>
 		</pitem>
+		<ii>13368</ii>
 		<ii>8527</ii>
 		<ii>8557</ii>
 		<ii>8558</ii>
