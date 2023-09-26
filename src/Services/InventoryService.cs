@@ -21,10 +21,21 @@ namespace sodoff.Services {
             if (!ItemNeedUniqueInventorySlot(itemID))
                 item = viking.Inventory.InventoryItems.FirstOrDefault(e => e.ItemId == itemID);
             if (item is null) {
+                ItemData itemData = itemService.GetItem(itemID);
                 item = new InventoryItem {
                     ItemId = itemID,
                     Quantity = 0
                 };
+                if (itemData.ItemStatsMap is null && itemData.PossibleStatsMap != null) {
+                    // battle item without default stats
+                    Random random = new Random();
+                    int itemTier = random.Next(1, 3);
+                    item.StatsSerialized = XmlUtil.SerializeXml(new ItemStatsMap {
+                        ItemID = itemID,
+                        ItemTier = (ItemTier)itemTier,
+                        ItemStats = itemService.CreateItemStats(itemData.PossibleStatsMap, (int)itemData.ItemRarity, itemTier).ToArray()
+                    });
+                }
                 viking.Inventory.InventoryItems.Add(item);
             }
             item.Quantity += quantity;
@@ -135,12 +146,12 @@ namespace sodoff.Services {
         }
 
         public bool ItemNeedUniqueInventorySlot(int itemId) {
-            return itemService.ItemHasCategory(
-                itemService.GetItem(itemId), new int[] {
-                    541, // farm expansion
-                    511, // dragons tactics (battle) items
-                }
-            );
+            ItemData itemData = itemService.GetItem(itemId);
+            if (itemData.PossibleStatsMap != null) // dragons tactics (battle) items
+                return true;
+            if (itemService.ItemHasCategory(itemData, 541)) // farm expansion
+                return true;
+            return false;
         }
     }
 }
