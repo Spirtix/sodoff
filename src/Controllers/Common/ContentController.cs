@@ -979,6 +979,9 @@ public class ContentController : Controller {
             foreach (string name in req.ItemStatNames) {
                 ItemStat itemStat = itemStatsMap.ItemStats.FirstOrDefault(e => e.Name == name);
 
+                if (itemStat is null)
+                    return Ok(new RollUserItemResponse { Status = Status.InvalidStatsMap });
+
                 // draw new stats
                 StatRangeMap rangeMap = itemData.PossibleStatsMap.Stats.FirstOrDefault(e => e.ItemStatsID == itemStat.ItemStatID).ItemStatsRangeMaps.FirstOrDefault(e => e.ItemTierID == (int)(itemStatsMap.ItemTier));
                 int newVal = random.Next(rangeMap.StartRange, rangeMap.EndRange+1);
@@ -1062,12 +1065,21 @@ public class ContentController : Controller {
         // remove items from DeductibleItemInventoryMaps and BluePrintFuseItemMaps
         foreach (var item in req.DeductibleItemInventoryMaps) {
             InventoryItem? invItem = viking.Inventory.InventoryItems.FirstOrDefault(e => e.Id == item.UserInventoryID);
+            if (invItem is null) {
+                invItem = viking.Inventory.InventoryItems.FirstOrDefault(e => e.ItemId == item.ItemID);
+            }
+            if (invItem is null || invItem.Quantity < item.Quantity) {
+                return Ok(new FuseItemsResponse { Status = Status.ItemNotFound });
+            }
             invItem.Quantity -= item.Quantity;
         }
         foreach (var item in req.BluePrintFuseItemMaps) {
             InventoryItem? invItem = viking.Inventory.InventoryItems.FirstOrDefault(e => e.Id == item.UserInventoryID);
+            if (invItem is null)
+                return Ok(new FuseItemsResponse { Status = Status.ItemNotFound });
             viking.Inventory.InventoryItems.Remove(invItem);
         }
+        // NOTE: we haven't saved any changes so far ... so we can safely interrupt "fusing" by return in loops above
         
         var resItemList = new List<InventoryItemStatsMap>();
         foreach (BluePrintSpecification output in blueprintItem.BluePrint.Outputs) {
