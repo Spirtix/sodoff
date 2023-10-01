@@ -63,10 +63,7 @@ public class RegistrationController : Controller {
         };
 
         // Check if user exists
-        if (ctx.Users.Count(e => e.Email == u.Email) > 0) {
-            return Ok(new RegistrationResult { Status = MembershipUserStatus.DuplicateEmail });
-        }
-        else if (ctx.Users.Count(e => e.Username== u.Username) > 0) {
+        if (ctx.Users.Count(e => e.Username== u.Username) > 0) {
             return Ok(new RegistrationResult { Status = MembershipUserStatus.DuplicateUserName });
         }  
 
