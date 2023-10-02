@@ -150,6 +150,9 @@ public class MissionService {
     }
 
     private bool MissionCompleted(Mission mission) {
-        return mission.MissionRule.Criteria.RuleItems.All(x => x.Complete == 1);
+        if (mission.MissionRule.Criteria.Type == "some")
+            return mission.MissionRule.Criteria.RuleItems.Any(x => x.Complete == 1);
+        else
+            return mission.MissionRule.Criteria.RuleItems.All(x => x.Complete == 1);
     }
 }
