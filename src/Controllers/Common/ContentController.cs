@@ -1074,6 +1074,9 @@ public class ContentController : Controller {
             invItem.Quantity -= item.Quantity;
         }
         foreach (var item in req.BluePrintFuseItemMaps) {
+            if (item.UserInventoryID < 0) {
+                continue; // TODO: what we should do in this case?
+            }
             InventoryItem? invItem = viking.Inventory.InventoryItems.FirstOrDefault(e => e.Id == item.UserInventoryID);
             if (invItem is null)
                 return Ok(new FuseItemsResponse { Status = Status.ItemNotFound });
