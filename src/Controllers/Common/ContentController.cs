@@ -600,6 +600,16 @@ public class ContentController : Controller {
         UserMissionStateResult result = new UserMissionStateResult { Missions = new List<Mission>()  };
         foreach (var mission in viking.MissionStates.Where(x => x.MissionStatus != MissionStatus.Completed)) {
             Mission updatedMission = missionService.GetMissionWithProgress(mission.MissionId, viking.Id, apiKey);
+
+            if (mission.MissionStatus == MissionStatus.Upcoming) {
+                // NOTE: in old SoD job board mission must be send as non active and required accept
+                //       (to avoid show all job board in journal and quest arrow pointing to job board)
+                //       do this in this place (instead of update missions.xml) to avoid conflict with newer versions of SoD
+                PrerequisiteItem prerequisite = updatedMission.MissionRule.Prerequisites.FirstOrDefault(x => x.Type == PrerequisiteRequiredType.Accept);
+                if (prerequisite != null)
+                    prerequisite.Value = "true";
+            }
+
             if (mission.UserAccepted != null)
                 updatedMission.Accepted = (bool)mission.UserAccepted;
             result.Missions.Add(updatedMission);
