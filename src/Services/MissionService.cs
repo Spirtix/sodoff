@@ -54,7 +54,7 @@ public class MissionService {
                 Viking viking = ctx.Vikings.FirstOrDefault(x => x.Id == userId)!;
                 MissionState? missionState = viking.MissionStates.FirstOrDefault(x => x.MissionId == missionId);
                 if (missionState != null && missionState.MissionStatus == MissionStatus.Active) {
-                    if (mission.Repeatable) {
+                    if (mission.Repeatable || mission.GroupID == 9 || mission.GroupID == 17 || mission.GroupID == 19) { // JobBoard (fish and farm) and Cauldron missions are repeatable also
                         // NOTE: This won't work if repeatable mission use sub-missions, but SoD doesn't have those repeatable mission
                         // NOTE: Repeatable missions needs re-login to work correctly (this looks like og bug)
                         //       probably due to client-side cache of task payload / status
