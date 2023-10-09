@@ -714,7 +714,8 @@ public class ContentController : Controller {
         --invItem.Quantity;
 
         // get real item id (from box) add it to inventory
-        itemService.OpenBox(req.ItemID, out int newItemId, out int quantity);
+        Gender gender = XmlUtil.DeserializeXml<AvatarData>(viking.AvatarSerialized).GenderType;
+        itemService.OpenBox(req.ItemID, gender, out int newItemId, out int quantity);
         ItemData newItem = itemService.GetItem(newItemId);
         CommonInventoryResponseItem newInvItem = inventoryService.AddItemToInventoryAndGetResponse(viking, newItem.ItemID, quantity);
 
@@ -745,6 +746,7 @@ public class ContentController : Controller {
     public IActionResult PurchaseItems(Viking viking, [FromForm] string purchaseItemRequest) {
         PurchaseStoreItemRequest request = XmlUtil.DeserializeXml<PurchaseStoreItemRequest>(purchaseItemRequest);
         List<CommonInventoryResponseItem> items = new List<CommonInventoryResponseItem>();
+        Gender gender = XmlUtil.DeserializeXml<AvatarData>(viking.AvatarSerialized).GenderType;
         for (int i = 0; i < request.Items.Length; i++) {
             int itemId = request.Items[i];
             if (request.AddMysteryBoxToInventory) {
@@ -760,7 +762,7 @@ public class ContentController : Controller {
                 }
             } else {
                 // check for mystery box ... open if need
-                itemService.CheckAndOpenBox(itemId, out itemId, out int quantity);
+                itemService.CheckAndOpenBox(itemId, gender, out itemId, out int quantity);
                 for (int j=0; j<quantity; ++j) {
                     items.Add(inventoryService.AddItemToInventoryAndGetResponse(viking, itemId, 1));
                 }
@@ -784,8 +786,9 @@ public class ContentController : Controller {
     public IActionResult PurchaseItemsV1(Viking viking, [FromForm] string itemIDArrayXml) {
         int[] itemIdArr = XmlUtil.DeserializeXml<int[]>(itemIDArrayXml);
         List<CommonInventoryResponseItem> items = new List<CommonInventoryResponseItem>();
+        Gender gender = XmlUtil.DeserializeXml<AvatarData>(viking.AvatarSerialized).GenderType;
         for (int i = 0; i < itemIdArr.Length; i++) {
-            itemService.CheckAndOpenBox(itemIdArr[i], out int itemId, out int quantity);
+            itemService.CheckAndOpenBox(itemIdArr[i], gender, out int itemId, out int quantity);
             for (int j=0; j<quantity; ++j) {
                 items.Add(inventoryService.AddItemToInventoryAndGetResponse(viking, itemId, 1));
                 // NOTE: The quantity of purchased items is always 0 and the items are instead duplicated in both the request and the response.
@@ -1095,11 +1098,12 @@ public class ContentController : Controller {
         // NOTE: we haven't saved any changes so far ... so we can safely interrupt "fusing" by return in loops above
         
         var resItemList = new List<InventoryItemStatsMap>();
+        Gender gender = XmlUtil.DeserializeXml<AvatarData>(viking.AvatarSerialized).GenderType;
         foreach (BluePrintSpecification output in blueprintItem.BluePrint.Outputs) {
             if (output.ItemID is null)
                 continue;
 
-            itemService.CheckAndOpenBox((int)(output.ItemID), out int newItemId, out int quantity);
+            itemService.CheckAndOpenBox((int)(output.ItemID), gender, out int newItemId, out int quantity);
             for (int i=0; i<quantity; ++i) {
                 resItemList.Add(
                     inventoryService.AddBattleItemToInventory(viking, newItemId, (int)output.Tier)
@@ -1295,7 +1299,7 @@ public class ContentController : Controller {
             if (itemService.ItemHasCategory(rewardItem, 651) || rewardItem.PossibleStatsMap is null) {
                 // blueprint or no battle item (including box)
                 List<CommonInventoryResponseItem> standardItems = new List<CommonInventoryResponseItem>();
-                itemService.CheckAndOpenBox(rewardItem.ItemID, out int itemId, out int quantity);
+                itemService.CheckAndOpenBox(rewardItem.ItemID, gender, out int itemId, out int quantity);
                 for (int i=0; i<quantity; ++i) {
                     standardItems.Add(inventoryService.AddItemToInventoryAndGetResponse(viking, itemId, 1));
                     // NOTE: client require single quantity items
