@@ -45,7 +45,7 @@ namespace sodoff.Services {
             return random.Next(1, (int)itemData.MaxQuantity + 1);
         }
 
-        public ItemDataRelationship OpenBox(ItemData boxItem) {
+        public ItemDataRelationship OpenBox(ItemData boxItem, Gender gender) {
             var boxRewards = boxItem.Relationship.Where(e => e.Type == "Prize").ToArray();
             int totalWeight = boxRewards.Sum(e => e.Weight);
             if (totalWeight == 0) {
@@ -55,22 +55,27 @@ namespace sodoff.Services {
             int win = random.Next(0, totalWeight);
             foreach (var reward in boxRewards) {
                 cnt += reward.Weight;
-                if (cnt > win) {
+                if (cnt > win && CheckItemGender(items[reward.ItemId], gender)) {
+                    return reward;
+                }
+            }
+            foreach (var reward in boxRewards) { // do again in case high `win` value and CheckItemGender fail
+                if (CheckItemGender(items[reward.ItemId], gender)) {
                     return reward;
                 }
             }
             return null;
         }
 
-        public void OpenBox(int boxItemId, out int itemId, out int quantity) {
-            var reward = OpenBox(items[boxItemId]);
+        public void OpenBox(int boxItemId, Gender gender, out int itemId, out int quantity) {
+            var reward = OpenBox(items[boxItemId], gender);
             itemId = reward.ItemId;
             quantity = GetItemQuantity(reward);
         }
 
-        public void CheckAndOpenBox(int boxItemId, out int itemId, out int quantity) {
+        public void CheckAndOpenBox(int boxItemId, Gender gender, out int itemId, out int quantity) {
             if (IsBoxItem(boxItemId)) {
-                OpenBox(boxItemId, out itemId, out quantity);
+                OpenBox(boxItemId, gender, out itemId, out quantity);
             } else {
                 itemId = boxItemId;
                 quantity = 1;
