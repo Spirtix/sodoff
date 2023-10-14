@@ -19,7 +19,7 @@ namespace sodoff.Services {
         public InventoryItem AddItemToInventory(Viking viking, int itemID, int quantity) {
             InventoryItem? item = null;
             if (!ItemNeedUniqueInventorySlot(itemID))
-                item = viking.Inventory.InventoryItems.FirstOrDefault(e => e.ItemId == itemID);
+                item = viking.InventoryItems.FirstOrDefault(e => e.ItemId == itemID);
             if (item is null) {
                 ItemData itemData = itemService.GetItem(itemID);
                 item = new InventoryItem {
@@ -36,7 +36,7 @@ namespace sodoff.Services {
                         ItemStats = itemService.CreateItemStats(itemData.PossibleStatsMap, (int)itemData.ItemRarity, itemTier).ToArray()
                     });
                 }
-                viking.Inventory.InventoryItems.Add(item);
+                viking.InventoryItems.Add(item);
             }
             item.Quantity += quantity;
             return item;
@@ -71,7 +71,7 @@ namespace sodoff.Services {
             item.StatsSerialized = XmlUtil.SerializeXml(itemStatsMap);
 
             // add to viking
-            viking.Inventory.InventoryItems.Add(item);
+            viking.InventoryItems.Add(item);
             ctx.SaveChanges(); // We need to get the ID of the newly created item
 
             // return item with stats
@@ -84,7 +84,7 @@ namespace sodoff.Services {
 
         public void SellInventoryItem(Viking viking, int invItemID, ref int gold, ref int shard) {
             // get item from inventory
-            InventoryItem? item = viking.Inventory.InventoryItems.FirstOrDefault(e => e.Id == invItemID);
+            InventoryItem? item = viking.InventoryItems.FirstOrDefault(e => e.Id == invItemID);
             if (item is null)
                 return;
 
@@ -110,11 +110,11 @@ namespace sodoff.Services {
             // TODO: calculate cash (gold) rewards
 
             // remove item
-            viking.Inventory.InventoryItems.Remove(item);
+            viking.InventoryItems.Remove(item);
         }
 
         public CommonInventoryData GetCommonInventoryData(Viking viking) {
-            List<InventoryItem> items = viking.Inventory.InventoryItems.ToList();
+            List<InventoryItem> items = viking.InventoryItems.ToList();
 
             List<UserItemData> userItemData = new();
             foreach (InventoryItem item in items) {
@@ -140,7 +140,7 @@ namespace sodoff.Services {
             }
 
             return new CommonInventoryData {
-                UserID = Guid.Parse(viking.Id),
+                UserID = viking.Uid,
                 Item = userItemData.ToArray()
             };
         }

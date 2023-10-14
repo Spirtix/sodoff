@@ -19,10 +19,10 @@ public class ProfileController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("ProfileWebService.asmx/GetUserProfileByUserID")]
-    public IActionResult GetUserProfileByUserID([FromForm] string userId, [FromForm] string apiKey) {
+    public IActionResult GetUserProfileByUserID([FromForm] Guid userId, [FromForm] string apiKey) {
         // NOTE: this is public info (for mmo) - no session check
 
-        Viking? viking = ctx.Vikings.FirstOrDefault(e => e.Id == userId);
+        Viking? viking = ctx.Vikings.FirstOrDefault(e => e.Uid == userId);
         if (viking is null) {
             return Ok(new UserProfileData());
             // NOTE: do not return `Conflict("Viking not found")` due to client side error handling
@@ -113,7 +113,7 @@ public class ProfileController : Controller {
         AvatarData avatarData = null;
         if (viking.AvatarSerialized is not null) {
             avatarData = XmlUtil.DeserializeXml<AvatarData>(viking.AvatarSerialized);
-            avatarData.Id = viking.Inventory.Id;
+            avatarData.Id = viking.Id;
         }
 
         if (avatarData != null && (apiKey == "a3a12a0a-7c6e-4e9b-b0f7-22034d799013")) {
@@ -135,8 +135,8 @@ public class ProfileController : Controller {
             AvatarData = avatarData,
             UserInfo = new UserInfo {
                 MembershipID = "ef84db9-59c6-4950-b8ea-bbc1521f899b", // placeholder
-                UserID = viking.Id,
-                ParentUserID = viking.UserId,
+                UserID = viking.Uid.ToString(),
+                ParentUserID = viking.UserId.ToString(),
                 Username = viking.Name,
                 FirstName = viking.Name,
                 MultiplayerEnabled = (apiKey != "a1a13a0a-7c6e-4e9b-b0f7-22034d799013" && apiKey != "a2a09a0a-7c6e-4e9b-b0f7-22034d799013" && apiKey != "a3a12a0a-7c6e-4e9b-b0f7-22034d799013"),
@@ -149,7 +149,7 @@ public class ProfileController : Controller {
                 FacebookUserID = 0
             },
             UserSubscriptionInfo = new UserSubscriptionInfo {
-                UserID = viking.UserId,
+                UserID = viking.UserId.ToString(),
                 MembershipID = 130687131, // placeholder
                 SubscriptionTypeID = 1, // placeholder
                 SubscriptionDisplayName = "Member", // placeholder
@@ -168,11 +168,11 @@ public class ProfileController : Controller {
         };
 
         return new UserProfileData {
-            ID = viking.Id,
+            ID = viking.Uid.ToString(),
             AvatarInfo = avatar,
             AchievementCount = 0,
             MythieCount = 0,
-            AnswerData = new UserAnswerData { UserID = viking.Id },
+            AnswerData = new UserAnswerData { UserID = viking.Uid.ToString() },
             GameCurrency = 65536,
             CashCurrency = 65536,
             ActivityCount = 0,

@@ -21,8 +21,8 @@ public class ImageController : Controller {
 
     [HttpGet]
     [Route("RawImage/{VikingId}/{ImageType}/{ImageSlot}.jpg")]
-    public IActionResult RawImage(String VikingId, String ImageType, int ImageSlot) {
-        Image? image = ctx.Images.FirstOrDefault(e => e.VikingId == VikingId && e.ImageType == ImageType && e.ImageSlot == ImageSlot);
+    public IActionResult RawImage(string VikingId, string ImageType, int ImageSlot) {
+        Image? image = ctx.Images.FirstOrDefault(e => e.Viking.Uid == Guid.Parse(VikingId) && e.ImageType == ImageType && e.ImageSlot == ImageSlot);
         if (image is null || image.ImageData is null) {
             return NotFound();
         }

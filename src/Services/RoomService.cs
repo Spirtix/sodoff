@@ -29,7 +29,7 @@ public class RoomService {
         List<UserItemState> states = new();
         foreach (var itemRequest in roomItemRequest) {
             // TODO: Remove item from inventory (using CommonInventoryID)
-            InventoryItem? i = room.Viking?.Inventory.InventoryItems.FirstOrDefault(x => x.Id == itemRequest.UserInventoryCommonID);
+            InventoryItem? i = room.Viking?.InventoryItems.FirstOrDefault(x => x.Id == itemRequest.UserInventoryCommonID);
             if (i != null) {
                 i.Quantity--;
                 if (itemRequest.Item is null) {
@@ -98,7 +98,7 @@ public class RoomService {
             if (ri is null) continue;
             UserItemPosition itemPosition = XmlUtil.DeserializeXml<UserItemPosition>(ri.RoomItemData);
             room.Items.Remove(ri);
-            InventoryItem? invItem = room.Viking?.Inventory.InventoryItems.FirstOrDefault(x => x.Id == itemPosition.UserInventoryCommonID);
+            InventoryItem? invItem = room.Viking?.InventoryItems.FirstOrDefault(x => x.Id == itemPosition.UserInventoryCommonID);
             if (invItem != null) invItem.Quantity++;
         }
         ctx.SaveChanges();
@@ -128,7 +128,7 @@ public class RoomService {
 
         foreach (var consumable in consumables) {
             ItemStateCriteriaConsumable c = (ItemStateCriteriaConsumable)consumable;
-            InventoryItem? invItem = item.Room.Viking?.Inventory.InventoryItems.FirstOrDefault(x => x.ItemId == c.ItemID);
+            InventoryItem? invItem = item.Room.Viking?.InventoryItems.FirstOrDefault(x => x.ItemId == c.ItemID);
             if (invItem != null)
                 invItem.Quantity = invItem.Quantity - c.Amount < 0 ? 0 : invItem.Quantity - c.Amount;
         }

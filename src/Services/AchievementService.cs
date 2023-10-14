@@ -15,11 +15,11 @@ namespace sodoff.Services {
             this.inventoryService = inventoryService;
         }
 
-        public UserAchievementInfo CreateUserAchievementInfo(string userId, int? value, AchievementPointTypes type) {
+        public UserAchievementInfo CreateUserAchievementInfo(Guid userId, int? value, AchievementPointTypes type) {
             if (value is null)
                 value = 0;
             return new UserAchievementInfo {
-                UserID = Guid.Parse(userId),
+                UserID = userId,
                 AchievementPointTotal = value,
                 RankID = achievementStore.GetRankFromXP(value, type),
                 PointTypeID = type
@@ -27,7 +27,7 @@ namespace sodoff.Services {
         }
 
         public UserAchievementInfo CreateUserAchievementInfo(Viking viking, AchievementPointTypes type) {
-            return CreateUserAchievementInfo(viking.Id, viking.AchievementPoints.FirstOrDefault(a => a.Type == (int)type)?.Value, type);
+            return CreateUserAchievementInfo(viking.Uid, viking.AchievementPoints.FirstOrDefault(a => a.Type == (int)type)?.Value, type);
         }
 
         public void DragonLevelUpOnAgeUp(Dragon dragon, RaisedPetGrowthState oldGrowthState, RaisedPetGrowthState newGrowthState) {
@@ -61,7 +61,7 @@ namespace sodoff.Services {
 
             return new AchievementReward{
                 // NOTE: RewardID and EntityTypeID are not used by client
-                EntityID = Guid.Parse(dragon.EntityId),
+                EntityID = dragon.EntityId,
                 PointTypeID = AchievementPointTypes.DragonXP,
                 Amount = value ?? 0
             };
@@ -87,7 +87,7 @@ namespace sodoff.Services {
                 }
 
                 return new AchievementReward{
-                    EntityID = Guid.Parse(viking.Id),
+                    EntityID = viking.Uid,
                     PointTypeID = type,
                     Amount = value
                 };
@@ -100,7 +100,7 @@ namespace sodoff.Services {
                 inventoryService.AddItemToInventory(viking, reward.ItemID, (int)reward.Amount!);
 
                 AchievementReward grantedReward = reward.Clone();
-                grantedReward.EntityID = Guid.Parse(viking.Id);
+                grantedReward.EntityID = viking.Uid;
                 return grantedReward;
             } else { // currencies, all types of player XP and dragon XP
                 return AddAchievementPoints(viking, reward.PointTypeID, reward.Amount);
@@ -117,7 +117,7 @@ namespace sodoff.Services {
                     double amountDouble = (reward.Amount ?? 0)/dragonsIDs.Length;
                     int amount = (int)Math.Ceiling(amountDouble);
                     foreach (Guid dragonID in dragonsIDs) {
-                        Dragon dragon = viking.Dragons.FirstOrDefault(e => e.EntityId == dragonID.ToString());
+                        Dragon dragon = viking.Dragons.FirstOrDefault(e => e.EntityId == dragonID);
                         grantedRewards.Add(
                             AddDragonAchievementPoints(dragon, amount)
                         );
@@ -158,7 +158,7 @@ namespace sodoff.Services {
                 CashCurrency = 65536,
                 GameCurrency = 65536,
                 UserGameCurrencyID = 1, // TODO: user's wallet ID?
-                UserID = Guid.Parse(viking.Id)
+                UserID = viking.Uid
             };
         }
     }

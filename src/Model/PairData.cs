@@ -13,9 +13,9 @@ public class PairData {
 
     public int PairId { get; set; }
 
-    public string? UserId { get; set; }
+    public Guid? UserId { get; set; }
 
-    public string? VikingId { get; set; }
+    public int? VikingId { get; set; }
 
     public int? DragonId { get; set; }
 

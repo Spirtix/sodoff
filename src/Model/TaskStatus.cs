@@ -4,7 +4,7 @@
 
         public int MissionId { get; set; }
 
-        public string VikingId { get; set; } = null!;
+        public int VikingId { get; set; }
 
         public virtual Viking? Viking { get; set; }
 
