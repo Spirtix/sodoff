@@ -129,6 +129,7 @@ public class RegistrationController : Controller {
         missionService.SetUpMissions(v, apiKey);
 
         ctx.Vikings.Add(v);
+        ctx.SaveChanges();
 
         if (apiKey == "a1a13a0a-7c6e-4e9b-b0f7-22034d799013") {
             keyValueService.SetPairData(null, v, null, 2017, new Schema.PairData {
@@ -141,7 +142,6 @@ public class RegistrationController : Controller {
                 }
             });
         }
-        ctx.SaveChanges();
 
         roomService.CreateRoom(v, "MyRoomINT");
 
