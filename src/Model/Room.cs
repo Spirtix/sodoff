@@ -8,7 +8,7 @@ public class Room {
 
     public string RoomId { get; set; }
 
-    public string VikingId { get; set; } = null!;
+    public int VikingId { get; set; }
 
     public string? Name { get; set; }
 

@@ -12,7 +12,7 @@ public class Image {
     public int ImageSlot { get; set; }
 
     [Required]
-    public string VikingId { get; set; } = null!;
+    public int VikingId { get; set; }
 
     public string? ImageData { get; set; }
 

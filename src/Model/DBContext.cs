@@ -10,7 +10,6 @@ public class DBContext : DbContext {
     public DbSet<Pair> Pairs { get; set; } = null!;
     public DbSet<PairData> PairData { get; set; } = null!;
     public DbSet<TaskStatus> TaskStatuses { get; set; } = null!;
-    public DbSet<Inventory> Inventories { get; set; } = null!;
     public DbSet<InventoryItem> InventoryItems { get; set; } = null!;
     public DbSet<MissionState> MissionStates { get; set; } = null!;
     public DbSet<Room> Rooms { get; set; } = null!;
@@ -70,10 +69,10 @@ public class DBContext : DbContext {
         builder.Entity<Viking>().HasMany(v => v.PairData)
             .WithOne(e => e.Viking);
 
-        builder.Entity<Viking>().HasOne(v => v.Inventory)
+        builder.Entity<Viking>().HasMany(v => v.Images)
             .WithOne(e => e.Viking);
 
-        builder.Entity<Viking>().HasMany(v => v.Images)
+        builder.Entity<Viking>().HasMany(v => v.TaskStatuses)
             .WithOne(e => e.Viking);
 
         builder.Entity<Viking>().HasOne(v => v.SelectedDragon)
@@ -114,19 +113,14 @@ public class DBContext : DbContext {
             .HasPrincipalKey(e => e.Id);
 
         // Inventory & InventoryItem
-        builder.Entity<Inventory>()
-            .HasOne(i => i.Viking)
-            .WithOne(e => e.Inventory)
-            .HasForeignKey<Inventory>(e => e.VikingId);
-
-        builder.Entity<Inventory>()
-            .HasMany(i => i.InventoryItems)
-            .WithOne(e => e.Inventory);
+        builder.Entity<Viking>()
+            .HasMany(v => v.InventoryItems)
+            .WithOne(i => i.Viking);
 
         builder.Entity<InventoryItem>()
-            .HasOne(e => e.Inventory)
+            .HasOne(e => e.Viking)
             .WithMany(e => e.InventoryItems)
-            .HasForeignKey(e => e.InventoryId);
+            .HasForeignKey(e => e.VikingId);
 
         // Room & RoomItem
         builder.Entity<Room>().HasOne(r => r.Viking)
@@ -149,7 +143,8 @@ public class DBContext : DbContext {
 
         builder.Entity<TaskStatus>()
             .HasOne(t => t.Viking)
-            .WithMany();
+            .WithMany(v => v.TaskStatuses)
+            .HasForeignKey(t => t.VikingId);
 
         builder.Entity<MissionState>().HasOne(m => m.Viking)
             .WithMany(e => e.MissionStates)

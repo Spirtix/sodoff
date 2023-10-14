@@ -76,11 +76,12 @@ public class KeyValueService {
 
     private Model.PairData? CheckOwnerAndGetPairData(ref User? user, ref Viking? viking, ref Dragon dragon, string? userId, int pairId) {
         if (userId != null) {
+            Guid userIdGuid = Guid.Parse(userId);
             // find dragon
-            dragon = viking?.Dragons.FirstOrDefault(e => e.EntityId == userId);
+            dragon = viking?.Dragons.FirstOrDefault(e => e.EntityId == userIdGuid);
 
             // if not dragon then try viking -> check ID
-            if (dragon != null || viking?.Id != userId) {
+            if (dragon != null || viking?.Uid != userIdGuid) {
                 // if not viking and user not set, then try set user from viking
                 if (user is null)
                     user = viking?.User;
@@ -88,7 +89,7 @@ public class KeyValueService {
             }
 
             // if not dragon nor viking then try user -> check ID
-            if (viking != null || user?.Id != userId) user = null;
+            if (viking != null || user?.Id != userIdGuid) user = null;
         }
 
         // NOTE: only one of (dragon, viking, user) can be not null here

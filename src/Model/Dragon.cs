@@ -9,10 +9,9 @@ public class Dragon {
     public int Id { get; set; }
 
     [Required]
-    public string EntityId { get; set; } = null!;
-
+    public Guid EntityId { get; set; }
     [Required]
-    public string VikingId { get; set; } = null!;
+    public int VikingId { get; set; }
 
     public string? RaisedPetData { get; set; }
 

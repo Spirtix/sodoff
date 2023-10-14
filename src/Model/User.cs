@@ -3,7 +3,7 @@
 namespace sodoff.Model;
 public class User {
     [Key]
-    public string Id { get; set; } = null!;
+    public Guid Id { get; set; }
 
     [Required]
     public string Email { get; set; } = null!;

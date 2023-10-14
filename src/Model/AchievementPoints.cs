@@ -2,7 +2,7 @@
 
 namespace sodoff.Model;
 public class AchievementPoints {
-    public string VikingId { get; set; }
+    public int VikingId { get; set; }
 
     public int Type { get; set; }
 

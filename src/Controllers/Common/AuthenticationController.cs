@@ -45,7 +45,7 @@ public class AuthenticationController : Controller {
         // Create session
         Session session = new Session {
             User = user,
-            ApiToken = Guid.NewGuid().ToString(),
+            ApiToken = Guid.NewGuid(),
             CreatedAt = DateTime.UtcNow
         };
 
@@ -55,8 +55,8 @@ public class AuthenticationController : Controller {
         var response = new ParentLoginInfo {
             UserName = user.Username,
             Email = user.Email,
-            ApiToken = session.ApiToken,
-            UserID = user.Id,
+            ApiToken = session.ApiToken.ToString(),
+            UserID = user.Id.ToString(),
             Status = MembershipUserStatus.Success,
             SendActivationReminder = false,
             UnAuthorized = false
@@ -86,12 +86,12 @@ public class AuthenticationController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("AuthenticationWebService.asmx/GetUserInfoByApiToken")]
-    public IActionResult GetUserInfoByApiToken([FromForm] string apiToken, [FromForm] string apiKey) {
+    public IActionResult GetUserInfoByApiToken([FromForm] Guid apiToken, [FromForm] string apiKey) {
         // First check if this is a user session
         User? user = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.User;
         if (user is not null) {
             return Ok(new UserInfo {
-                UserID = user.Id,
+                UserID = user.Id.ToString(),
                 Username = user.Username,
                 MembershipID = "ef84db9-59c6-4950-b8ea-bbc1521f899b", // placeholder
                 FacebookUserID = 0,
@@ -107,7 +107,7 @@ public class AuthenticationController : Controller {
         if (viking is not null)
         {
             return Ok(new UserInfo {
-                UserID = viking.Id,
+                UserID = viking.Uid.ToString(),
                 Username = viking.Name,
                 FacebookUserID = 0,
                 MultiplayerEnabled = (apiKey != "a1a13a0a-7c6e-4e9b-b0f7-22034d799013" && apiKey != "a2a09a0a-7c6e-4e9b-b0f7-22034d799013" && apiKey != "a3a12a0a-7c6e-4e9b-b0f7-22034d799013"),
@@ -124,7 +124,7 @@ public class AuthenticationController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("AuthenticationWebService.asmx/IsValidApiToken_V2")]
-    public IActionResult IsValidApiToken([FromForm] string apiToken) {
+    public IActionResult IsValidApiToken([FromForm] Guid apiToken) {
         User? user = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.User;
         Viking? viking = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.Viking;
         if (user is null && viking is null)
@@ -136,7 +136,7 @@ public class AuthenticationController : Controller {
     [Route("AuthenticationWebService.asmx/LoginChild")]
     [DecryptRequest("childUserID")]
     [EncryptResponse]
-    public IActionResult LoginChild([FromForm] string parentApiToken) {
+    public IActionResult LoginChild([FromForm] Guid parentApiToken) {
         User? user = ctx.Sessions.FirstOrDefault(e => e.ApiToken == parentApiToken)?.User;
         if (user is null) {
             return Unauthorized();
@@ -144,7 +144,7 @@ public class AuthenticationController : Controller {
 
         // Find the viking
         string? childUserID = Request.Form["childUserID"];
-        Viking? viking = ctx.Vikings.FirstOrDefault(e => e.Id == childUserID);
+        Viking? viking = ctx.Vikings.FirstOrDefault(e => e.Uid == Guid.Parse(childUserID));
         if (viking is null) {
             return Unauthorized();
         }
@@ -157,20 +157,20 @@ public class AuthenticationController : Controller {
         // Create session
         Session session = new Session {
             Viking = viking,
-            ApiToken = Guid.NewGuid().ToString(),
+            ApiToken = Guid.NewGuid(),
             CreatedAt = DateTime.UtcNow
         };
         ctx.Sessions.Add(session);
         ctx.SaveChanges();
 
         // Return back the api token
-        return Ok(session.ApiToken);
+        return Ok(session.ApiToken.ToString());
     }
 
     [HttpPost]
     [Produces("application/xml")]
     [Route("AuthenticationWebService.asmx/DeleteAccountNotification")]
-    public IActionResult DeleteAccountNotification([FromForm] string apiToken) {
+    public IActionResult DeleteAccountNotification([FromForm] Guid apiToken) {
         User? user = ctx.Sessions.FirstOrDefault(e => e.ApiToken == apiToken)?.User;
         if (user is null)
             return Ok(MembershipUserStatus.ValidationError);

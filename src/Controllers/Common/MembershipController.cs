@@ -32,7 +32,7 @@ public class MembershipController : Controller {
             return Ok();
 
         ChildList profiles = new ChildList();
-        profiles.strings = user.Vikings.Select(viking => viking.Id + ", " + viking.Name).ToArray();
+        profiles.strings = user.Vikings.Select(viking => viking.Uid + ", " + viking.Name).ToArray();
 
         return Ok(profiles);
     }

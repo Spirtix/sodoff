@@ -23,7 +23,7 @@ public class AchievementController : Controller {
     public IActionResult GetPetAchievementsByUserID([FromForm] string userId) {
         // NOTE: this is public info (for mmo) - no session check
         List<UserAchievementInfo> dragonsAchievement = new List<UserAchievementInfo>();
-        foreach (Dragon dragon in ctx.Dragons.Where(d => d.VikingId == userId)) {
+        foreach (Dragon dragon in ctx.Dragons.Where(d => d.Viking.Uid == Guid.Parse(userId))) {
             dragonsAchievement.Add(
                 achievementService.CreateUserAchievementInfo(dragon.EntityId, dragon.PetXP, AchievementPointTypes.DragonXP)
             );
@@ -64,7 +64,7 @@ public class AchievementController : Controller {
     [Route("AchievementWebService.asmx/SetDragonXP")]  // used by dragonrescue-import
     [VikingSession]
     public IActionResult SetDragonXP(Viking viking, [FromForm] string dragonId, [FromForm] int value) {
-        Dragon? dragon = viking.Dragons.FirstOrDefault(e => e.EntityId == dragonId);
+        Dragon? dragon = viking.Dragons.FirstOrDefault(e => e.EntityId == Guid.Parse(dragonId));
         if (dragon is null) {
             return Conflict("Dragon not found");
         }
@@ -95,7 +95,7 @@ public class AchievementController : Controller {
     [Route("AchievementWebService.asmx/GetAchievementsByUserID")]
     public IActionResult GetAchievementsByUserID([FromForm] string userId) {
         // NOTE: this is public info (for mmo) - no session check
-        Viking? viking = ctx.Vikings.FirstOrDefault(e => e.Id == userId);
+        Viking? viking = ctx.Vikings.FirstOrDefault(e => e.Uid == Guid.Parse(userId));
         if (viking != null) {
             return Ok(new ArrayOfUserAchievementInfo {
                 UserAchievementInfo = new UserAchievementInfo[]{
@@ -107,7 +107,7 @@ public class AchievementController : Controller {
             });
         }
 
-        Dragon? dragon = ctx.Dragons.FirstOrDefault(e => e.EntityId == userId);
+        Dragon? dragon = ctx.Dragons.FirstOrDefault(e => e.EntityId == Guid.Parse(userId));
         if (dragon != null) {
             return Ok(new ArrayOfUserAchievementInfo {
                 UserAchievementInfo = new UserAchievementInfo[]{
@@ -127,8 +127,8 @@ public class AchievementController : Controller {
         ArrayOfUserAchievementInfo arrAchievements = new ArrayOfUserAchievementInfo {
             UserAchievementInfo = new UserAchievementInfo[]{
                 achievementService.CreateUserAchievementInfo(viking, AchievementPointTypes.PlayerXP),
-                achievementService.CreateUserAchievementInfo(viking.Id, 60000, AchievementPointTypes.PlayerFarmingXP), // TODO: placeholder until there is no leveling for farm XP
-                achievementService.CreateUserAchievementInfo(viking.Id, 20000, AchievementPointTypes.PlayerFishingXP), // TODO: placeholder until there is no leveling for fishing XP
+                achievementService.CreateUserAchievementInfo(viking.Uid, 60000, AchievementPointTypes.PlayerFarmingXP), // TODO: placeholder until there is no leveling for farm XP
+                achievementService.CreateUserAchievementInfo(viking.Uid, 20000, AchievementPointTypes.PlayerFishingXP), // TODO: placeholder until there is no leveling for fishing XP
             }
         };
 

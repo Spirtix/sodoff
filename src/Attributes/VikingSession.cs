@@ -22,15 +22,15 @@ public class VikingSession : Attribute, IAsyncActionFilter {
             return;
         }
 
-        Session? session = ctx.Sessions.FirstOrDefault(x => x.ApiToken == context.HttpContext.Request.Form[ApiToken].ToString());
+        Session? session = ctx.Sessions.FirstOrDefault(x => x.ApiToken == Guid.Parse(context.HttpContext.Request.Form[ApiToken].ToString()));
 
         // get viking / user id from session
 
         string? userVikingId = null;
         if (Mode == Modes.VIKING || (Mode == Modes.VIKING_OR_USER && session?.UserId is null) ) {
-            userVikingId = session?.VikingId;
+            userVikingId = session?.VikingId?.ToString();
         } else {
-            userVikingId = session?.UserId;
+            userVikingId = session?.UserId?.ToString();
         }
 
         if (userVikingId is null) {

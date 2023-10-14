@@ -3,11 +3,11 @@
 namespace sodoff.Model;
 public class Session {
     [Key]
-    public string ApiToken { get; set; } = null!;
+    public Guid ApiToken { get; set; }
 
-    public string? UserId { get; set; }
+    public Guid? UserId { get; set; }
 
-    public string? VikingId { get; set; }
+    public int? VikingId { get; set; }
 
     public DateTime? CreatedAt { get; set; }
 
