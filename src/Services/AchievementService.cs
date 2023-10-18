@@ -110,10 +110,11 @@ namespace sodoff.Services {
         public AchievementReward[] ApplyAchievementRewards(Viking viking, AchievementReward[] rewards, Guid[]? dragonsIDs = null) {
             if (rewards is null)
                 return null;
-
             List<AchievementReward> grantedRewards = new List<AchievementReward>();
             foreach (var reward in rewards) {
                 if (dragonsIDs != null && reward.PointTypeID == AchievementPointTypes.DragonXP) {
+                    if (dragonsIDs.Length == 0)
+                        continue;
                     double amountDouble = (reward.Amount ?? 0)/dragonsIDs.Length;
                     int amount = (int)Math.Ceiling(amountDouble);
                     foreach (Guid dragonID in dragonsIDs) {
