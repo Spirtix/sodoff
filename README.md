@@ -94,6 +94,7 @@ Then run School of Dragons.
 - SetKeyValuePair
 - SetKeyValuePairByUserID
 - SetPlayerXP (used by account import tools)
+- SetRaisedPet
 - SetSelectedPet
 - SetUserRoomItemPositions
 - UseInventory
