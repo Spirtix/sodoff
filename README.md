@@ -35,9 +35,11 @@ Then run School of Dragons.
 - roaming in the open world
 - inventory
 - store
-- many missions
+- missions
 - hideouts
 - farms
+- minigames
+- MMO (using sodoff-mmo)
 
 ### Methods
 
@@ -55,7 +57,6 @@ Then run School of Dragons.
 - RegisterParent
 - RegisterChild
 - CreatePet
-- SetRaisedPet
 - SetSelectedPet
 - GetAllActivePetsByuserId
 - GetSelectedRaisedPet
@@ -84,32 +85,38 @@ Then run School of Dragons.
 - AddBattleItems
 - SetAchievementByEntityIDs
 - RedeemMysteryBoxItems
+- SetDragonXP (used by account import tools)
+- SetPlayerXP (used by account import tools)
+- AuthenticateUser
+- GetMMOServerInfoWithZone (uses resource xml as response)
+- GetDefaultNameSuggestion
+- SetCommonInventory
+- GetCommonInventory (V2)
+- GetUserRoomItemPositions
+- SetUserRoomItemPositions
+- GetUserProfileByUserID
+- GetUserProfile
+- GetDetailedChildList
 
 #### Implemented enough (probably)
 - GetRules (doesn't return any rules, probably doesn't need to)
 - GetQuestions (doesn't return all questions, probably doesn't need to)
 - GetSubscriptionInfo (always returns member, with end date 10 years from now)
 - SetTaskState (only the TaskCanBeDone status is supported; might contain a serious problem - see the MissionService class)
-- GetCommonInventory
-- GetUserRoomItemPositions
-- SetUserRoomItemPositions
 - SetUserAchievementAndGetReward (works like SetAchievementAndGetReward)
+- ValidateName
+- GetCommonInventory (V1 -  returns the viking's inventory if it is called with a viking; otherwise returns 8 viking slots)
+- SetUserRoom
+- SetNextItemState
 
 #### Partially implemented
-- GetUserProfileByUserID (a lot is still placeholder)
-- GetUserProfile (a lot is still placeholder)
-- GetDetailedChildList (a lot is still placeholder)
-- ValidateName (needs to do pets, groups, default)
-- GetDefaultNameSuggestion (needs to return unused names)
-- SetCommonInventory (some properties are not retained, doesn't support delete)
-- GetUserRoomList (room categories are not implemented)
-- SetNextItemState (may require more work, we don't know yet)
-- SetUserRoom
+- GetUserRoomList (room categories are not implemented, but it's enough for SoD)
 - SetUserAchievementTask (returns a real reward but still use task placeholder)
-- ProcessRewardedItems (need add cash reward)
-- SellItems (need add cash reward)
+- ProcessRewardedItems (gives gems, but doesn't give gold, gold is not yet implemented)
+- SellItems (gives gems, but doesn't give gold, gold is not yet implemented)
 - ApplyRewards
-- ApplyPayout
+- ApplyPayout (doesn't calculate rewards properly)
+- GetUserAchievements (used by Magic & Mythies)
 
 #### Currently static or stubbed
 - GetAllRanks (needs to be populated with what ranks the user has)
@@ -117,12 +124,14 @@ Then run School of Dragons.
 - GetAllRewardTypeMultiplier (returns a static XML)
 - GetBuddyList (returns an emtpy array)
 - GetRankAttributeData (returns a static XML)
+- GetAllRewardTypeMultiplier (returns a static XML)
 - GetUserMessageQueue (returns an emtpy array)
 - SendMessage (doesn't do anything and returns false)
 - SaveMessage (doesn't do anything and returns false)
-- GetMMOServerInfoWithZone (returns an empty array)
 - GetActiveChallenges (returns an empty array)
 - GetAnnouncementsByUser (returns no announcements, but that might be sufficient)
 - GetAverageRatingForRoom (return max rating)
 - GetUserActivityByUserID (returns an empty array)
 - GetUserGameCurrency (return 65536 gems and 65536 coins)
+- GetGameData (empty response)
+- GetProfileTagAll (returns an empty array - used by Magic & Mythies)
