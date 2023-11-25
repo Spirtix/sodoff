@@ -81,6 +81,9 @@ methods = [
   'ProcessRewardedItems',
   'ApplyPayout',
   'RedeemMysteryBoxItems',
+  'SendRawGameData',
+  'GetGameDataByGame',
+  'GetGameDataByGameForDateRange',
 ]
 
 def routable(path):
