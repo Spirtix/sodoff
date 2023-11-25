@@ -1,11 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using sodoff.Attributes;
 using sodoff.Model;
 using sodoff.Schema;
 using sodoff.Services;
 using sodoff.Util;
 using System;
+using System.Globalization;
 
 namespace sodoff.Controllers.Common;
 public class ContentController : Controller {
@@ -17,8 +17,9 @@ public class ContentController : Controller {
     private RoomService roomService;
     private AchievementService achievementService;
     private InventoryService inventoryService;
+    private GameDataService gameDataService;
     private Random random = new Random();
-    public ContentController(DBContext ctx, KeyValueService keyValueService, ItemService itemService, MissionService missionService, RoomService roomService, AchievementService achievementService, InventoryService inventoryService) {
+    public ContentController(DBContext ctx, KeyValueService keyValueService, ItemService itemService, MissionService missionService, RoomService roomService, AchievementService achievementService, InventoryService inventoryService, GameDataService gameDataService) {
         this.ctx = ctx;
         this.keyValueService = keyValueService;
         this.itemService = itemService;
@@ -26,6 +27,7 @@ public class ContentController : Controller {
         this.roomService = roomService;
         this.achievementService = achievementService;
         this.inventoryService = inventoryService;
+        this.gameDataService = gameDataService;
     }
 
     [HttpPost]
@@ -1330,6 +1332,31 @@ public class ContentController : Controller {
             RewardedItemStatsMap = rewardedBattleItem,
             CommonInventoryResponse = rewardedStandardItem,
         });
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("ContentWebService.asmx/SendRawGameData")]
+    [VikingSession(UseLock = true)]
+    public IActionResult SendRawGameData(Viking viking, [FromForm] int gameId, bool isMultiplayer, int difficulty, int gameLevel, string xmlDocumentData, bool win, bool loss) {
+        return Ok(gameDataService.SaveGameData(viking, gameId, isMultiplayer, difficulty, gameLevel, xmlDocumentData, win, loss));
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("ContentWebService.asmx/GetGameDataByGame")]
+    [VikingSession(UseLock = true)]
+    public IActionResult GetGameDataByGame(Viking viking, [FromForm] int gameId, bool isMultiplayer, int difficulty, int gameLevel, string key, int count, bool AscendingOrder, int score, bool buddyFilter) {
+        return Ok(gameDataService.GetGameData(viking, gameId, isMultiplayer, difficulty, gameLevel, key, count, AscendingOrder, buddyFilter));
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
+    [Route("V2/ContentWebService.asmx/GetGameDataByGameForDateRange")]
+    [VikingSession(UseLock = true)]
+    public IActionResult GetGameDataByGameForDateRange(Viking viking, [FromForm] int gameId, bool isMultiplayer, int difficulty, int gameLevel, string key, int count, bool AscendingOrder, int score, string startDate, string endDate, bool buddyFilter) {
+        CultureInfo usCulture = new CultureInfo("en-US", false);
+        return Ok(gameDataService.GetGameData(viking, gameId, isMultiplayer, difficulty, gameLevel, key, count, AscendingOrder, buddyFilter, DateTime.Parse(startDate, usCulture), DateTime.Parse(endDate, usCulture)));
     }
 
     private static RaisedPetData GetRaisedPetDataFromDragon (Dragon dragon, int? selectedDragonId = null) {

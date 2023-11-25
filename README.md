@@ -104,6 +104,7 @@ Then run School of Dragons.
 - GetQuestions (doesn't return all questions, probably doesn't need to)
 - GetRules (doesn't return any rules, probably doesn't need to)
 - GetSubscriptionInfo (always returns member, with end date 10 years from now)
+- SendRawGameData
 - SetNextItemState
 - SetTaskState (only the TaskCanBeDone status is supported; might contain a serious problem - see the MissionService class)
 - SetUserAchievementAndGetReward (works like SetAchievementAndGetReward)
@@ -113,6 +114,8 @@ Then run School of Dragons.
 #### Partially implemented
 - ApplyPayout (doesn't calculate rewards properly)
 - ApplyRewards
+- GetGameDataByGame (friend tab displays all players - friend filter is not yet implemented because friend lists are not implemented)
+- GetGameDataByGameForDateRange (friend tab displays all players)
 - GetUserAchievements (used by Magic & Mythies)
 - GetUserRoomList (room categories are not implemented, but it's enough for SoD)
 - ProcessRewardedItems (gives gems, but doesn't give gold, gold is not yet implemented)
