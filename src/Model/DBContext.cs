@@ -14,8 +14,9 @@ public class DBContext : DbContext {
     public DbSet<MissionState> MissionStates { get; set; } = null!;
     public DbSet<Room> Rooms { get; set; } = null!;
     public DbSet<RoomItem> RoomItems { get; set; } = null!;
-    public DbSet<GameData> GameData { get; set; } = null;
-    public DbSet<GameDataPair> GameDataPairs { get; set; } = null;
+    public DbSet<GameData> GameData { get; set; } = null!;
+    public DbSet<GameDataPair> GameDataPairs { get; set; } = null!;
+    public DbSet<AchievementPoints> AchievementPoints { get; set; } = null!;
 
     public string DbPath { get; }
 

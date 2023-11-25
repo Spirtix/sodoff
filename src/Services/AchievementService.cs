@@ -9,10 +9,12 @@ namespace sodoff.Services {
     public class AchievementService {
         private AchievementStoreSingleton achievementStore;
         private InventoryService inventoryService;
+        public readonly DBContext ctx;
 
-        public AchievementService(AchievementStoreSingleton achievementStore, InventoryService inventoryService) {
+        public AchievementService(AchievementStoreSingleton achievementStore, InventoryService inventoryService, DBContext ctx) {
             this.achievementStore = achievementStore;
             this.inventoryService = inventoryService;
+            this.ctx = ctx;
         }
 
         public UserAchievementInfo CreateUserAchievementInfo(Guid userId, int? value, AchievementPointTypes type) {
@@ -160,6 +162,30 @@ namespace sodoff.Services {
                 GameCurrency = 65536,
                 UserGameCurrencyID = 1, // TODO: user's wallet ID?
                 UserID = viking.Uid
+            };
+        }
+
+        public UserAchievementInfoResponse GetTopAchievementUsers(UserAchievementInfoRequest request) {
+            // TODO: Type and mode are currently ignored
+            List<UserAchievementInfo> achievementInfo = new();
+            var topAchievers = ctx.AchievementPoints.Where(x => x.Type == request.PointTypeID)
+                .Select(e => new { e.Viking.Uid, e.Viking.Name, e.Value })
+                .Skip((request.Page - 1) * request.Quantity)
+                .Take(request.Quantity)
+                .OrderByDescending(e => e.Value);
+
+            foreach (var a in topAchievers) {
+                achievementInfo.Add(new UserAchievementInfo {
+                    UserID = a.Uid,
+                    UserName = a.Name,
+                    AchievementPointTotal = a.Value,
+                    PointTypeID = (AchievementPointTypes)request.PointTypeID
+                });
+            }
+
+            return new UserAchievementInfoResponse {
+                AchievementInfo = achievementInfo.ToArray(),
+                DateRange = new DateRange()
             };
         }
     }
