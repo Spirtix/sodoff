@@ -84,6 +84,7 @@ methods = [
   'SendRawGameData',
   'GetGameDataByGame',
   'GetGameDataByGameForDateRange',
+  'GetTopAchievementPointUsers',
 ]
 
 def routable(path):

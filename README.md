@@ -116,6 +116,7 @@ Then run School of Dragons.
 - ApplyRewards
 - GetGameDataByGame (friend tab displays all players - friend filter is not yet implemented because friend lists are not implemented)
 - GetGameDataByGameForDateRange (friend tab displays all players)
+- GetTopAchievementPointUsers (ignores type [all, buddy, hall of fame, ...] and mode [overall, monthly, weekly] properties)
 - GetUserAchievements (used by Magic & Mythies)
 - GetUserRoomList (room categories are not implemented, but it's enough for SoD)
 - ProcessRewardedItems (gives gems, but doesn't give gold, gold is not yet implemented)
