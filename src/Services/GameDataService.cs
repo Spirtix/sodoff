@@ -27,7 +27,7 @@ public class GameDataService {
             viking.GameData.Add(gameData);
 
         }
-        gameData.DatePlayed = DateTime.Now;
+        gameData.DatePlayed = DateTime.UtcNow;
         SavePairs(gameData, xmlDocumentData);
         ctx.SaveChanges();
         return true;
@@ -41,16 +41,13 @@ public class GameDataService {
         if (startDate != null && endDate != null)
             query = query.Where(x => x.DatePlayed >= startDate && x.DatePlayed <= endDate.Value.AddMinutes(2));
 
-        selectedData = query.SelectMany(e => e.GameDataPairs)
-            .Where(x => x.Name == key)
-            .Select(e => new GameDataResponse(e.GameData.Viking.Name, e.GameData.Viking.Uid, e.GameData.DatePlayed, e.GameData.Win, e.GameData.Loss, e.Value))
-            .Take(count)
-            .ToList();
+        var query2 = query.SelectMany(e => e.GameDataPairs)
+            .Where(x => x.Name == key);
 
         if (AscendingOrder)
-            selectedData.Sort((a, b) => a.Value.CompareTo(b.Value));
+            selectedData = query2.OrderBy(e => e.Value).Select(e => new GameDataResponse(e.GameData.Viking.Name, e.GameData.Viking.Uid, e.GameData.DatePlayed, e.GameData.Win, e.GameData.Loss, e.Value)).Take(count).ToList();
         else
-            selectedData.Sort((a, b) => b.Value.CompareTo(a.Value));
+            selectedData = query2.OrderByDescending(e => e.Value).Select(e => new GameDataResponse(e.GameData.Viking.Name, e.GameData.Viking.Uid, e.GameData.DatePlayed, e.GameData.Win, e.GameData.Loss, e.Value)).Take(count).ToList();
 
         return GetSummaryFromResponse(viking, isMultiplayer, difficulty, gameLevel, key, selectedData);
     }

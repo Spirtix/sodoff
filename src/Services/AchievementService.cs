@@ -170,9 +170,9 @@ namespace sodoff.Services {
             List<UserAchievementInfo> achievementInfo = new();
             var topAchievers = ctx.AchievementPoints.Where(x => x.Type == request.PointTypeID)
                 .Select(e => new { e.Viking.Uid, e.Viking.Name, e.Value })
+                .OrderByDescending(e => e.Value)
                 .Skip((request.Page - 1) * request.Quantity)
-                .Take(request.Quantity)
-                .OrderByDescending(e => e.Value);
+                .Take(request.Quantity);
 
             foreach (var a in topAchievers) {
                 achievementInfo.Add(new UserAchievementInfo {
