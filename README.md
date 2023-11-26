@@ -58,6 +58,7 @@ Then run School of Dragons.
 - GetCommonInventory (V2)
 - GetDefaultNameSuggestion
 - GetDetailedChildList
+- GetGameData
 - GetImage
 - GetImageByUserId
 - GetItem
@@ -132,7 +133,6 @@ Then run School of Dragons.
 - GetAnnouncementsByUser (returns no announcements, but that might be sufficient)
 - GetAverageRatingForRoom (return max rating)
 - GetBuddyList (returns an emtpy array)
-- GetGameData (empty response)
 - GetProfileTagAll (returns an empty array - used by Magic & Mythies)
 - GetRankAttributeData (returns a static XML)
 - GetUserActivityByUserID (returns an empty array)
