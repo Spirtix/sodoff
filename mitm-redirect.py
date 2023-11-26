@@ -82,6 +82,7 @@ methods = [
   'ApplyPayout',
   'RedeemMysteryBoxItems',
   'SendRawGameData',
+  'GetGameData',
   'GetGameDataByGame',
   'GetGameDataByGameForDateRange',
   'GetTopAchievementPointUsers',

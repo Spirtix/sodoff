@@ -949,9 +949,10 @@ public class ContentController : Controller {
     [HttpPost]
     [Produces("application/xml")]
     [Route("V2/ContentWebService.asmx/GetGameData")]
-    public IActionResult GetGameData() {
-        // TODO: This is a placeholder
-        return Ok(new GetGameDataResponse());
+    [VikingSession]
+    public IActionResult GetGameData(Viking viking, [FromForm] string gameDataRequest) {
+        GetGameDataRequest request = XmlUtil.DeserializeXml<GetGameDataRequest>(gameDataRequest);
+        return Ok(gameDataService.GetGameDataForPlayer(viking, request));
     }
     
     [HttpPost]
