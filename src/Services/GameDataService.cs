@@ -55,6 +55,37 @@ public class GameDataService {
         return GetSummaryFromResponse(viking, isMultiplayer, difficulty, gameLevel, key, selectedData);
     }
 
+    public GetGameDataResponse GetGameDataForPlayer(Viking viking, GetGameDataRequest request) {
+        GetGameDataResponse response = new();
+        if (request.GameID is null)
+            return response;
+
+        var dbData = viking.GameData.Where(x => x.GameId == request.GameID)
+            .SelectMany(e => e.GameDataPairs)
+            .Select(x => new { x.Name, x.Value, x.GameData.DatePlayed, x.GameData.Win, x.GameData.Loss, x.GameData.IsMultiplayer, x.GameData.Difficulty, x.GameData.GameLevel });
+        foreach (var data in dbData) {
+            response.GameDataSummaryList.Add(new GameDataSummary {
+                GameID = (int)request.GameID,
+                IsMultiplayer = data.IsMultiplayer,
+                Difficulty = data.Difficulty,
+                GameLevel = data.GameLevel,
+                Key = data.Name,
+                GameDataList = new Schema.GameData[] {
+                    new Schema.GameData {
+                        IsMember = true,
+                        Value = data.Value,
+                        DatePlayed = data.DatePlayed,
+                        Win = data.Win ? 1 : 0,
+                        Loss = data.Loss ? 1 : 0,
+                        UserID = viking.Uid
+                    }
+                }
+            });
+        }
+
+        return response;
+    }
+
     private GameDataSummary GetSummaryFromResponse(Viking viking, bool isMultiplayer, int difficulty, int gameLevel, string key, List<GameDataResponse> selectedData) {
         GameDataSummary gameData = new();
         gameData.IsMultiplayer = isMultiplayer;
@@ -87,7 +118,7 @@ public class GameDataService {
             GameDataPair? dbPair = gameData.GameDataPairs.FirstOrDefault(x => x.Name == pair.Name);
             if (dbPair == null)
                 gameData.GameDataPairs.Add(pair);
-            else
+            else if (dbPair.Value <= pair.Value)
                 dbPair.Value = pair.Value;
         }
     }
