@@ -39,7 +39,7 @@ public class GameDataService {
         IQueryable<Model.GameData> query = ctx.GameData.Where(x => x.GameId == gameId && x.IsMultiplayer == false && x.Difficulty == difficulty && x.GameLevel == gameLevel);
 
         if (startDate != null && endDate != null)
-            query = query.Where(x => x.DatePlayed >= startDate && x.DatePlayed <= endDate.Value.AddMinutes(2));
+            query = query.Where(x => x.DatePlayed >= startDate.Value.ToUniversalTime() && x.DatePlayed <= endDate.Value.AddMinutes(2).ToUniversalTime());
 
         var query2 = query.SelectMany(e => e.GameDataPairs)
             .Where(x => x.Name == key);
