@@ -90,6 +90,22 @@ namespace sodoff.Services {
             return items[itemId].Relationship?.FirstOrDefault(e => e.Type == "Bundle") != null;
         }
 
+        public bool IsGemBundle(int itemId, out int value) {
+            value = 0;
+            ItemAttribute? attribute = items[itemId].Attribute?.FirstOrDefault(e => e.Key == "VCashRedemptionValue");
+            if (attribute != null && int.TryParse(attribute.Value, out int result))
+                value = result;
+            return attribute != null;
+        }
+
+        public bool IsCoinBundle(int itemId, out int value) {
+            value = 0;
+            ItemAttribute? attribute = items[itemId].Attribute?.FirstOrDefault(e => e.Key == "CoinRedemptionValue");
+            if (attribute != null && int.TryParse(attribute.Value, out int result))
+                value = result;
+            return attribute != null;
+        }
+
         public bool CheckItemGender(ItemData itemData, Gender gender) {
             string? itemGender = itemData.Attribute?.FirstOrDefault(e => e.Key == "Gender")?.Value;
             if (itemGender != null) {

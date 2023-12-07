@@ -749,8 +749,19 @@ public class ContentController : Controller {
         PurchaseStoreItemRequest request = XmlUtil.DeserializeXml<PurchaseStoreItemRequest>(purchaseItemRequest);
         List<CommonInventoryResponseItem> items = new List<CommonInventoryResponseItem>();
         Gender gender = XmlUtil.DeserializeXml<AvatarData>(viking.AvatarSerialized).GenderType;
+        bool success = true;
         for (int i = 0; i < request.Items.Length; i++) {
             int itemId = request.Items[i];
+            ItemData item = itemService.GetItem(itemId);
+            UserGameCurrency currency = achievementService.GetUserCurrency(viking);
+            int coinCost = (int)Math.Round(0.8 * item.Cost); // 20% discount for members
+            int gemCost = (int)Math.Round(0.8 * item.CashCost);
+            if (currency.GameCurrency - coinCost < 0 && currency.CashCurrency - gemCost < 0) {
+                success = false;
+                break;
+            }
+            achievementService.AddAchievementPoints(viking, AchievementPointTypes.GameCurrency, -coinCost);
+            achievementService.AddAchievementPoints(viking, AchievementPointTypes.CashCurrency, -gemCost);
             if (request.AddMysteryBoxToInventory) {
                 // force add boxes as item (without "opening")
                 items.Add(inventoryService.AddItemToInventoryAndGetResponse(viking, itemId, 1));
@@ -762,7 +773,22 @@ public class ContentController : Controller {
                     for (int j=0; j<quantity; ++j)
                         items.Add(inventoryService.AddItemToInventoryAndGetResponse(viking, reward.ItemId, 1));
                 }
-            } else {
+            } else if (itemService.IsGemBundle(itemId, out int gems)) {
+                achievementService.AddAchievementPoints(viking, AchievementPointTypes.CashCurrency, gems);
+                items.Add(new CommonInventoryResponseItem {
+                    CommonInventoryID = 0,
+                    ItemID = itemId,
+                    Quantity = 0
+                });
+            } else if (itemService.IsCoinBundle(itemId, out int coins)) {
+                achievementService.AddAchievementPoints(viking, AchievementPointTypes.GameCurrency, coins);
+                items.Add(new CommonInventoryResponseItem {
+                    CommonInventoryID = 0,
+                    ItemID = itemId,
+                    Quantity = 0
+                });
+            }
+            else {
                 // check for mystery box ... open if need
                 itemService.CheckAndOpenBox(itemId, gender, out itemId, out int quantity);
                 for (int j=0; j<quantity; ++j) {
@@ -774,7 +800,7 @@ public class ContentController : Controller {
         }
 
         CommonInventoryResponse response = new CommonInventoryResponse {
-            Success = true,
+            Success = success,
             CommonInventoryIDs = items.ToArray(),
             UserGameCurrency = achievementService.GetUserCurrency(viking)
         };
@@ -789,7 +815,16 @@ public class ContentController : Controller {
         int[] itemIdArr = XmlUtil.DeserializeXml<int[]>(itemIDArrayXml);
         List<CommonInventoryResponseItem> items = new List<CommonInventoryResponseItem>();
         Gender gender = XmlUtil.DeserializeXml<AvatarData>(viking.AvatarSerialized).GenderType;
+        bool success = true;
         for (int i = 0; i < itemIdArr.Length; i++) {
+            ItemData item = itemService.GetItem(itemIdArr[i]);
+            UserGameCurrency currency = achievementService.GetUserCurrency(viking);
+            if (currency.GameCurrency - item.Cost < 0 && currency.CashCurrency - item.CashCost < 0) {
+                success = false;
+                break;
+            }
+            achievementService.AddAchievementPoints(viking, AchievementPointTypes.GameCurrency, -item.Cost);
+            achievementService.AddAchievementPoints(viking, AchievementPointTypes.CashCurrency, -item.CashCost);
             itemService.CheckAndOpenBox(itemIdArr[i], gender, out int itemId, out int quantity);
             for (int j=0; j<quantity; ++j) {
                 items.Add(inventoryService.AddItemToInventoryAndGetResponse(viking, itemId, 1));
@@ -799,7 +834,7 @@ public class ContentController : Controller {
         }
 
         CommonInventoryResponse response = new CommonInventoryResponse {
-            Success = true,
+            Success = success,
             CommonInventoryIDs = items.ToArray(),
             UserGameCurrency = achievementService.GetUserCurrency(viking)
         };

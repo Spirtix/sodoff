@@ -167,14 +167,16 @@ public class ProfileController : Controller {
             }
         };
 
+        UserGameCurrency currency = achievementService.GetUserCurrency(viking);
+
         return new UserProfileData {
             ID = viking.Uid.ToString(),
             AvatarInfo = avatar,
             AchievementCount = 0,
             MythieCount = 0,
             AnswerData = new UserAnswerData { UserID = viking.Uid.ToString() },
-            GameCurrency = 65536,
-            CashCurrency = 65536,
+            GameCurrency = currency.GameCurrency,
+            CashCurrency = currency.CashCurrency,
             ActivityCount = 0,
             BuddyCount = 0,
             UserGradeData = new UserGrade { UserGradeID = 0 }
