@@ -819,17 +819,36 @@ public class ContentController : Controller {
         for (int i = 0; i < itemIdArr.Length; i++) {
             ItemData item = itemService.GetItem(itemIdArr[i]);
             UserGameCurrency currency = achievementService.GetUserCurrency(viking);
-            if (currency.GameCurrency - item.Cost < 0 && currency.CashCurrency - item.CashCost < 0) {
+            int coinCost = (int)Math.Round(0.8 * item.Cost); // 20% discount for members
+            int gemCost = (int)Math.Round(0.8 * item.CashCost);
+            if (currency.GameCurrency - coinCost < 0 && currency.CashCurrency - gemCost < 0) {
                 success = false;
                 break;
             }
-            achievementService.AddAchievementPoints(viking, AchievementPointTypes.GameCurrency, -item.Cost);
-            achievementService.AddAchievementPoints(viking, AchievementPointTypes.CashCurrency, -item.CashCost);
-            itemService.CheckAndOpenBox(itemIdArr[i], gender, out int itemId, out int quantity);
-            for (int j=0; j<quantity; ++j) {
-                items.Add(inventoryService.AddItemToInventoryAndGetResponse(viking, itemId, 1));
-                // NOTE: The quantity of purchased items is always 0 and the items are instead duplicated in both the request and the response.
-                //       Call AddItemToInventoryAndGetResponse with Quantity == 1 we get response with quantity == 0.
+            achievementService.AddAchievementPoints(viking, AchievementPointTypes.GameCurrency, -coinCost);
+            achievementService.AddAchievementPoints(viking, AchievementPointTypes.CashCurrency, -gemCost);
+            if (itemService.IsGemBundle(itemIdArr[i], out int gems)) {
+                achievementService.AddAchievementPoints(viking, AchievementPointTypes.CashCurrency, gems);
+                items.Add(new CommonInventoryResponseItem {
+                    CommonInventoryID = 0,
+                    ItemID = itemIdArr[i],
+                    Quantity = 0
+                });
+            } else if (itemService.IsCoinBundle(itemIdArr[i], out int coins)) {
+                achievementService.AddAchievementPoints(viking, AchievementPointTypes.GameCurrency, coins);
+                items.Add(new CommonInventoryResponseItem {
+                    CommonInventoryID = 0,
+                    ItemID = itemIdArr[i],
+                    Quantity = 0
+                });
+            }
+            else {
+                itemService.CheckAndOpenBox(itemIdArr[i], gender, out int itemId, out int quantity);
+                for (int j=0; j<quantity; ++j) {
+                    items.Add(inventoryService.AddItemToInventoryAndGetResponse(viking, itemId, 1));
+                    // NOTE: The quantity of purchased items is always 0 and the items are instead duplicated in both the request and the response.
+                    //       Call AddItemToInventoryAndGetResponse with Quantity == 1 we get response with quantity == 0.
+                }
             }
         }
 
