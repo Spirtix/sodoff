@@ -754,8 +754,8 @@ public class ContentController : Controller {
             int itemId = request.Items[i];
             ItemData item = itemService.GetItem(itemId);
             UserGameCurrency currency = achievementService.GetUserCurrency(viking);
-            int coinCost = (int)Math.Round(0.8 * item.Cost); // 20% discount for members
-            int gemCost = (int)Math.Round(0.8 * item.CashCost);
+            int coinCost = (int)Math.Round(item.FinalDiscoutModifier * item.Cost);
+            int gemCost = (int)Math.Round(item.FinalDiscoutModifier * item.CashCost);
             if (currency.GameCurrency - coinCost < 0 && currency.CashCurrency - gemCost < 0) {
                 success = false;
                 break;
@@ -819,8 +819,8 @@ public class ContentController : Controller {
         for (int i = 0; i < itemIdArr.Length; i++) {
             ItemData item = itemService.GetItem(itemIdArr[i]);
             UserGameCurrency currency = achievementService.GetUserCurrency(viking);
-            int coinCost = (int)Math.Round(0.8 * item.Cost); // 20% discount for members
-            int gemCost = (int)Math.Round(0.8 * item.CashCost);
+            int coinCost = (int)Math.Round(item.FinalDiscoutModifier * item.Cost);
+            int gemCost = (int)Math.Round(item.FinalDiscoutModifier * item.CashCost);
             if (currency.GameCurrency - coinCost < 0 && currency.CashCurrency - gemCost < 0) {
                 success = false;
                 break;

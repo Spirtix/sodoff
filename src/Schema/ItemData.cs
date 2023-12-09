@@ -97,4 +97,17 @@ public class ItemData
 
 	[XmlElement(ElementName = "p", IsNullable = true)]
 	public int? Points;
+
+	[XmlIgnore]
+	public float NormalDiscoutModifier;
+
+	[XmlIgnore]
+	public float MemberDiscountModifier;
+
+	[XmlIgnore]
+	public float FinalDiscoutModifier {
+		get {
+			return Math.Min(1f, (1f - NormalDiscoutModifier) * (1f - MemberDiscountModifier));
+        }
+	}
 }
