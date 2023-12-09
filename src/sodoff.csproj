@@ -25,6 +25,7 @@
     <None Remove="Resources\achievementstasks.xml" />
     <None Remove="Resources\defaultmissionlist.xml" />
     <None Remove="Resources\defaultmissionlistv1.xml" />
+    <None Remove="Resources\defaultmissionlistmam.xml" />
   </ItemGroup>
   <ItemGroup>
     <None Update="Resources\childlist.xml">
@@ -87,6 +88,9 @@
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </EmbeddedResource>
     <EmbeddedResource Include="Resources\defaultmissionlistv1.xml">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </EmbeddedResource>
+    <EmbeddedResource Include="Resources\defaultmissionlistmam.xml">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </EmbeddedResource>
   </ItemGroup>
