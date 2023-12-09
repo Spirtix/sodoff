@@ -27,4 +27,8 @@ public class ClientVersion {
     public static bool Use2021SoDTutorial(string apiKey) {
         return !IsOldSoD(apiKey);
     }
+
+    public static bool IsMaM(string apiKey) {
+        return apiKey == "e20150cc-ff70-435c-90fd-341dc9161cc3";
+    }
 }
