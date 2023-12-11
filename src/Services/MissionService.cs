@@ -1,5 +1,6 @@
 ﻿using sodoff.Model;
 using sodoff.Schema;
+using sodoff.Util;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading.Tasks;
 
@@ -17,19 +18,23 @@ public class MissionService {
     }
 
     public Mission GetMissionWithProgress(int missionId, int userId, string apiKey) {
-        Mission mission;
-        if (missionId == 999 && apiKey == "a3a12a0a-7c6e-4e9b-b0f7-22034d799013") { // TODO This is not a pretty solution with hard-coded values.
-            mission = missionStore.GetMission(10999);
+        Mission mission = null;
+
+        if (missionId == 999) { // TODO This is not a pretty solution with hard-coded values.
+            if (ClientVersion.Use2013SoDTutorial(apiKey)) {
+                mission = missionStore.GetMission(30999);
+            } else if (ClientVersion.Use2016SoDTutorial(apiKey)) {
+                mission = missionStore.GetMission(20999);
+            } else if (ClientVersion.Use2019SoDTutorial(apiKey)) {
+                mission = missionStore.GetMission(10999);
+            }
             mission.MissionID = 999;
-        } else if (missionId == 999 && apiKey == "a2a09a0a-7c6e-4e9b-b0f7-22034d799013") {
-            mission = missionStore.GetMission(20999);
-            mission.MissionID = 999;
-        } else if (missionId == 999 && apiKey == "a1a13a0a-7c6e-4e9b-b0f7-22034d799013") {
-            mission = missionStore.GetMission(30999);
-            mission.MissionID = 999;
-        } else {
+        }
+
+        if (mission is null) {
             mission = missionStore.GetMission(missionId);
         }
+
         UpdateMissionRecursive(mission, userId);
         return mission;
     }

@@ -273,6 +273,53 @@ public class ContentController : Controller {
 
     [HttpPost]
     [Produces("application/xml")]
+    [Route("ContentWebService.asmx/CreateRaisedPet")] // used by SoD 1.6
+    [VikingSession]
+    public RaisedPetData? CreateRaisedPet(Viking viking, int petTypeID) {
+        // Update the RaisedPetData with the info
+        String dragonId = Guid.NewGuid().ToString();
+        
+        var raisedPetData = new RaisedPetData();
+        raisedPetData.IsPetCreated = true;
+        raisedPetData.PetTypeID = petTypeID;
+        raisedPetData.RaisedPetID = 0; // Initially make zero, so the db auto-fills
+        raisedPetData.EntityID = Guid.Parse(dragonId);
+        raisedPetData.Name = string.Concat("Dragon-", dragonId.AsSpan(0, 8)); // Start off with a random name
+        raisedPetData.IsSelected = false; // The api returns false, not sure why
+        raisedPetData.CreateDate = new DateTime(DateTime.Now.Ticks);
+        raisedPetData.UpdateDate = new DateTime(DateTime.Now.Ticks);
+        raisedPetData.GrowthState = new RaisedPetGrowthState { Name = "BABY" };
+        int imageSlot = (viking.Images.Select(i => i.ImageSlot).DefaultIfEmpty(-1).Max() + 1);
+        raisedPetData.ImagePosition = imageSlot;
+        // NOTE: Placing an egg into a hatchery slot calls CreatePet, but doesn't SetImage.
+        // NOTE: We need to force create an image slot because hatching multiple eggs at once would create dragons with the same slot
+        Image image = new Image {
+            ImageType = "EggColor", // NOTE: The game doesn't seem to use anything other than EggColor.
+            ImageSlot = imageSlot,
+            Viking = viking,
+        };
+        // Save the dragon in the db
+        Dragon dragon = new Dragon {
+            EntityId = Guid.NewGuid(),
+            Viking = viking,
+            RaisedPetData = XmlUtil.SerializeXml(raisedPetData),
+        };
+
+        ctx.Dragons.Add(dragon);
+        ctx.Images.Add(image);
+
+        if (petTypeID != 2) {
+            // Minisaurs should not be set as active pet
+            viking.SelectedDragon = dragon;
+            ctx.Update(viking);
+        }
+        ctx.SaveChanges();
+
+        return GetRaisedPetDataFromDragon(dragon);
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
     [Route("V2/ContentWebService.asmx/CreatePet")]
     [VikingSession]
     public IActionResult CreatePet(Viking viking, [FromForm] string request) {
