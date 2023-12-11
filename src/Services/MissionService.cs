@@ -28,17 +28,17 @@ public class MissionService {
             } else if (ClientVersion.Use2019SoDTutorial(apiKey)) {
                 mission = missionStore.GetMission(10999);
             }
-            mission.MissionID = 999;
         } else if (missionId == 1044 && ClientVersion.IsMaM(apiKey)) {
             mission = missionStore.GetMission(11044);
-            mission.MissionID = 1044;
         } else if (missionId == 1074 && ClientVersion.IsMaM(apiKey)) {
             mission = missionStore.GetMission(11074);
-            mission.MissionID = 1074;
         }
 
         if (mission is null) {
             mission = missionStore.GetMission(missionId);
+        } else {
+            // mission use overwrite variant ... so we need fix MissionID
+            mission.MissionID = missionId;
         }
 
         UpdateMissionRecursive(mission, userId);
