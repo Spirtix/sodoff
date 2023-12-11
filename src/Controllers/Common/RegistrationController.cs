@@ -131,7 +131,7 @@ public class RegistrationController : Controller {
         ctx.Vikings.Add(v);
         ctx.SaveChanges();
 
-        if (apiKey == "a1a13a0a-7c6e-4e9b-b0f7-22034d799013") {
+        if (ClientVersion.Use2013SoDTutorial(apiKey)) {
             keyValueService.SetPairData(null, v, null, 2017, new Schema.PairData {
                 Pairs = new Schema.Pair[]{
                     new Schema.Pair {

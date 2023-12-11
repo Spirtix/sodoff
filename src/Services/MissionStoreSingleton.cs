@@ -30,14 +30,14 @@ public class MissionStoreSingleton {
     }
 
     public int[] GetActiveMissions(string apiKey) {
-        if (apiKey == "a1a13a0a-7c6e-4e9b-b0f7-22034d799013") {
+        if (ClientVersion.Use2013SoDTutorial(apiKey)) {
             return activeMissionsV1;
         }
         return activeMissions;
     }
 
     public int[] GetUpcomingMissions(string apiKey) {
-        if (apiKey == "a1a13a0a-7c6e-4e9b-b0f7-22034d799013") {
+        if (ClientVersion.Use2013SoDTutorial(apiKey)) {
             return upcomingMissionsV1;
         }
         return upcomingMissions;

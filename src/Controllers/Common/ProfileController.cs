@@ -116,7 +116,7 @@ public class ProfileController : Controller {
             avatarData.Id = viking.Id;
         }
 
-        if (avatarData != null && (apiKey == "a3a12a0a-7c6e-4e9b-b0f7-22034d799013")) {
+        if (avatarData != null && ClientVersion.Use2019SoDTutorial(apiKey)) {
             if (avatarData.Part.FirstOrDefault(e => e.PartType == "Sword") is null) {
                 var extraParts = new AvatarDataPart[] {
                     new AvatarDataPart {
@@ -139,7 +139,7 @@ public class ProfileController : Controller {
                 ParentUserID = viking.UserId.ToString(),
                 Username = viking.Name,
                 FirstName = viking.Name,
-                MultiplayerEnabled = (apiKey != "a1a13a0a-7c6e-4e9b-b0f7-22034d799013" && apiKey != "a2a09a0a-7c6e-4e9b-b0f7-22034d799013" && apiKey != "a3a12a0a-7c6e-4e9b-b0f7-22034d799013"),
+                MultiplayerEnabled = !ClientVersion.IsOldSoD(apiKey),
                 Locale = "en-US", // placeholder
                 GenderID = Gender.Male, // placeholder
                 OpenChatEnabled = true,
