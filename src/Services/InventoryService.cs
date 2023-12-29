@@ -26,8 +26,8 @@ namespace sodoff.Services {
                     ItemId = itemID,
                     Quantity = 0
                 };
-                if (itemData.ItemStatsMap is null && itemData.PossibleStatsMap != null) {
-                    // battle item without default stats
+                if (itemData.ItemStatsMap is null && itemData.PossibleStatsMap != null && !itemService.ItemHasCategory(itemData, 651)) {
+                    // battle item without default stats, but not blueprints
                     Random random = new Random();
                     int itemTier = random.Next(1, 3);
                     item.StatsSerialized = XmlUtil.SerializeXml(new ItemStatsMap {
