@@ -210,6 +210,42 @@ public class ContentController : Controller {
 
     [HttpPost]
     [Produces("application/xml")]
+    [Route("ContentWebService.asmx/SetCommonInventoryAttribute")]
+    [VikingSession]
+    public IActionResult SetCommonInventoryAttribute(Viking viking, [FromForm] int commonInventoryID, [FromForm] string pairxml) {
+        InventoryItem? item = viking.InventoryItems.FirstOrDefault(e => e.Id == commonInventoryID);
+
+        List<Schema.Pair> itemAttributes;
+        if (item.AttributesSerialized != null) {
+            itemAttributes = XmlUtil.DeserializeXml<Schema.PairData>(item.AttributesSerialized).Pairs.ToList();
+        } else {
+            itemAttributes = new List<Schema.Pair>();
+        }
+
+        Schema.PairData newItemAttributes = XmlUtil.DeserializeXml<Schema.PairData>(pairxml);
+        foreach (var p in newItemAttributes.Pairs) {
+            var pairItem = itemAttributes.FirstOrDefault(e => e.PairKey == p.PairKey);
+            if (pairItem != null){
+                pairItem.PairValue = p.PairValue;
+            } else {
+                itemAttributes.Add(p);
+            }
+        }
+
+        if (itemAttributes.Count > 0) {
+            item.AttributesSerialized = XmlUtil.SerializeXml(
+                new Schema.PairData{
+                    Pairs = itemAttributes.ToArray()
+                }
+            );
+        }
+
+        ctx.SaveChanges();
+        return Ok(true);
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
     [Route("ContentWebService.asmx/UseInventory")]
     [VikingSession]
     public IActionResult UseInventory(Viking viking, [FromForm] int userInventoryId, [FromForm] int numberOfUses) {

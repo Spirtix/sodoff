@@ -136,6 +136,9 @@ namespace sodoff.Services {
                     uid.ItemStats = itemData.ItemStatsMap?.ItemStats;
                     uid.ItemTier = itemData.ItemStatsMap?.ItemTier;
                 }
+                if (item.AttributesSerialized != null) {
+                    uid.UserItemAttributes = XmlUtil.DeserializeXml<Schema.PairData>(item.AttributesSerialized);
+                }
                 userItemData.Add(uid);
             }
 
@@ -149,7 +152,7 @@ namespace sodoff.Services {
             ItemData itemData = itemService.GetItem(itemId);
             if (itemData.PossibleStatsMap != null) // dragons tactics (battle) items
                 return true;
-            if (itemService.ItemHasCategory(itemData, 541)) // farm expansion
+            if (itemService.ItemHasCategory(itemData, new int[] {541, 657})) // farm expansion or customizable items
                 return true;
             return false;
         }

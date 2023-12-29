@@ -8,8 +8,10 @@ namespace sodoff.Model {
         public int ItemId { get; set; }
 
         public int VikingId { get; set; }
-        
+
         public string? StatsSerialized { get; set; }
+
+        public string? AttributesSerialized { get; set; }
 
         public virtual Viking Viking { get; set; } = null!;
 
