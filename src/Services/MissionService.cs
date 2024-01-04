@@ -74,7 +74,10 @@ public class MissionService {
                             task.Payload = null;
                             task.Completed = false;
                         }
-                        missionState.MissionStatus = MissionStatus.Upcoming;
+                        if (missionStore.GetActiveMissions(apiKey).Contains(missionId))
+                            missionState.MissionStatus = MissionStatus.Active;
+                        else
+                            missionState.MissionStatus = MissionStatus.Upcoming;
                     } else {
                         missionState.MissionStatus = MissionStatus.Completed;
                     }

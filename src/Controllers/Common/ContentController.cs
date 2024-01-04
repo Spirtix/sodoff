@@ -759,7 +759,7 @@ public class ContentController : Controller {
     [Produces("application/xml")]
     [Route("V2/ContentWebService.asmx/SetTaskState")]
     [VikingSession]
-    public IActionResult SetTaskState(Viking viking, [FromForm] Guid userId, [FromForm] int missionId, [FromForm] int taskId, [FromForm] bool completed, [FromForm] string xmlPayload, [FromForm] string apiKey) {
+    public IActionResult SetTaskState(Viking viking, [FromForm] Guid userId, [FromForm] int missionId, [FromForm] int taskId, [FromForm] bool completed, [FromForm] string xmlPayload, [FromForm] string commonInventoryRequestXml, [FromForm] string apiKey) {
         if (viking.Uid != userId)
             return Unauthorized("Can't set not owned task");
 
@@ -769,6 +769,12 @@ public class ContentController : Controller {
             Success = true,
             Status = SetTaskStateStatus.TaskCanBeDone,
         };
+
+        if (commonInventoryRequestXml.Length > 44) { // avoid process inventory on empty xml request,
+                                                     // NOTE: client do not set this on empty string when no inventory change request, but send <?xml version="1.0" encoding="utf-8"?>
+            SetCommonInventory(viking, commonInventoryRequestXml);
+            taskResult.CommonInvRes = new CommonInventoryResponse { Success = true };
+        }
 
         if (results.Count > 0)
             taskResult.MissionsCompleted = results.ToArray();
