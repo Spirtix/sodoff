@@ -54,7 +54,7 @@ public class AuthenticationController : Controller {
 
         var response = new ParentLoginInfo {
             UserName = user.Username,
-            Email = user.Email,
+            //Email = user.Email, /* disabled to avoid put email in client debug logs */
             ApiToken = session.ApiToken.ToString(),
             UserID = user.Id.ToString(),
             Status = MembershipUserStatus.Success,
