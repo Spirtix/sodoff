@@ -104,6 +104,33 @@ public class ContentController : Controller {
 
     [HttpPost]
     [Produces("application/xml")]
+    [Route("/V2/ContentWebService.asmx/SetDisplayName")]
+    [VikingSession]
+    public IActionResult SetDisplayName(Viking viking, [FromForm] string request) {
+        string newName = XmlUtil.DeserializeXml<SetDisplayNameRequest>(request).DisplayName;
+
+        if (String.IsNullOrWhiteSpace(newName) || ctx.Vikings.Count(e => e.Name == newName) > 0) {
+            return Ok(new SetAvatarResult {
+                Success = false,
+                StatusCode = AvatarValidationResult.AvatarDisplayNameInvalid
+            });
+        }
+
+        viking.Name = newName;
+        AvatarData avatarData = XmlUtil.DeserializeXml<AvatarData>(viking.AvatarSerialized);
+        avatarData.DisplayName = newName;
+        viking.AvatarSerialized = XmlUtil.SerializeXml(avatarData);
+        ctx.SaveChanges();
+
+        return Ok(new SetAvatarResult {
+            Success = true,
+            DisplayName = viking.Name,
+            StatusCode = AvatarValidationResult.Valid
+        });
+    }
+
+    [HttpPost]
+    [Produces("application/xml")]
     [Route("ContentWebService.asmx/GetKeyValuePair")]
     [Route("ContentWebService.asmx/GetKeyValuePairByUserID")]
     [VikingSession(Mode=VikingSession.Modes.VIKING_OR_USER, UseLock=false)]
