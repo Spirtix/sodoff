@@ -6,6 +6,7 @@ public class AssetServerConfig {
     public AssetServerMode Mode { get; set; }
     public string ProviderURL { get; set; } = string.Empty;
     public bool SubstituteMissingLocalAssets { get; set; } = false;
+    public bool UseCache { get; set; } = true;
 }
 
 public enum AssetServerMode {
