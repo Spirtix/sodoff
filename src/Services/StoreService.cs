@@ -6,23 +6,31 @@ namespace sodoff.Services;
 public class StoreService {
     Dictionary<int, ItemsInStoreData> stores = new();
 
-    public StoreService(ItemService itemService) {
+    public StoreService(ItemService itemService, ModdingService moddingService) {
         StoreData[] storeArray = XmlUtil.DeserializeXml<StoreData[]>(XmlUtil.ReadResourceXmlString("store"));
         foreach (var s in storeArray) {
-            var newStore = new ItemsInStoreData {
+            ItemsInStoreData newStore = new() {
                 ID = s.Id,
                 StoreName = s.StoreName,
                 Description = s.Description,
-                Items = new ItemData[s.ItemId.Length],
                 SalesAtStore = s.SalesAtStore,
                 PopularItems = s.PopularItems
             };
+            List<ItemData> itemsList = new();
             IEnumerable<ItemsInStoreDataSale>? memberSales = s.SalesAtStore?.Where(x => x.ForMembers == true);
             IEnumerable<ItemsInStoreDataSale>? normalSales = s.SalesAtStore?.Where(x => x.ForMembers == false || x.ForMembers == null);
             for (int i = 0; i < s.ItemId.Length; ++i) {
-                newStore.Items[i] = itemService.GetItem(s.ItemId[i]);
-                UpdateItemSaleModifier(newStore.Items[i], memberSales, normalSales);
+                ItemData item = itemService.GetItem(s.ItemId[i]);
+                if (item is null) continue; // skip removed items
+                itemsList.Add(item);
+                UpdateItemSaleModifier(item, memberSales, normalSales);
             }
+            foreach (int itemID in moddingService.GetStoreItem(s.Id)) {
+                ItemData item = itemService.GetItem(itemID);
+                itemsList.Add(item);
+                UpdateItemSaleModifier(item, memberSales, normalSales);
+            }
+            newStore.Items = itemsList.ToArray();
             stores.Add(s.Id, newStore);
         }
     }

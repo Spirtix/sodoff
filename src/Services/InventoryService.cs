@@ -120,6 +120,7 @@ namespace sodoff.Services {
             foreach (InventoryItem item in items) {
                 if (item.Quantity == 0) continue; // Don't include an item that the viking doesn't have
                 ItemData itemData = itemService.GetItem(item.ItemId);
+                if (itemData is null) continue; // Don't include items removed from item database
                 UserItemData uid = new UserItemData {
                     UserInventoryID = item.Id,
                     ItemID = itemData.ItemID,

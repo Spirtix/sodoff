@@ -11,17 +11,23 @@ namespace sodoff.Services {
         int[] itemsRewardForDT;
         Random random = new Random();
 
-        public ItemService() {
+        public ItemService(ModdingService moddingService) {
             ServerItemArray itemArray = XmlUtil.DeserializeXml<ServerItemArray>(XmlUtil.ReadResourceXmlString("items"));
             foreach (var item in itemArray.ItemDataArray) {
                 items.Add(item.ItemID, item);
             }
 
             itemsRewardForDT = XmlUtil.DeserializeXml<int[]>(XmlUtil.ReadResourceXmlString("dtrewards"));
+
+            moddingService.UpdateItems(ref items);
         }
 
         public ItemData GetItem(int id) {
-            return items[id];
+            try {
+                return items[id];
+            } catch {
+                return null;
+            }
         }
 
         public ItemData GetDTReward(Gender gender) {
