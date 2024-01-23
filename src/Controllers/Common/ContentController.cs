@@ -831,11 +831,31 @@ public class ContentController : Controller {
         }
         --invItem.Quantity;
 
-        // get real item id (from box) add it to inventory
+        // get real item id (from box)
         Gender gender = XmlUtil.DeserializeXml<AvatarData>(viking.AvatarSerialized).GenderType;
         itemService.OpenBox(req.ItemID, gender, out int newItemId, out int quantity);
         ItemData newItem = itemService.GetItem(newItemId);
-        CommonInventoryResponseItem newInvItem = inventoryService.AddItemToInventoryAndGetResponse(viking, newItem.ItemID, quantity);
+        CommonInventoryResponseItem newInvItem;
+
+        // check if it is gems or coins bundle
+        if (itemService.IsGemBundle(newItem.ItemID, out int gems)) {
+            achievementService.AddAchievementPoints(viking, AchievementPointTypes.CashCurrency, gems);
+            newInvItem = new CommonInventoryResponseItem {
+                CommonInventoryID = 0,
+                ItemID = newItem.ItemID,
+                Quantity = 1
+            };
+        } else if (itemService.IsCoinBundle(newItem.ItemID, out int coins)) {
+            achievementService.AddAchievementPoints(viking, AchievementPointTypes.GameCurrency, coins);
+            newInvItem = new CommonInventoryResponseItem {
+                CommonInventoryID = 0,
+                ItemID = newItem.ItemID,
+                Quantity = 1
+            };
+        // if not, add item to inventory
+        } else {
+            newInvItem = inventoryService.AddItemToInventoryAndGetResponse(viking, newItem.ItemID, quantity);
+        }
 
         // prepare list of possible rewards for response
         List<ItemData> prizeItems = new List<ItemData>();
@@ -853,7 +873,8 @@ public class ContentController : Controller {
                 ItemID = req.ItemID,
                 PrizeItemID = newItem.ItemID,
                 MysteryPrizeItems = prizeItems,
-            }}
+            }},
+            UserGameCurrency = achievementService.GetUserCurrency(viking)
         });
     }
 

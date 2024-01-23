@@ -353,6 +353,32 @@
       </AR>
    </AchievementsIdInfo>
    <AchievementsIdInfo>
+      <!-- battle event fail -->
+      <AID>203528</AID>
+      <AR>
+         <p>6</p>
+         <a>1</a>
+         <t>1</t>
+         <r>2251</r>
+         <ii>12343</ii>
+      </AR>
+     <AR>
+         <p>12</p>
+         <a>50</a>
+         <t>1</t>
+         <r>7683</r>
+         <ii>0</ii>
+      </AR>
+     <AR>
+         <p>8</p>
+         <a>50</a>
+         <t>1</t>
+         <r>7683</r>
+         <ii>0</ii>
+      </AR>
+    </AchievementsIdInfo>
+   <AchievementsIdInfo>
+      <!-- battle event gold -->
       <AID>203529</AID>
       <AR>
          <p>12</p>
@@ -391,6 +417,7 @@
       </AR>
    </AchievementsIdInfo>
    <AchievementsIdInfo>
+      <!-- battle event silver -->
       <AID>203530</AID>
       <AR>
          <p>12</p>
@@ -415,6 +442,7 @@
       </AR>
    </AchievementsIdInfo>
    <AchievementsIdInfo>
+       <!-- battle event bronze -->
       <AID>203531</AID>
       <AR>
          <p>12</p>
